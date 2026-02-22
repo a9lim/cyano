@@ -27,7 +27,7 @@
         // Calvin
         rubp: 1,
         // Krebs
-        acetylCoA: 0, citrate: 0, isocitrate: 0, akg: 0, succoa: 0, succinate: 0, fumarate: 0, malate: 0, oaa: 1
+        acetylCoA: 0, citrate: 0, isocitrate: 0, akg: 0, succoa: 0, succinate: 0, fumarate: 0, malate: 0, oaa: 2
     };
     simState.store = store;
 
@@ -79,7 +79,7 @@
 
     function resetSimulation() {
         Object.keys(store).forEach(k => store[k] = 0);
-        store.atp = 5; store.glucose = 1; store.oaa = 1; store.rubp = 1;
+        store.atp = 5; store.glucose = 1; store.oaa = 2; store.rubp = 1;
         store.totalAtpAdp = 20; store.totalNad = 20; store.totalNadp = 20;
         krebsTurns = 0; calvinTurns = 0; glycRuns = 0;
         dom.krebsTurn.textContent = '0'; dom.calvinTurn.textContent = '0'; dom.glycolysisRun.textContent = '0';
@@ -191,43 +191,49 @@
         }
         else if (idx === 5) { // GAPDH (Reversible)
             if (store.g3p > 0 && store.nadh < store.totalNad) { // Glycolytic: NAD+ dependent
-                store.g3p--; store.bpg++; store.nadh++;
-                showActiveStep('GAPDH', 'G3P + NAD⁺ → 1,3-BPG', { nadh: 1 });
+                let t = Math.min(store.g3p, store.totalNad - store.nadh, 2);
+                store.g3p -= t; store.bpg += t; store.nadh += t;
+                showActiveStep('GAPDH', 'G3P + NAD⁺ → 1,3-BPG', { nadh: t });
                 return true;
             } else if (store.bpg > 0 && store.nadph > 0) { // Calvin/Gluconeo: NADPH dependent
-                store.bpg--; store.g3p++; store.nadph--;
-                showActiveStep('GAPDH (Reverse)', '1,3-BPG + NADPH → G3P', { nadphConsume: 1 });
+                let t = Math.min(store.bpg, store.nadph, 2);
+                store.bpg -= t; store.g3p += t; store.nadph -= t;
+                showActiveStep('GAPDH (Reverse)', '1,3-BPG + NADPH → G3P', { nadphConsume: t });
                 return true;
             }
         }
         else if (idx === 6) { // PGK (Reversible)
             if (store.bpg > 0 && store.atp < store.totalAtpAdp) {
-                store.bpg--; store.pga3++; store.atp++;
-                showActiveStep('PGK', '1,3-BPG + ADP → 3-PGA + ATP', { atp: 1 });
+                let t = Math.min(store.bpg, store.totalAtpAdp - store.atp, 2);
+                store.bpg -= t; store.pga3 += t; store.atp += t;
+                showActiveStep('PGK', '1,3-BPG + ADP → 3-PGA + ATP', { atp: t });
                 return true;
             } else if (store.pga3 > 0 && store.atp >= 1) {
-                store.pga3--; store.bpg++; store.atp--;
-                showActiveStep('PGK (Reverse)', '3-PGA + ATP → 1,3-BPG', { atpConsume: 1 });
+                let t = Math.min(store.pga3, store.atp, 2);
+                store.pga3 -= t; store.bpg += t; store.atp -= t;
+                showActiveStep('PGK (Reverse)', '3-PGA + ATP → 1,3-BPG', { atpConsume: t });
                 return true;
             }
         }
         else if (idx === 7) { // PGM (Reversible)
-            if (store.pga3 > 0) { store.pga3--; store.pga2++; showActiveStep('PGM', '3-PGA → 2-PGA', null); return true; }
-            else if (store.pga2 > 0) { store.pga2--; store.pga3++; showActiveStep('PGM (Reverse)', '2-PGA → 3-PGA', null); return true; }
+            if (store.pga3 > 0) { let t = Math.min(store.pga3, 2); store.pga3 -= t; store.pga2 += t; showActiveStep('PGM', '3-PGA → 2-PGA', null); return true; }
+            else if (store.pga2 > 0) { let t = Math.min(store.pga2, 2); store.pga2 -= t; store.pga3 += t; showActiveStep('PGM (Reverse)', '2-PGA → 3-PGA', null); return true; }
         }
         else if (idx === 8) { // Enolase (Reversible)
-            if (store.pga2 > 0) { store.pga2--; store.pep++; showActiveStep('Enolase', '2-PGA → PEP', null); return true; }
-            else if (store.pep > 0) { store.pep--; store.pga2++; showActiveStep('Enolase (Reverse)', 'PEP → 2-PGA', null); return true; }
+            if (store.pga2 > 0) { let t = Math.min(store.pga2, 2); store.pga2 -= t; store.pep += t; showActiveStep('Enolase', '2-PGA → PEP', null); return true; }
+            else if (store.pep > 0) { let t = Math.min(store.pep, 2); store.pep -= t; store.pga2 += t; showActiveStep('Enolase (Reverse)', 'PEP → 2-PGA', null); return true; }
         }
         else if (idx === 9) { // PK / PEPCK
             if (store.pep > 0 && store.atp < store.totalAtpAdp) {
-                store.pep--; store.pyruvate++; store.atp++;
-                glycRuns++; dom.glycolysisRun.textContent = glycRuns;
-                showActiveStep('PK / PEPCK', 'PEP + ADP → Pyruvate + ATP', { atp: 1 });
+                let t = Math.min(store.pep, store.totalAtpAdp - store.atp, 2);
+                store.pep -= t; store.pyruvate += t; store.atp += t;
+                glycRuns += t; dom.glycolysisRun.textContent = glycRuns;
+                showActiveStep('PK / PEPCK', 'PEP + ADP → Pyruvate + ATP', { atp: t });
                 return true;
             } else if (store.pyruvate > 0 && store.atp >= 1) {
-                store.pyruvate--; store.pep++; store.atp--;
-                showActiveStep('PK / PEPCK (Reverse)', 'Pyruvate + ATP → PEP', { atpConsume: 1 });
+                let t = Math.min(store.pyruvate, store.atp, 2);
+                store.pyruvate -= t; store.pep += t; store.atp -= t;
+                showActiveStep('PK / PEPCK (Reverse)', 'Pyruvate + ATP → PEP', { atpConsume: t });
                 return true;
             }
         }
@@ -300,8 +306,9 @@
     function advancePDH() {
         if (!simState.oxygenAvailable) return false;
         if (store.pyruvate > 0 && store.nadh < store.totalNad) {
-            store.pyruvate--; store.acetylCoA++; store.nadh++;
-            showActiveStep('Pyruvate DH', 'Pyruvate → Acetyl-CoA + NADH', { nadh: 1 });
+            let t = Math.min(store.pyruvate, store.totalNad - store.nadh, 2);
+            store.pyruvate -= t; store.acetylCoA += t; store.nadh += t;
+            showActiveStep('Pyruvate DH', 'Pyruvate → Acetyl-CoA + NADH', { nadh: t });
             return true;
         }
         return false;
@@ -312,74 +319,71 @@
 
         if (idx === 0) { // Citrate Synthase
             if (store.acetylCoA > 0 && store.oaa > 0) {
-                store.acetylCoA--; store.oaa--; store.citrate++;
+                let t = Math.min(store.acetylCoA, store.oaa, 2);
+                store.acetylCoA -= t; store.oaa -= t; store.citrate += t;
                 showActiveStep('Citrate Synthase', 'Acetyl-CoA + OAA → Citrate', null);
-                return true;
-            } else if (store.citrate > 0) {
-                store.citrate--; store.acetylCoA++; store.oaa++;
-                showActiveStep('Citrate Synthase (Reverse)', 'Citrate → Acetyl-CoA + OAA', null);
                 return true;
             }
         }
         else if (idx === 1) { // Aconitase
-            if (store.citrate > 0) { store.citrate--; store.isocitrate++; showActiveStep('Aconitase', 'Citrate → Isocitrate', null); return true; }
+            if (store.citrate > 0) { let t = Math.min(store.citrate, 2); store.citrate -= t; store.isocitrate += t; showActiveStep('Aconitase', 'Citrate → Isocitrate', null); return true; }
         }
         else if (idx === 2) { // IDH
             if (store.isocitrate > 0 && store.nadh < store.totalNad) {
-                store.isocitrate--; store.akg++; store.nadh++;
-                showActiveStep('Isocitrate DH', 'Isocitrate → α-KG + NADH', { nadh: 1 });
-                return true;
-            } else if (store.akg > 0 && store.nadh > 0) {
-                store.akg--; store.isocitrate++; store.nadh--;
-                showActiveStep('Isocitrate DH (Reverse)', 'α-KG + NADH → Isocitrate', { nadhConsume: 1 });
+                let t = Math.min(store.isocitrate, store.totalNad - store.nadh, 2);
+                store.isocitrate -= t; store.akg += t; store.nadh += t;
+                showActiveStep('Isocitrate DH', 'Isocitrate → α-KG + NADH', { nadh: t });
                 return true;
             }
         }
         else if (idx === 3) { // KGDH
             if (store.akg > 0 && store.nadh < store.totalNad) {
-                store.akg--; store.succoa++; store.nadh++;
-                showActiveStep('α-KGDH', 'α-KG → Succinyl-CoA + NADH', { nadh: 1 });
-                return true;
-            } else if (store.succoa > 0 && store.nadh > 0) {
-                store.succoa--; store.akg++; store.nadh--;
-                showActiveStep('α-KGDH (Reverse)', 'Succinyl-CoA + NADH → α-KG', { nadhConsume: 1 });
+                let t = Math.min(store.akg, store.totalNad - store.nadh, 2);
+                store.akg -= t; store.succoa += t; store.nadh += t;
+                showActiveStep('α-KGDH', 'α-KG → Succinyl-CoA + NADH', { nadh: t });
                 return true;
             }
         }
         else if (idx === 4) { // Succinyl-CoA Synthetase
             if (store.succoa > 0) {
-                store.succoa--; store.succinate++; store.gtp++;
-                showActiveStep('SCS', 'Succinyl-CoA → Succinate + GTP', { gtp: 1 });
+                let t = Math.min(store.succoa, 2);
+                store.succoa -= t; store.succinate += t; store.gtp += t;
+                showActiveStep('SCS', 'Succinyl-CoA → Succinate + GTP', { gtp: t });
                 return true;
             } else if (store.succinate > 0 && store.gtp > 0) {
-                store.succinate--; store.succoa++; store.gtp--;
-                showActiveStep('SCS (Reverse)', 'Succinate + GTP → Succinyl-CoA', { gtpConsume: 1 });
+                let t = Math.min(store.succinate, store.gtp, 2);
+                store.succinate -= t; store.succoa += t; store.gtp -= t;
+                showActiveStep('SCS (Reverse)', 'Succinate + GTP → Succinyl-CoA', { gtpConsume: t });
                 return true;
             }
         }
         else if (idx === 5) { // SDH
             if (store.succinate > 0) {
-                store.succinate--; store.fumarate++; store.fadh2++;
-                showActiveStep('SDH', 'Succinate → Fumarate + FADH₂', { fadh2: 1 });
+                let t = Math.min(store.succinate, 2);
+                store.succinate -= t; store.fumarate += t; store.fadh2 += t;
+                showActiveStep('SDH', 'Succinate → Fumarate + FADH₂', { fadh2: t });
                 return true;
             } else if (store.fumarate > 0 && store.fadh2 > 0) {
-                store.fumarate--; store.succinate++; store.fadh2--;
+                let t = Math.min(store.fumarate, store.fadh2, 2);
+                store.fumarate -= t; store.succinate += t; store.fadh2 -= t;
                 showActiveStep('SDH (Reverse)', 'Fumarate + FADH₂ → Succinate', null);
                 return true;
             }
         }
         else if (idx === 6) { // Fumarase
-            if (store.fumarate > 0) { store.fumarate--; store.malate++; showActiveStep('Fumarase', 'Fumarate → Malate', null); return true; }
+            if (store.fumarate > 0) { let t = Math.min(store.fumarate, 2); store.fumarate -= t; store.malate += t; showActiveStep('Fumarase', 'Fumarate → Malate', null); return true; }
         }
         else if (idx === 7) { // MDH
             if (store.malate > 0 && store.nadh < store.totalNad) {
-                store.malate--; store.oaa++; store.nadh++;
-                krebsTurns++; dom.krebsTurn.textContent = krebsTurns;
-                showActiveStep('Malate DH', 'Malate → OAA + NADH', { nadh: 1 });
+                let t = Math.min(store.malate, store.totalNad - store.nadh, 2);
+                store.malate -= t; store.oaa += t; store.nadh += t;
+                krebsTurns += t; dom.krebsTurn.textContent = krebsTurns;
+                showActiveStep('Malate DH', 'Malate → OAA + NADH', { nadh: t });
                 return true;
             } else if (store.oaa > 0 && store.nadh > 0) {
-                store.oaa--; store.malate++; store.nadh--;
-                showActiveStep('Malate DH (Reverse)', 'OAA + NADH → Malate', { nadhConsume: 1 });
+                let t = Math.min(store.oaa, store.nadh, 2);
+                store.oaa -= t; store.malate += t; store.nadh -= t;
+                showActiveStep('Malate DH (Reverse)', 'OAA + NADH → Malate', { nadhConsume: t });
                 return true;
             }
         }
@@ -388,7 +392,8 @@
 
     function advanceFermentation() {
         if (simState.oxygenAvailable || store.pyruvate < 1 || store.nadh < 1) return false;
-        store.pyruvate--; store.nadh--; store.ethanol++;
+        let t = Math.min(store.pyruvate, store.nadh, 2);
+        store.pyruvate -= t; store.nadh -= t; store.ethanol += t;
         simState.fermenting = true;
         showActiveStep('PDC/ADH', 'Pyruvate + NADH → Ethanol + NAD⁺', null);
         return true;

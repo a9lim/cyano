@@ -303,7 +303,7 @@ const EnzymeStyles = {
   },
 
   /* ==== Shared Metabolite Node ==== */
-  drawMetaboliteNode(ctx, cx, cy, label, active, lightMode) {
+  drawMetaboliteNode(ctx, cx, cy, label, active, lightMode, show2x) {
     const w = Math.max(ctx.measureText(label).width + 14, 30);
     const h = 16;
     this.pill(ctx, cx, cy, w, h);
@@ -325,6 +325,11 @@ const EnzymeStyles = {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(label, cx, cy);
+    if (show2x) {
+      ctx.font = '700 7px JetBrains Mono, monospace';
+      ctx.fillStyle = lightMode ? '#ea580c' : '#fdba74';
+      ctx.fillText('2x', cx, cy + 14);
+    }
   },
 
   /** Small enzyme label badge drawn on an arrow midpoint */
@@ -482,7 +487,14 @@ const EnzymeStyles = {
     // Line
     ctx.beginPath();
     ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
-    ctx.strokeStyle = color1 || '#e2e8f0';
+    if (color1 && color2 && color1 !== color2) {
+      const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+      grad.addColorStop(0, color2);
+      grad.addColorStop(1, color1);
+      ctx.strokeStyle = grad;
+    } else {
+      ctx.strokeStyle = color1 || '#e2e8f0';
+    }
     ctx.globalAlpha = alpha != null ? alpha : 0.5;
     ctx.lineWidth = 1.4;
     ctx.stroke(); ctx.globalAlpha = 1;
