@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyanobacteria Metabolic Pathway Simulator</title>
+  <meta name="description"
+    content="Interactive simulation of cyanobacterial metabolism — Krebs cycle, electron transport chain, Calvin cycle, glycolysis, oxidative phosphorylation, and photosynthetic light-dependent reactions.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <header>
+    <h1>Cyanobacteria Metabolic Pathways</h1>
+    <p class="subtitle">Calvin Cycle · Glycolysis · Krebs Cycle · Electron Transport Chain</p>
+  </header>
+
+  <main>
+    <div id="sim-container">
+      <canvas id="sim-canvas"></canvas>
+      <div id="zoom-indicator">100%</div>
+    </div>
+
+    <aside id="dashboard">
+      <!-- Pathways & ETC Toggles -->
+      <div class="panel controls-panel">
+        <h2>Pathways & Chains</h2>
+        <!-- Metabolic Pathways -->
+        <div class="control-row">
+          <label for="glyc-toggle">Glycolysis</label>
+          <div class="toggle-wrapper">
+            <input type="checkbox" id="glyc-toggle" checked>
+            <label for="glyc-toggle" class="toggle-switch toggle-glyc"><span class="toggle-knob"></span></label>
+          </div>
+        </div>
+        <div class="control-row">
+          <label for="ppp-toggle">PPP</label>
+          <div class="toggle-wrapper">
+            <input type="checkbox" id="ppp-toggle" checked>
+            <label for="ppp-toggle" class="toggle-switch toggle-ppp"><span class="toggle-knob"></span></label>
+          </div>
+        </div>
+        <div class="control-row">
+          <label for="calvin-toggle">Calvin Cycle</label>
+          <div class="toggle-wrapper">
+            <input type="checkbox" id="calvin-toggle" checked>
+            <label for="calvin-toggle" class="toggle-switch toggle-calvin"><span class="toggle-knob"></span></label>
+          </div>
+        </div>
+        <div class="control-row">
+          <label for="krebs-toggle">Krebs Cycle</label>
+          <div class="toggle-wrapper">
+            <input type="checkbox" id="krebs-toggle" checked>
+            <label for="krebs-toggle" class="toggle-switch toggle-krebs"><span class="toggle-knob"></span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="panel controls-panel">
+        <h2>Controls</h2>
+        <div class="control-row">
+          <label for="light-toggle">Sunlight</label>
+          <div class="toggle-wrapper">
+            <input type="checkbox" id="light-toggle" checked>
+            <label for="light-toggle" class="toggle-switch">
+              <span class="toggle-knob"></span>
+              <span class="toggle-icon sun-icon">☀</span>
+              <span class="toggle-icon moon-icon">☾</span>
+            </label>
+          </div>
+        </div>
+        <div class="control-row">
+          <label for="oxygen-toggle">Ambient O₂</label>
+          <div class="toggle-wrapper">
+            <input type="checkbox" id="oxygen-toggle" checked>
+            <label for="oxygen-toggle" class="toggle-switch toggle-o2">
+              <span class="toggle-knob"></span>
+            </label>
+          </div>
+        </div>
+        <div class="control-row" style="flex-direction:column;align-items:flex-start;gap:2px">
+          <small style="color:var(--text-muted);font-size:0.75rem">💡 Click enzyme labels on the canvas to advance
+            reactions</small>
+        </div>
+        <button id="reset-btn">Reset Simulation</button>
+      </div>
+
+      <!-- Metabolite Counters -->
+      <div class="panel metabolites-panel">
+        <h2>Metabolites & Redox</h2>
+        <div class="metabolite-grid">
+          <div class="metabolite-card ratio-card atp">
+            <div class="metabolite-label">ATP / ADP</div>
+            <div class="ratio-bar-container">
+              <div class="ratio-bar" id="atp-bar"></div>
+            </div>
+            <div class="metabolite-value" id="atp-ratio">0%</div>
+          </div>
+          <div class="metabolite-card ratio-card nadh">
+            <div class="metabolite-label">NADH / NAD⁺</div>
+            <div class="ratio-bar-container">
+              <div class="ratio-bar" id="nadh-bar"></div>
+            </div>
+            <div class="metabolite-value" id="nadh-ratio">0%</div>
+          </div>
+          <div class="metabolite-card ratio-card nadph">
+            <div class="metabolite-label">NADPH / NADP⁺</div>
+            <div class="ratio-bar-container">
+              <div class="ratio-bar" id="nadph-bar"></div>
+            </div>
+            <div class="metabolite-value" id="nadph-ratio">0%</div>
+          </div>
+          <div class="metabolite-card fadh2">
+            <div class="metabolite-label">FADH₂</div>
+            <div class="metabolite-value" id="fadh2-count">0</div>
+          </div>
+          <div class="metabolite-card gtp">
+            <div class="metabolite-label">GTP</div>
+            <div class="metabolite-value" id="gtp-count">0</div>
+          </div>
+          <div class="metabolite-card pyruvate-card">
+            <div class="metabolite-label">Pyruvate</div>
+            <div class="metabolite-value" id="pyruvate-count">0</div>
+          </div>
+          <div class="metabolite-card glucose-card">
+            <div class="metabolite-label">Glucose</div>
+            <div class="metabolite-value" id="glucose-count">0</div>
+          </div>
+          <div class="metabolite-card g3p-card">
+            <div class="metabolite-label">G3P</div>
+            <div class="metabolite-value" id="g3p-count">0</div>
+          </div>
+          <div class="metabolite-card co2-card">
+            <div class="metabolite-label">CO₂ Fixed</div>
+            <div class="metabolite-value" id="co2-fixed">0</div>
+          </div>
+          <div class="metabolite-card ethanol-card">
+            <div class="metabolite-label">Ethanol</div>
+            <div class="metabolite-value" id="ethanol-count">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bioenergetics -->
+      <div class="panel stats-panel">
+        <h2>Bioenergetics</h2>
+        <div class="stat-row">
+          <span class="stat-label">H⁺ Gradient (ΔpH)</span>
+          <span class="stat-value" id="proton-gradient">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">H⁺ Pumped (total)</span>
+          <span class="stat-value" id="protons-pumped">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">O₂ Produced</span>
+          <span class="stat-value" id="o2-produced">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">O₂ Consumed</span>
+          <span class="stat-value" id="o2-consumed">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">H₂O Split</span>
+          <span class="stat-value" id="h2o-split">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Electrons Transferred</span>
+          <span class="stat-value" id="electrons-transferred">0</span>
+        </div>
+      </div>
+
+      <!-- Active Step -->
+      <div class="panel krebs-panel">
+        <h2>Active Step</h2>
+        <div id="krebs-step-info">
+          <div class="step-enzyme" id="krebs-enzyme">—</div>
+          <div class="step-reaction" id="krebs-reaction">—</div>
+          <div class="step-yield" id="krebs-yield">—</div>
+        </div>
+        <div class="krebs-turn-counter">
+          Krebs Turns: <span id="krebs-turn">0</span> · Calvin Turns: <span id="calvin-turn">0</span>
+        </div>
+        <div class="krebs-turn-counter">
+          Glycolysis Runs: <span id="glycolysis-run">0</span>
+        </div>
+      </div>
+
+      <!-- Pathway Net Equations -->
+      <div class="panel pathway-panel">
+        <h2>Pathway Net Equations</h2>
+        <div class="pathway-eq glycolysis-eq">
+          <span class="pw-name">Glycolysis</span>
+          <span class="pw-eq">Glc → 2 Pyr + 2 ATP + 2 NADH</span>
+        </div>
+        <div class="pathway-eq calvin-eq">
+          <span class="pw-name">Calvin</span>
+          <span class="pw-eq">3 CO₂ + 9 ATP + 6 NADPH → G3P</span>
+        </div>
+        <div class="pathway-eq krebs-eq">
+          <span class="pw-name">Krebs</span>
+          <span class="pw-eq">AcCoA → 2 CO₂ + 3 NADH + FADH₂ + GTP</span>
+        </div>
+        <div class="pathway-eq ppp-eq">
+          <span class="pw-name">PPP</span>
+          <span class="pw-eq">G6P → R5P + 2 NADPH + CO₂</span>
+        </div>
+        <div class="pathway-eq etc-eq">
+          <span class="pw-name">Oxid. Phos.</span>
+          <span class="pw-eq">NADH + H⁺ + ½O₂ → NAD⁺ + H₂O (10 H⁺)</span>
+        </div>
+        <div class="pathway-eq etc-eq">
+          <span class="pw-name">Linear Light</span>
+          <span class="pw-eq">H₂O + NADP⁺ → ½O₂ + NADPH + H⁺ (6 H⁺)</span>
+        </div>
+        <div class="pathway-eq etc-eq">
+          <span class="pw-name">Cyclic Light</span>
+          <span class="pw-eq">Fd(red) + PQ → Fd(ox) + PQH₂ (4 H⁺)</span>
+        </div>
+        <div class="pathway-eq ferment-eq">
+          <span class="pw-name">Fermentation</span>
+          <span class="pw-eq">Pyr + NADH → EtOH + CO₂ + NAD⁺</span>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div class="panel legend-panel">
+        <h2>Legend</h2>
+        <div class="legend-item"><span class="legend-dot respiratory"></span> Respiratory chain</div>
+        <div class="legend-item"><span class="legend-dot photosynthetic"></span> Photosynthetic chain</div>
+        <div class="legend-item"><span class="legend-dot shared"></span> Shared complex</div>
+        <div class="legend-item"><span class="legend-dot calvin-dot"></span> Calvin cycle</div>
+        <div class="legend-item"><span class="legend-dot glycolysis-dot"></span> Glycolysis</div>
+        <div class="legend-item"><span class="legend-dot cyclic-dot"></span> Cyclic e⁻ flow</div>
+        <div class="legend-item"><span class="legend-dot ppp-dot"></span> Pentose phosphate</div>
+        <div class="legend-item"><span class="legend-dot br-dot"></span> Bacteriorhodopsin</div>
+        <div class="legend-item"><span class="legend-dot ferment-dot"></span> Fermentation</div>
+        <div class="legend-item"><span class="legend-dot electron"></span> Electron particle</div>
+        <div class="legend-item"><span class="legend-dot proton"></span> H⁺ proton</div>
+      </div>
+    </aside>
+  </main>
+
+  <script src="enzymes.js"></script>
+  <script src="renderer.js"></script>
+  <script src="sim.js"></script>
+</body>
+
+</html>
