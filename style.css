@@ -325,6 +325,16 @@ main {
   box-shadow: 0 0 6px rgba(34, 211, 238, 0.4);
 }
 
+body.light-mode #oxygen-toggle:checked+.toggle-o2 {
+  background: linear-gradient(135deg, #22d3ee, #0891b2);
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+body.light-mode #oxygen-toggle:checked+.toggle-o2 .toggle-knob {
+  background: #fff;
+  box-shadow: 0 0 6px rgba(34, 211, 238, 0.6);
+}
+
 /* Pathway toggles */
 .toggle-glyc {
   background: #1e293b;
@@ -339,6 +349,16 @@ main {
   transform: translateX(24px);
   background: var(--accent-orange);
   box-shadow: 0 0 6px rgba(251, 146, 60, 0.4);
+}
+
+body.light-mode #glyc-toggle:checked+.toggle-glyc {
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+  border-color: rgba(234, 88, 12, 0.4);
+}
+
+body.light-mode #glyc-toggle:checked+.toggle-glyc .toggle-knob {
+  background: #fff;
+  box-shadow: 0 0 6px rgba(251, 146, 60, 0.6);
 }
 
 .toggle-ppp {
@@ -356,6 +376,16 @@ main {
   box-shadow: 0 0 6px rgba(129, 140, 248, 0.4);
 }
 
+body.light-mode #ppp-toggle:checked+.toggle-ppp {
+  background: linear-gradient(135deg, #818cf8, #4f46e5);
+  border-color: rgba(79, 70, 229, 0.4);
+}
+
+body.light-mode #ppp-toggle:checked+.toggle-ppp .toggle-knob {
+  background: #fff;
+  box-shadow: 0 0 6px rgba(129, 140, 248, 0.6);
+}
+
 .toggle-calvin {
   background: #1e293b;
 }
@@ -371,6 +401,16 @@ main {
   box-shadow: 0 0 6px rgba(52, 211, 153, 0.4);
 }
 
+body.light-mode #calvin-toggle:checked+.toggle-calvin {
+  background: linear-gradient(135deg, #34d399, #059669);
+  border-color: rgba(5, 150, 105, 0.4);
+}
+
+body.light-mode #calvin-toggle:checked+.toggle-calvin .toggle-knob {
+  background: #fff;
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.6);
+}
+
 .toggle-krebs {
   background: #1e293b;
 }
@@ -384,6 +424,16 @@ main {
   transform: translateX(24px);
   background: #38bdf8;
   box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+}
+
+body.light-mode #krebs-toggle:checked+.toggle-krebs {
+  background: linear-gradient(135deg, #38bdf8, #0284c7);
+  border-color: rgba(2, 132, 199, 0.4);
+}
+
+body.light-mode #krebs-toggle:checked+.toggle-krebs .toggle-knob {
+  background: #fff;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
 }
 
 /* ETC toggles */
@@ -402,6 +452,16 @@ main {
   box-shadow: 0 0 6px rgba(34, 211, 238, 0.4);
 }
 
+body.light-mode #oxphos-toggle:checked+.toggle-oxphos {
+  background: linear-gradient(135deg, #22d3ee, #0891b2);
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+body.light-mode #oxphos-toggle:checked+.toggle-oxphos .toggle-knob {
+  background: #fff;
+  box-shadow: 0 0 6px rgba(34, 211, 238, 0.6);
+}
+
 .toggle-linear {
   background: #1e293b;
 }
@@ -417,6 +477,16 @@ main {
   box-shadow: 0 0 6px rgba(251, 191, 36, 0.4);
 }
 
+body.light-mode #linear-light-toggle:checked+.toggle-linear {
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  border-color: rgba(217, 119, 6, 0.4);
+}
+
+body.light-mode #linear-light-toggle:checked+.toggle-linear .toggle-knob {
+  background: #fff;
+  box-shadow: 0 0 6px rgba(251, 191, 36, 0.6);
+}
+
 .toggle-cyclic {
   background: #1e293b;
 }
@@ -430,6 +500,16 @@ main {
   transform: translateX(24px);
   background: #a78bfa;
   box-shadow: 0 0 6px rgba(167, 139, 250, 0.4);
+}
+
+body.light-mode #cyclic-light-toggle:checked+.toggle-cyclic {
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  border-color: rgba(124, 58, 237, 0.4);
+}
+
+body.light-mode #cyclic-light-toggle:checked+.toggle-cyclic .toggle-knob {
+  background: #fff;
+  box-shadow: 0 0 6px rgba(167, 139, 250, 0.6);
 }
 
 /* Divider */
