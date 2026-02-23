@@ -108,28 +108,33 @@ const Renderer = {
 
         // ── MEMBRANE ──
         this.membraneY = H * 0.16;
-        this.membraneH = H * 0.11;
+        this.membraneH = 30; // Thinner membrane
         const memMid = this.membraneY + this.membraneH / 2;
         const mPad = W * 0.03, mW = W - mPad * 2;
 
+        // Linearly distribute 12 complexes across the available membrane width
+        const numComplexes = 12;
+        const step = mW / (numComplexes + 1);
+        const colW = (i) => mPad + step * i;
+
         this.etcComplexes = {
-            psii: { cx: mPad + mW * 0.05, cy: memMid },
-            ndh1: { cx: mPad + mW * 0.15, cy: memMid },
-            pq: { cx: mPad + mW * 0.26, cy: memMid },
-            cytb6f: { cx: mPad + mW * 0.37, cy: memMid },
-            pc: { cx: mPad + mW * 0.47, cy: memMid - this.membraneH * 0.3 },
-            psi: { cx: mPad + mW * 0.55, cy: memMid },
-            fd: { cx: mPad + mW * 0.65, cy: memMid - this.membraneH * 0.3 },
-            fnr: { cx: mPad + mW * 0.73, cy: memMid - this.membraneH * 0.3 },
-            cytOx: { cx: mPad + mW * 0.47, cy: memMid + this.membraneH * 0.3 },
-            sdh: { cx: mPad + mW * 0.15, cy: memMid + this.membraneH * 0.3 },
-            atpSyn: { cx: mPad + mW * 0.84, cy: memMid },
-            br: { cx: mPad + mW * 0.93, cy: memMid },
+            psii: { cx: colW(1), cy: memMid },
+            ndh1: { cx: colW(2), cy: memMid },
+            sdh: { cx: colW(3), cy: memMid + this.membraneH * 0.3 },
+            pq: { cx: colW(4), cy: memMid },
+            cytb6f: { cx: colW(5), cy: memMid },
+            cytOx: { cx: colW(6), cy: memMid + this.membraneH * 0.3 },
+            pc: { cx: colW(7), cy: memMid },
+            psi: { cx: colW(8), cy: memMid },
+            fd: { cx: colW(9), cy: memMid },
+            fnr: { cx: colW(10), cy: memMid },
+            atpSyn: { cx: colW(11), cy: memMid },
+            br: { cx: colW(12), cy: memMid },
         };
 
         // ── CYTOPLASM — Orthogonal Layout ──
         const top = this.membraneY + this.membraneH + 40;
-        const rowH = (H - top) / 5;
+        const rowH = (H - top - 60) / 5;
         const col = (i) => W * (0.05 + i * 0.095);
         const r = [top, top + rowH, top + rowH * 2, top + rowH * 3, top + rowH * 4, top + rowH * 5];
 
@@ -190,18 +195,12 @@ const Renderer = {
 
     drawMembrane(ctx, lm) {
         EnzymeStyles.drawMembrane(ctx, 0, this.membraneY, this.W, this.membraneH, lm);
-        ctx.font = '300 7px Outfit, sans-serif';
-        ctx.fillStyle = lm ? 'rgba(30,41,59,0.3)' : 'rgba(148,163,184,0.26)';
-        ctx.textAlign = 'left';
-        ctx.fillText('▲ Thylakoid Lumen', 6, this.membraneY - 3);
-        ctx.fillText('▼ Cytoplasm', 6, this.membraneY + this.membraneH + 10);
     },
 
     drawLabels(ctx, state, lm) {
         ctx.font = '300 7px Outfit, sans-serif';
         ctx.fillStyle = lm ? 'rgba(30,41,59,0.3)' : 'rgba(148,163,184,0.3)';
         ctx.textAlign = 'center';
-        ctx.fillText('THYLAKOID MEMBRANE · ETC', this.W * 0.5, this.membraneY - 10);
 
         if (state.lightOn) {
             ctx.save();
@@ -228,37 +227,36 @@ const Renderer = {
         const pulse = 5 + 3 * Math.sin(t * 3);
         const photoPulse = lightOn ? pulse : 0;
         const respPulse = state.oxygenAvailable ? pulse * 0.7 : 0;
-        const cxH = this.membraneH * 0.8, cxW = 34, sR = 9;
+        const cxH = 80, cxW = 42, sR = 11; // Large proteins, thicker membrane
 
         if (!state.oxygenAvailable) ctx.globalAlpha = 0.25;
         // Respiratory lines
-        EnzymeStyles.drawArrow(ctx, c.ndh1.cx + cxW / 2 + 2, c.ndh1.cy, c.pq.cx - 16, c.pq.cy, '#22d3ee', 0.35);
-        EnzymeStyles.drawArrow(ctx, c.sdh.cx + 12, c.sdh.cy - 12, c.pq.cx - 10, c.pq.cy + 10, '#22d3ee', 0.35);
-        EnzymeStyles.drawArrow(ctx, c.pq.cx + 16, c.pq.cy, c.cytb6f.cx - cxW / 2 - 2, c.cytb6f.cy, '#5eead4', 0.4);
-        EnzymeStyles.drawArrow(ctx, c.cytb6f.cx + 10, c.cytb6f.cy + 10, c.cytOx.cx - 12, c.cytOx.cy - 10, '#22d3ee', 0.35);
+        EnzymeStyles.drawArrow(ctx, c.ndh1.cx + cxW / 2 + 2, c.ndh1.cy, c.pq.cx - 16, c.pq.cy, '#22d3ee', 0.85);
+        EnzymeStyles.drawArrow(ctx, c.sdh.cx + 12, c.sdh.cy - 12, c.pq.cx - 10, c.pq.cy + 10, '#22d3ee', 0.85);
+        EnzymeStyles.drawArrow(ctx, c.pq.cx + 16, c.pq.cy, c.cytb6f.cx - cxW / 2 - 2, c.cytb6f.cy, '#5eead4', 0.85);
+        EnzymeStyles.drawArrow(ctx, c.cytb6f.cx + 10, c.cytb6f.cy + 10, c.cytOx.cx - 12, c.cytOx.cy - 10, '#22d3ee', 0.85);
         if (!state.oxygenAvailable) ctx.globalAlpha = 1;
 
         if (lightOn) {
             // Photosynthetic lines
-            EnzymeStyles.drawArrow(ctx, c.psii.cx + cxW / 2 + 2, c.psii.cy, c.pq.cx - 16, c.pq.cy - 5, '#fbbf24', 0.35);
-            EnzymeStyles.drawArrow(ctx, c.cytb6f.cx + 10, c.cytb6f.cy - 10, c.pc.cx - sR - 2, c.pc.cy + 5, '#fbbf24', 0.35);
-            EnzymeStyles.drawArrow(ctx, c.pc.cx + sR + 2, c.pc.cy, c.psi.cx - cxW / 2 - 2, c.psi.cy - 5, '#fbbf24', 0.35);
-            EnzymeStyles.drawArrow(ctx, c.psi.cx + cxW / 2 + 2, c.psi.cy - 5, c.fd.cx - sR - 2, c.fd.cy + 2, '#fbbf24', 0.35);
-            if (state.linearLightEnabled) EnzymeStyles.drawArrow(ctx, c.fd.cx + sR + 2, c.fd.cy, c.fnr.cx - 16, c.fnr.cy, '#fbbf24', 0.35);
-            if (state.cyclicLightEnabled) EnzymeStyles.drawCurvedArrow(ctx, c.fd.cx, c.fd.cy + sR + 2, c.pq.cx + 4, c.pq.cy - 12, '#c084fc', 0.35, -1);
+            EnzymeStyles.drawArrow(ctx, c.psii.cx + cxW / 2 + 2, c.psii.cy, c.pq.cx - 16, c.pq.cy - 5, '#fbbf24', 0.85);
+            EnzymeStyles.drawArrow(ctx, c.cytb6f.cx + 10, c.cytb6f.cy - 10, c.pc.cx - sR - 2, c.pc.cy + 5, '#fbbf24', 0.85);
+            EnzymeStyles.drawArrow(ctx, c.pc.cx + sR + 2, c.pc.cy, c.psi.cx - cxW / 2 - 2, c.psi.cy - 5, '#fbbf24', 0.85);
+            EnzymeStyles.drawArrow(ctx, c.psi.cx + cxW / 2 + 2, c.psi.cy - 5, c.fd.cx - sR - 2, c.fd.cy + 2, '#fbbf24', 0.85);
+            if (state.linearLightEnabled) EnzymeStyles.drawArrow(ctx, c.fd.cx + sR + 2, c.fd.cy, c.fnr.cx - 16, c.fnr.cy, '#fbbf24', 0.85);
+            if (state.cyclicLightEnabled) EnzymeStyles.drawCurvedArrow(ctx, c.fd.cx, c.fd.cy + sR + 2, c.pq.cx + 4, c.pq.cy - 12, '#c084fc', 0.85, -1);
             if (state.cyclicLightEnabled) {
                 ctx.font = '600 4px JetBrains Mono, monospace'; ctx.fillStyle = '#c084fc'; ctx.textAlign = 'center';
                 ctx.fillText('CYCLIC', (c.fd.cx + c.pq.cx) / 2 + 12, (c.fd.cy + c.pq.cy) / 2 - 12);
             }
         }
 
-        const pY = this.membraneY - 7;
         if (state.oxygenAvailable) {
-            this.drawSmallProtonArrow(ctx, c.ndh1.cx, pY, '4H⁺');
-            this.drawSmallProtonArrow(ctx, c.cytb6f.cx, pY, '2H⁺');
-            this.drawSmallProtonArrow(ctx, c.cytOx.cx, this.membraneY + this.membraneH + 5, '2H⁺');
+            this.drawSmallProtonArrow(ctx, c.ndh1.cx, c.ndh1.cy - cxH * 0.6 / 2 - 10, '4H⁺');
+            this.drawSmallProtonArrow(ctx, c.cytb6f.cx, c.cytb6f.cy - cxH * 0.68 / 2 - 10, '2H⁺');
+            this.drawSmallProtonArrow(ctx, c.cytOx.cx, c.cytOx.cy - cxH * 0.4 / 2 - 10, '2H⁺');
         }
-        if (lightOn) this.drawSmallProtonArrow(ctx, c.psii.cx, pY, '4H⁺');
+        if (lightOn) this.drawSmallProtonArrow(ctx, c.psii.cx, c.psii.cy - cxH * 0.8 / 2 - 10, '4H⁺');
 
         ctx.beginPath(); ctx.setLineDash([2, 2]);
         ctx.moveTo(c.atpSyn.cx, this.membraneY - 2); ctx.lineTo(c.atpSyn.cx, this.membraneY + this.membraneH + 2);
@@ -292,28 +290,22 @@ const Renderer = {
         if (!lightOn) ctx.globalAlpha = 0.15;
         EnzymeStyles.drawBR(ctx, c.br.cx, c.br.cy, cxW - 4, cxH * 0.6, lightOn ? 5 + 3 * Math.sin(t * 4) : 0, lm);
         if (!lightOn) ctx.globalAlpha = 1;
-        if (lightOn) this.drawSmallProtonArrow(ctx, c.br.cx, pY, '1H⁺');
+        if (lightOn) this.drawSmallProtonArrow(ctx, c.br.cx, c.br.cy - cxH * 0.6 / 2 - 10, '1H⁺');
 
-        ctx.font = '600 5px JetBrains Mono,monospace'; ctx.textAlign = 'center';
-        if (lightOn) {
-            ctx.fillStyle = '#fbbf24';
-            ctx.fillText('+½O₂', c.psii.cx, c.psii.cy + cxH * 0.46 + 6);
-            ctx.fillText('+NADPH', c.fnr.cx, c.fnr.cy + 11);
-        }
         if (state.oxygenAvailable) {
             ctx.fillStyle = '#67e8f9';
-            ctx.fillText('-NADH', c.ndh1.cx, c.ndh1.cy + cxH * 0.46 + 6);
-            ctx.fillText('-FADH₂', c.sdh.cx, c.sdh.cy + cxH * 0.26 + 6);
-            ctx.fillText('-½O₂', c.cytOx.cx, c.cytOx.cy + cxH * 0.26 + 6);
+            ctx.fillText('-NADH', c.ndh1.cx, c.ndh1.cy + cxH * 0.6 / 2 + 6);
+            ctx.fillText('-FADH₂', c.sdh.cx, c.sdh.cy + cxH * 0.3 / 2 + 6); // SDH height is roughly cxW * 0.6 ~ 42*0.6 = 25.
+            ctx.fillText('-½O₂', c.cytOx.cx, c.cytOx.cy + cxH * 0.4 / 2 + 6);
         }
-        ctx.fillStyle = '#34d399'; ctx.fillText('+ATP', c.atpSyn.cx, c.atpSyn.cy + cxH * 0.46 + 6);
+        ctx.fillStyle = '#34d399'; ctx.fillText('+ATP', c.atpSyn.cx, c.atpSyn.cy + cxH * 0.8 / 2 + 6);
 
         // ETC hitboxes for click-to-react
-        this.enzymeHitboxes.push({ cx: c.ndh1.cx, cy: c.ndh1.cy, w: cxW + 6, h: cxH * 0.65, pathway: 'etc_resp', stepIndex: 0 });
-        this.enzymeHitboxes.push({ cx: c.psii.cx, cy: c.psii.cy, w: cxW + 6, h: cxH * 0.85, pathway: 'etc_photo', stepIndex: 0 });
-        this.enzymeHitboxes.push({ cx: c.atpSyn.cx, cy: c.atpSyn.cy, w: cxW + 10, h: cxH * 0.85, pathway: 'atp_synthase', stepIndex: 0 });
-        this.enzymeHitboxes.push({ cx: c.br.cx, cy: c.br.cy, w: cxW, h: cxH * 0.65, pathway: 'br', stepIndex: 0 });
-        this.enzymeHitboxes.push({ cx: c.fd.cx, cy: c.fd.cy, w: sR * 2 + 6, h: sR * 2 + 6, pathway: 'etc_cyclic', stepIndex: 0 });
+        this.enzymeHitboxes.push({ cx: c.ndh1.cx, cy: c.ndh1.cy, w: cxW + 10, h: cxH + 10, pathway: 'etc_resp', stepIndex: 0 });
+        this.enzymeHitboxes.push({ cx: c.psii.cx, cy: c.psii.cy, w: cxW + 10, h: cxH + 10, pathway: 'etc_photo', stepIndex: 0 });
+        this.enzymeHitboxes.push({ cx: c.atpSyn.cx, cy: c.atpSyn.cy, w: cxW + 10, h: cxH + 10, pathway: 'atp_syn', stepIndex: 0 });
+        this.enzymeHitboxes.push({ cx: c.br.cx, cy: c.br.cy, w: cxW + 10, h: cxH + 10, pathway: 'br', stepIndex: 0 });
+        this.enzymeHitboxes.push({ cx: c.fd.cx, cy: c.fd.cy, w: sR * 2 + 10, h: sR * 2 + 10, pathway: 'etc_cyclic', stepIndex: 0 });
     },
 
     drawSmallProtonArrow(ctx, x, y, label) {
@@ -368,6 +360,42 @@ const Renderer = {
 
             // Yield badges (kept for visual pulse on click)
             if (gS === 5) this.drawYieldBadge(ctx, m.bpg, true, '+NADH', gC);
+
+            // Glycolysis run interaction arrow (Thick stylistic button)
+            const runX1 = m.glucose.cx;
+            const runX2 = m.pyruvate.cx;
+            const runY = m.glucose.cy + 32; // Position below Row 1
+            const midX = (runX1 + runX2) / 2;
+
+            // Shorten for arrowhead
+            const stopRunX = runX2 - 10;
+
+            ctx.beginPath();
+            ctx.moveTo(runX1, runY);
+            ctx.lineTo(midX - 42, runY); // Left segment
+            ctx.moveTo(midX + 42, runY); // Right segment
+            ctx.lineTo(stopRunX, runY);
+            ctx.strokeStyle = gC;
+            ctx.lineWidth = 4.5;
+            ctx.globalAlpha = 0.8;
+            ctx.stroke();
+
+            // Arrowhead at runX2
+            ctx.beginPath();
+            ctx.moveTo(runX2, runY);
+            ctx.lineTo(runX2 - 12, runY - 6);
+            ctx.lineTo(runX2 - 12, runY + 6);
+            ctx.fillStyle = gC;
+            ctx.fill();
+            ctx.globalAlpha = 1;
+
+            ctx.font = '700 8px JetBrains Mono, monospace';
+            ctx.fillStyle = gC;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('RUN GLYCOLYSIS', midX, runY);
+
+            this.enzymeHitboxes.push({ cx: midX, cy: runY, w: runX2 - runX1, h: 24, pathway: 'run_glycolysis', stepIndex: 0 });
         }
 
         // ══════════════════════════════════════════════════
@@ -393,6 +421,7 @@ const Renderer = {
         if (state.pppEnabled || state.calvinEnabled) {
             const tkActive = (state.calvinEnabled && cS === 6) || (state.pppEnabled && pS === 3);
             this.drawBidirArrow(ctx, m.r5p, m.f6p, 'TKT/TAL // TK/SBP', pC, cC, tkActive, 'glycolysis', 10);
+            this.drawFloatLabel(ctx, (m.r5p.cx + m.f6p.cx) / 2, (m.r5p.cy + m.f6p.cy) / 2 + 14, '6 R5P ⇌ 5 F6P (± Sugar)', '#94a3b8');
         }
 
         // ══════════════════════════════════════════════════
@@ -417,24 +446,17 @@ const Renderer = {
         // ══════════════════════════════════════════════════
         if (state.lightOn && state.calvinEnabled) {
             this.drawEnzymeArrow(ctx, m.rubp, m.pga3, 'RuBisCO', cC, cS === 0, 'calvin', 0);
+            this.drawFloatLabel(ctx, m.rubp.cx + 18, (m.rubp.cy + m.pga3.cy) / 2, '-CO₂', cC);
+
             // PRK: R5P → RuBP
             this.drawEnzymeArrow(ctx, m.r5p, m.rubp, 'PRK', cC, cS === 7, 'calvin', 7);
+            this.drawFloatLabel(ctx, (m.r5p.cx + m.rubp.cx) / 2, (m.r5p.cy + m.rubp.cy) / 2 - 12, '-ATP', cC);
 
-            // Calvin labels
-            ctx.font = '600 5px JetBrains Mono,monospace';
-            ctx.fillStyle = '#6ee7b7'; ctx.textAlign = 'center';
-            ctx.fillText('-CO₂', m.rubp.cx + 24, m.rubp.cy - 5);
-
-            const ccx = (m.rubp.cx + m.pga3.cx) / 2;
-            const ccy = (m.r5p.cy + m.bpg.cy) / 2;
-            ctx.font = '300 7px Outfit, sans-serif';
-            ctx.fillStyle = 'rgba(52,211,153,0.35)';
-            ctx.fillText('CALVIN', ccx, ccy - 4);
-            ctx.fillText('CYCLE', ccx, ccy + 5);
-
-            if (cS === 0) { ctx.font = '600 4px JetBrains Mono,monospace'; ctx.fillStyle = '#6ee7b7'; ctx.fillText('+CO₂', m.rubp.cx, m.rubp.cy + 12); }
-            if (cS === 7) { ctx.font = '600 4px JetBrains Mono,monospace'; ctx.fillStyle = '#6ee7b7'; ctx.fillText('-ATP', m.r5p.cx, m.r5p.cy + 12); }
-            if (cS === 2) { ctx.font = '600 4px JetBrains Mono,monospace'; ctx.fillStyle = '#6ee7b7'; ctx.fillText('-NADPH', m.bpg.cx + 24, m.bpg.cy - 5); }
+            // Calvin Cycle interaction target (Centered in the cycle mesh)
+            const ccx = (m.r5p.cx + m.rubp.cx) / 2;
+            const ccy = (m.r5p.cy + m.f6p.cy) / 2;
+            EnzymeStyles.drawCycleTarget(ctx, ccx, ccy, cC, 'CALVIN', 1);
+            this.enzymeHitboxes.push({ cx: ccx, cy: ccy, w: 28, h: 28, pathway: 'run_calvin', stepIndex: 0 });
         }
 
         // ══════════════════════════════════════════════════
@@ -443,17 +465,18 @@ const Renderer = {
         if (state.pppEnabled) {
             // Oxidative phase: G6P → 6-PGL → 6-PGA → R5P
             this.drawEnzymeArrow(ctx, m.g6p, m.pgl6, 'G6PDH', pC, pS === 0, 'ppp', 0);
-            this.drawFloatLabel(ctx, m.g6p.cx + 22, (m.g6p.cy + m.pgl6.cy) / 2 + 8, '+NADPH', pC);
+            this.drawFloatLabel(ctx, m.g6p.cx + 18, (m.g6p.cy + m.pgl6.cy) / 2 + 4, '+NADPH', pC);
 
             this.drawEnzymeArrow(ctx, m.pgl6, m.pga6, '6PGL', pC, pS === 1, 'ppp', 1);
 
             this.drawEnzymeArrow(ctx, m.pga6, m.r5p, '6PGDH', pC, pS === 2, 'ppp', 2);
-            this.drawFloatLabel(ctx, (m.pga6.cx + m.r5p.cx) / 2, m.pga6.cy - 10, '+NADPH +CO₂', pC);
+            this.drawFloatLabel(ctx, (m.pga6.cx + m.r5p.cx) / 2, m.pga6.cy + 14, '+NADPH, +CO₂', pC);
 
-            // PPP label
-            ctx.font = '300 6px Outfit, sans-serif';
-            ctx.fillStyle = 'rgba(129,140,248,0.3)'; ctx.textAlign = 'center';
-            ctx.fillText('PPP', (m.pgl6.cx + m.pga6.cx) / 2 - 6, (m.pgl6.cy + m.pga6.cy) / 2);
+            // PPP Cycle interaction target (Centered in the oxidative -> r5p loop)
+            const cx = (m.g6p.cx + m.r5p.cx) / 2;
+            const cy = (m.g6p.cy + m.pga6.cy) / 2;
+            EnzymeStyles.drawCycleTarget(ctx, cx, cy, pC, 'PPP', 1);
+            this.enzymeHitboxes.push({ cx, cy, w: 28, h: 28, pathway: 'run_ppp', stepIndex: 0 });
         }
 
         // ══════════════════════════════════════════════════
@@ -503,10 +526,11 @@ const Renderer = {
 
     /** Single unidirectional enzyme arrow — stores hitbox */
     drawEnzymeArrow(ctx, from, to, enzyme, color, active, pathway, stepIndex) {
-        const a = active ? 0.6 : 0.1;
+        const a = active ? 1.0 : 0.25;
         const dx = to.cx - from.cx, dy = to.cy - from.cy;
         const len = Math.sqrt(dx * dx + dy * dy); if (len < 1) return;
-        const nx = dx / len, ny = dy / len, pad = 13;
+        const nx = dx / len, ny = dy / len;
+        const pad = Math.min(32, 1.0 / Math.sqrt((nx / 28) ** 2 + (ny / 14) ** 2) + 3);
         const x1 = from.cx + nx * pad, y1 = from.cy + ny * pad;
         const x2 = to.cx - nx * pad, y2 = to.cy - ny * pad;
         EnzymeStyles.drawArrow(ctx, x1, y1, x2, y2, color, a);
@@ -520,10 +544,11 @@ const Renderer = {
 
     /** Curved unidirectional arrow — stores hitbox */
     drawEnzymeCurvedArrow(ctx, from, to, enzyme, color, active, dir, off, pathway, stepIndex) {
-        const a = active ? 0.6 : 0.1;
+        const a = active ? 1.0 : 0.25;
         const dx = to.cx - from.cx, dy = to.cy - from.cy;
         const len = Math.sqrt(dx * dx + dy * dy); if (len < 1) return;
-        const nx = dx / len, ny = dy / len, pad = 13;
+        const nx = dx / len, ny = dy / len;
+        const pad = Math.min(32, 1.0 / Math.sqrt((nx / 28) ** 2 + (ny / 14) ** 2) + 3);
         const x1 = from.cx + nx * pad, y1 = from.cy + ny * pad;
         const x2 = to.cx - nx * pad, y2 = to.cy - ny * pad;
         EnzymeStyles.drawCurvedArrow(ctx, x1, y1, x2, y2, color, a, dir || 1);
@@ -539,10 +564,11 @@ const Renderer = {
 
     /** Bidirectional arrow for shared reversible enzymes — stores hitbox */
     drawBidirArrow(ctx, nodeA, nodeB, enzyme, colorA, colorB, active, pathway, stepIndex) {
-        const a = active ? 0.55 : 0.1;
+        const a = active ? 1.0 : 0.25;
         const dx = nodeB.cx - nodeA.cx, dy = nodeB.cy - nodeA.cy;
         const len = Math.sqrt(dx * dx + dy * dy); if (len < 1) return;
-        const nx = dx / len, ny = dy / len, pad = 13;
+        const nx = dx / len, ny = dy / len;
+        const pad = Math.min(32, 1.0 / Math.sqrt((nx / 28) ** 2 + (ny / 14) ** 2) + 3);
         const x1 = nodeA.cx + nx * pad, y1 = nodeA.cy + ny * pad;
         const x2 = nodeB.cx - nx * pad, y2 = nodeB.cy - ny * pad;
         EnzymeStyles.drawBidirectionalArrow(ctx, x1, y1, x2, y2, colorA, colorB, a);
@@ -561,34 +587,44 @@ const Renderer = {
     },
 
     drawKrebsBifurcatedArrow(ctx, acCoA, oaa, citrate, enzyme, color, active, pathway, stepIndex) {
-        const a = active ? 0.6 : 0.15;
-        const pad = 14;
+        const a = active ? 1.0 : 0.25;
+        const padAc = 32; // Wide pill horizontally
+        const padO = 18;  // Medium pill vertically
 
         // We use a junction point
         const jx = citrate.cx + 20;
         const jy = citrate.cy + 20;
 
         ctx.beginPath();
-        ctx.moveTo(acCoA.cx - pad, acCoA.cy);
+        ctx.moveTo(acCoA.cx - padAc, acCoA.cy);
         ctx.quadraticCurveTo(jx + 10, acCoA.cy, jx, jy);
-        ctx.lineTo(citrate.cx + pad * 0.7, citrate.cy + pad * 0.7);
 
-        ctx.moveTo(oaa.cx, oaa.cy - pad);
+        ctx.moveTo(oaa.cx, oaa.cy - padO);
         ctx.quadraticCurveTo(oaa.cx, jy + 10, jx, jy);
-
-        ctx.strokeStyle = color;
-        ctx.globalAlpha = a;
-        ctx.lineWidth = 1.4;
-        ctx.stroke();
-        ctx.globalAlpha = 1;
 
         // Angle at target (Citrate)
         const aT = Math.atan2(citrate.cy - jy, citrate.cx - jx);
-        this.fillArrowhead(ctx, citrate.cx + Math.cos(aT) * pad, citrate.cy + Math.sin(aT) * pad, aT, color, a);
+        const padC = Math.min(32, 1.0 / Math.sqrt((Math.cos(aT) / 28) ** 2 + (Math.sin(aT) / 14) ** 2) + 1);
+        const tx = citrate.cx - Math.cos(aT) * padC;
+        const ty = citrate.cy - Math.sin(aT) * padC;
+
+        const stopTx = tx - 8 * Math.cos(aT);
+        const stopTy = ty - 8 * Math.sin(aT);
+
+        ctx.moveTo(jx, jy);
+        ctx.lineTo(stopTx, stopTy);
+
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = a;
+        ctx.lineWidth = 3.0;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        this.fillArrowhead(ctx, tx, ty, aT, color, a);
 
         // Reverse arrowheads (Acetyl-CoA and OAA)
-        this.fillArrowhead(ctx, acCoA.cx - pad, acCoA.cy, 0, color, a);
-        this.fillArrowhead(ctx, oaa.cx, oaa.cy - pad, Math.PI / 2, color, a);
+        this.fillArrowhead(ctx, acCoA.cx - padAc, acCoA.cy, 0, color, a);
+        this.fillArrowhead(ctx, oaa.cx, oaa.cy - padO, Math.PI / 2, color, a);
 
         // Enzyme tag at jx, jy
         const lm = this._currentLightMode || false;
@@ -602,8 +638,8 @@ const Renderer = {
     fillArrowhead(ctx, x, y, angle, color, alpha) {
         ctx.beginPath();
         ctx.moveTo(x, y);
-        ctx.lineTo(x - 5 * Math.cos(angle - 0.4), y - 5 * Math.sin(angle - 0.4));
-        ctx.lineTo(x - 5 * Math.cos(angle + 0.4), y - 5 * Math.sin(angle + 0.4));
+        ctx.lineTo(x - 10 * Math.cos(angle - 0.4), y - 10 * Math.sin(angle - 0.4));
+        ctx.lineTo(x - 10 * Math.cos(angle + 0.4), y - 10 * Math.sin(angle + 0.4));
         ctx.closePath();
         ctx.fillStyle = color;
         ctx.globalAlpha = alpha;
@@ -621,7 +657,6 @@ const Renderer = {
 
         ctx.font = '300 6px Outfit, sans-serif';
         ctx.fillStyle = lm ? 'rgba(14,116,144,0.3)' : 'rgba(56,189,248,0.25)'; ctx.textAlign = 'center';
-        ctx.fillText('CITRIC ACID CYCLE', (m.citrate.cx + m.oaa.cx) / 2, m.citrate.cy - 12);
 
         // Arrows in a sequential unrolled path
         // Citrate Synthase Synthesis Junction
@@ -646,6 +681,12 @@ const Renderer = {
 
         this.drawBidirArrow(ctx, m.malate, m.oaa, 'MDH', kC, kC, kS === 7, 'krebs', 7);
         this.drawFloatLabel(ctx, m.malate.cx + 18, (m.malate.cy + m.oaa.cy) / 2 + 4, '+NADH', kC);
+
+        // Krebs Cycle interaction target inside the loop
+        const centerKx = (m.akg.cx + m.citrate.cx) / 2;
+        const centerKy = m.oaa.cy;
+        EnzymeStyles.drawCycleTarget(ctx, centerKx, centerKy, kC, 'KREBS', -1);
+        this.enzymeHitboxes.push({ cx: centerKx, cy: centerKy, w: 28, h: 28, pathway: 'run_krebs', stepIndex: 0 });
 
         ctx.globalAlpha = 1;
     },

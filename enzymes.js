@@ -92,11 +92,13 @@ const EnzymeStyles = {
   },
 
   drawLabel(ctx, text, cx, cy, color, fontSize) {
-    ctx.font = `600 ${fontSize || 11}px 'JetBrains Mono', monospace`;
+    ctx.font = `700 ${fontSize || 11}px 'JetBrains Mono', monospace`;
     ctx.fillStyle = color || '#e2e8f0';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    ctx.globalAlpha = 1.0;
     ctx.fillText(text, cx, cy);
+    ctx.globalAlpha = 1;
   },
 
   /* ====================================================================
@@ -110,7 +112,7 @@ const EnzymeStyles = {
       : this.colors.respiratory;
     this.applyStyle(ctx, p, glow);
     this.drawLabel(ctx, 'NDH-1', cx, cy - 6, p.stroke, 9);
-    this.drawLabel(ctx, '4H⁺', cx, cy + 7, lightMode ? '#be123c' : '#fb7185', 8);
+    // Removed duplicate internal 4H+
   },
 
   drawSDH(ctx, cx, cy, size, glow, lightMode) {
@@ -131,8 +133,8 @@ const EnzymeStyles = {
       : this.colors.photosynthetic;
     this.applyStyle(ctx, p, glow);
     this.drawLabel(ctx, 'PSII', cx, cy - 8, p.stroke, 9);
-    this.drawLabel(ctx, 'P680', cx, cy + 3, lightMode ? '#92400e' : '#fcd34d', 7);
-    this.drawLabel(ctx, '4H⁺', cx, cy + 14, lightMode ? '#be123c' : '#fb7185', 7);
+    this.drawLabel(ctx, 'P680', cx, cy + 5, lightMode ? '#92400e' : '#fcd34d', 7);
+    // Removed duplicate internal 4H+
   },
 
   drawPSI(ctx, cx, cy, w, h, glow, lightMode) {
@@ -151,9 +153,9 @@ const EnzymeStyles = {
       ? { fill: 'rgba(255,255,255,0.95)', stroke: '#0d9488', glow: glow > 0 ? `rgba(20,184,166,${glow * 0.05})` : '' }
       : this.colors.shared;
     this.applyStyle(ctx, p, glow);
-    this.drawLabel(ctx, 'Cyt', cx, cy - 8, p.stroke, 9);
-    this.drawLabel(ctx, 'b6f', cx, cy + 2, p.stroke, 9);
-    this.drawLabel(ctx, '2H⁺', cx, cy + 14, lightMode ? '#be123c' : '#fb7185', 7);
+    this.drawLabel(ctx, 'Cyt', cx, cy - 4, p.stroke, 9);
+    this.drawLabel(ctx, 'b6f', cx, cy + 6, p.stroke, 9);
+    // Removed duplicate internal 2H+
   },
 
   drawCytOx(ctx, cx, cy, w, h, glow, lightMode) {
@@ -162,9 +164,9 @@ const EnzymeStyles = {
       ? { fill: 'rgba(255,255,255,0.95)', stroke: '#0891b2', glow: glow > 0 ? `rgba(6,182,212,${glow * 0.05})` : '' }
       : this.colors.respiratory;
     this.applyStyle(ctx, p, glow);
-    this.drawLabel(ctx, 'Cyt c', cx, cy - 8, p.stroke, 8);
-    this.drawLabel(ctx, 'Ox', cx, cy + 2, p.stroke, 8);
-    this.drawLabel(ctx, '2H⁺', cx, cy + 14, lightMode ? '#be123c' : '#fb7185', 7);
+    this.drawLabel(ctx, 'Cyt c', cx, cy - 6, p.stroke, 8);
+    this.drawLabel(ctx, 'Ox', cx, cy + 4, p.stroke, 8);
+    // Removed duplicate internal 2H+
   },
 
   drawPC(ctx, cx, cy, radius, glow, lightMode) {
@@ -252,8 +254,8 @@ const EnzymeStyles = {
     ctx.arc(cx, cy, 4, 0, Math.PI * 2);
     ctx.fillStyle = lightMode ? 'rgba(168,85,247,0.35)' : 'rgba(232,121,249,0.35)';
     ctx.fill();
-    this.drawLabel(ctx, 'BR', cx, cy - 7, p.stroke, 9);
-    this.drawLabel(ctx, '1H⁺', cx, cy + 6, lightMode ? '#be123c' : '#fb7185', 7);
+    this.drawLabel(ctx, 'BR', cx, cy, p.stroke, 9);
+    // Removed duplicate internal 1H+
   },
 
   /* ==== Krebs Cycle ==== */
@@ -434,6 +436,8 @@ const EnzymeStyles = {
   },
 
   /* ---- Arrows ---- */
+
+
   drawCurvedArrow(ctx, x1, y1, x2, y2, color, alpha, curveDir) {
     const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
     const dx = x2 - x1, dy = y2 - y1;
@@ -441,52 +445,131 @@ const EnzymeStyles = {
     const nx = -dy / len * 18 * (curveDir || 1);
     const ny = dx / len * 18 * (curveDir || 1);
     const cpx = mx + nx, cpy = my + ny;
+    const angle = Math.atan2(y2 - cpy, x2 - cpx);
+    const a = alpha != null ? alpha : 1.0;
+
+    // Stop the thick line 8px short of the point so it doesn't protrude past the triangle
+    const stopX = x2 - 8 * Math.cos(angle);
+    const stopY = y2 - 8 * Math.sin(angle);
     ctx.beginPath();
     ctx.moveTo(x1, y1);
-    ctx.quadraticCurveTo(cpx, cpy, x2, y2);
+    ctx.quadraticCurveTo(cpx, cpy, stopX, stopY);
     ctx.strokeStyle = color || '#38bdf8';
-    ctx.globalAlpha = alpha != null ? alpha : 0.6;
-    ctx.lineWidth = 1.2;
+    ctx.globalAlpha = a; // Use 'a' for alpha
+    ctx.lineWidth = 3.0;
     ctx.stroke();
     ctx.globalAlpha = 1;
-    const angle = Math.atan2(y2 - cpy, x2 - cpx);
+
+    // Arrowhead logic
     ctx.beginPath();
     ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 - 5 * Math.cos(angle - 0.4), y2 - 5 * Math.sin(angle - 0.4));
-    ctx.lineTo(x2 - 5 * Math.cos(angle + 0.4), y2 - 5 * Math.sin(angle + 0.4));
+    ctx.lineTo(x2 - 10 * Math.cos(angle - 0.4), y2 - 10 * Math.sin(angle - 0.4));
+    ctx.lineTo(x2 - 10 * Math.cos(angle + 0.4), y2 - 10 * Math.sin(angle + 0.4));
     ctx.closePath();
     ctx.fillStyle = color || '#38bdf8';
-    ctx.globalAlpha = alpha != null ? alpha : 0.6;
+    ctx.globalAlpha = a; // Use 'a' for alpha
     ctx.fill();
     ctx.globalAlpha = 1;
   },
 
   drawArrow(ctx, x1, y1, x2, y2, color, alpha) {
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const stopX = x2 - 8 * Math.cos(angle);
+    const stopY = y2 - 8 * Math.sin(angle);
+
     ctx.beginPath();
     ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
+    ctx.lineTo(stopX, stopY);
     ctx.strokeStyle = color || '#38bdf8';
-    ctx.globalAlpha = alpha != null ? alpha : 0.6;
-    ctx.lineWidth = 1.2;
+    ctx.globalAlpha = alpha != null ? alpha : 1.0;
+    ctx.lineWidth = 3.0;
     ctx.stroke();
     ctx.globalAlpha = 1;
-    const angle = Math.atan2(y2 - y1, x2 - x1);
+
+    // Arrowhead logic
     ctx.beginPath();
     ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 - 5 * Math.cos(angle - 0.4), y2 - 5 * Math.sin(angle - 0.4));
-    ctx.lineTo(x2 - 5 * Math.cos(angle + 0.4), y2 - 5 * Math.sin(angle + 0.4));
+    ctx.lineTo(x2 - 10 * Math.cos(angle - 0.4), y2 - 10 * Math.sin(angle - 0.4));
+    ctx.lineTo(x2 - 10 * Math.cos(angle + 0.4), y2 - 10 * Math.sin(angle + 0.4));
     ctx.closePath();
     ctx.fillStyle = color || '#38bdf8';
-    ctx.globalAlpha = alpha != null ? alpha : 0.6;
+    ctx.globalAlpha = alpha != null ? alpha : 1.0;
     ctx.fill();
     ctx.globalAlpha = 1;
   },
 
-  /** Bidirectional arrow — arrowheads on both ends */
+  drawCycleTarget(ctx, cx, cy, color, label, dir = 1) {
+    const radius = 22;
+    // A thick circular arrow acting as a button
+    ctx.beginPath();
+    // dir = 1 is clockwise (default for Calvin/PPP), dir = -1 is counter-clockwise (Krebs)
+    if (dir === 1) {
+      ctx.arc(cx, cy, radius, 0.4, Math.PI * 2 - 0.4, false);
+    } else {
+      ctx.arc(cx, cy, radius, Math.PI * 2 - 0.4, 0.4, true);
+    }
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 4.5;
+    ctx.globalAlpha = 0.8;
+    ctx.stroke();
+
+    // Tangential Arrowhead
+    ctx.beginPath();
+    let tangentAngle;
+    let endAngle;
+    if (dir === 1) { // clockwise
+      endAngle = Math.PI * 2 - 0.4;
+      tangentAngle = endAngle + Math.PI / 2;
+    } else { // counter-clockwise
+      endAngle = 0.4;
+      tangentAngle = endAngle - Math.PI / 2;
+    }
+    const ax = cx + radius * Math.cos(endAngle);
+    const ay = cy + radius * Math.sin(endAngle);
+
+    // The tip points exactly 14px forward from the thick stroke end
+    const tipX = ax + 14 * Math.cos(tangentAngle);
+    const tipY = ay + 14 * Math.sin(tangentAngle);
+
+    // The flat fins span perpendicular to the tangent 
+    const pAngle = tangentAngle + Math.PI / 2;
+    const fin1X = ax + 8 * Math.cos(pAngle);
+    const fin1Y = ay + 8 * Math.sin(pAngle);
+    const fin2X = ax - 8 * Math.cos(pAngle);
+    const fin2Y = ay - 8 * Math.sin(pAngle);
+
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(fin1X, fin1Y);
+    ctx.lineTo(fin2X, fin2Y);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    ctx.globalAlpha = 1;
+
+    // Label in the middle
+    ctx.font = '700 8px JetBrains Mono, monospace';
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, cx, cy);
+  },
+
+  /** Thick Bidirectional arrow for metabolic flow connections */
   drawBidirectionalArrow(ctx, x1, y1, x2, y2, color1, color2, alpha) {
+    const a1 = Math.atan2(y2 - y1, x2 - x1);
+    const a2 = Math.atan2(y1 - y2, x1 - x2);
+
+    const stopX1 = x1 - 8 * Math.cos(a2);
+    const stopY1 = y1 - 8 * Math.sin(a2);
+    const stopX2 = x2 - 8 * Math.cos(a1);
+    const stopY2 = y2 - 8 * Math.sin(a1);
+
     // Line
     ctx.beginPath();
-    ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+    ctx.moveTo(stopX1, stopY1);
+    ctx.lineTo(stopX2, stopY2);
     if (color1 && color2 && color1 !== color2) {
       const grad = ctx.createLinearGradient(x1, y1, x2, y2);
       grad.addColorStop(0, color2);
@@ -495,49 +578,51 @@ const EnzymeStyles = {
     } else {
       ctx.strokeStyle = color1 || '#e2e8f0';
     }
-    ctx.globalAlpha = alpha != null ? alpha : 0.5;
-    ctx.lineWidth = 1.4;
+    ctx.globalAlpha = alpha != null ? alpha : 0.8;
+    ctx.lineWidth = 3.0; // Scaled to main interaction arrow width
     ctx.stroke(); ctx.globalAlpha = 1;
 
     // Arrowhead at end (color1)
-    const a1 = Math.atan2(y2 - y1, x2 - x1);
     ctx.beginPath();
     ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 - 5 * Math.cos(a1 - 0.4), y2 - 5 * Math.sin(a1 - 0.4));
-    ctx.lineTo(x2 - 5 * Math.cos(a1 + 0.4), y2 - 5 * Math.sin(a1 + 0.4));
+    ctx.lineTo(x2 - 10 * Math.cos(a1 - 0.4), y2 - 10 * Math.sin(a1 - 0.4));
+    ctx.lineTo(x2 - 10 * Math.cos(a1 + 0.4), y2 - 10 * Math.sin(a1 + 0.4));
     ctx.closePath();
-    ctx.fillStyle = color1; ctx.globalAlpha = alpha || 0.5; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.fillStyle = color1; ctx.globalAlpha = alpha || 0.8; ctx.fill(); ctx.globalAlpha = 1;
 
     // Arrowhead at start (color2)
-    const a2 = Math.atan2(y1 - y2, x1 - x2);
     ctx.beginPath();
     ctx.moveTo(x1, y1);
-    ctx.lineTo(x1 - 5 * Math.cos(a2 - 0.4), y1 - 5 * Math.sin(a2 - 0.4));
-    ctx.lineTo(x1 - 5 * Math.cos(a2 + 0.4), y1 - 5 * Math.sin(a2 + 0.4));
+    ctx.lineTo(x1 - 10 * Math.cos(a2 - 0.4), y1 - 10 * Math.sin(a2 - 0.4));
+    ctx.lineTo(x1 - 10 * Math.cos(a2 + 0.4), y1 - 10 * Math.sin(a2 + 0.4));
     ctx.closePath();
-    ctx.fillStyle = color2; ctx.globalAlpha = alpha || 0.5; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.fillStyle = color2; ctx.globalAlpha = alpha || 0.8; ctx.fill(); ctx.globalAlpha = 1;
   },
 
-  /** Dashed arrow for metabolic flow connections */
+  /** Thick Dashed arrow for metabolic flow connections */
   drawDashedArrow(ctx, x1, y1, x2, y2, color, alpha) {
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const stopX = x2 - 8 * Math.cos(angle);
+    const stopY = y2 - 8 * Math.sin(angle);
+
     ctx.beginPath();
-    ctx.setLineDash([4, 3]);
+    ctx.setLineDash([6, 5]);
     ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
+    ctx.lineTo(stopX, stopY);
     ctx.strokeStyle = color || '#94a3b8';
-    ctx.globalAlpha = alpha != null ? alpha : 0.5;
-    ctx.lineWidth = 1.2;
+    ctx.globalAlpha = alpha != null ? alpha : 0.8;
+    ctx.lineWidth = 3.0; // Scaled thickness
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.globalAlpha = 1;
-    const angle = Math.atan2(y2 - y1, x2 - x1);
+
     ctx.beginPath();
     ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 - 5 * Math.cos(angle - 0.35), y2 - 5 * Math.sin(angle - 0.35));
-    ctx.lineTo(x2 - 5 * Math.cos(angle + 0.35), y2 - 5 * Math.sin(angle + 0.35));
+    ctx.lineTo(x2 - 10 * Math.cos(angle - 0.35), y2 - 10 * Math.sin(angle - 0.35));
+    ctx.lineTo(x2 - 10 * Math.cos(angle + 0.35), y2 - 10 * Math.sin(angle + 0.35));
     ctx.closePath();
     ctx.fillStyle = color || '#94a3b8';
-    ctx.globalAlpha = alpha != null ? alpha : 0.5;
+    ctx.globalAlpha = alpha != null ? alpha : 0.8;
     ctx.fill();
     ctx.globalAlpha = 1;
   },
