@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cyanobacteria Metabolic Pathway Simulator</title>
+  <title>Metabolism Simulator</title>
   <meta name="description"
-    content="Interactive simulation of cyanobacterial metabolism — Krebs cycle, electron transport chain, Calvin cycle, glycolysis, oxidative phosphorylation, and photosynthetic light-dependent reactions.">
+    content="Interactive simulation of cellular metabolism — Krebs cycle, electron transport chain, Calvin cycle, glycolysis, oxidative phosphorylation, and photosynthetic light-dependent reactions.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -17,8 +17,8 @@
 
 <body>
   <header>
-    <h1>Cyanobacteria Metabolic Pathways</h1>
-    <p class="subtitle">Calvin Cycle · Glycolysis · Krebs Cycle · Electron Transport Chain</p>
+    <h1>Metabolism Simulator</h1>
+    <p class="subtitle">Calvin Cycle · Glycolysis · Krebs Cycle · Electron Transport Chain · PPP</p>
   </header>
 
   <main>
@@ -98,7 +98,10 @@
           <small style="color:var(--text-muted);font-size:0.75rem">💡 Click enzyme labels on the canvas to advance
             reactions</small>
         </div>
-        <button id="reset-btn">Reset Simulation</button>
+        <div class="control-row" style="gap:4px">
+          <button id="add-glucose-btn">+ Glucose</button>
+          <button id="reset-btn">Reset</button>
+        </div>
       </div>
 
       <!-- Metabolite Counters -->
@@ -126,6 +129,13 @@
             </div>
             <div class="metabolite-value" id="nadph-ratio">0%</div>
           </div>
+          <div class="metabolite-card ratio-card fadh2">
+            <div class="metabolite-label">FADH₂ / FAD</div>
+            <div class="ratio-bar-container">
+              <div class="ratio-bar" id="fadh2-bar"></div>
+            </div>
+            <div class="metabolite-value" id="fadh2-ratio">0%</div>
+          </div>
         </div>
       </div>
 
@@ -149,6 +159,10 @@
           <span class="stat-value" id="co2-produced">0</span>
         </div>
         <div class="stat-row">
+          <span class="stat-label">Net CO₂</span>
+          <span class="stat-value" id="co2-net">0</span>
+        </div>
+        <div class="stat-row">
           <span class="stat-label">O₂ Produced</span>
           <span class="stat-value" id="o2-produced">0</span>
         </div>
@@ -159,6 +173,10 @@
         <div class="stat-row">
           <span class="stat-label">H₂O Split</span>
           <span class="stat-value" id="h2o-split">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">H₂O Produced</span>
+          <span class="stat-value" id="h2o-produced">0</span>
         </div>
         <div class="stat-row">
           <span class="stat-label">Electrons Transferred</span>
@@ -178,7 +196,7 @@
           Krebs Turns: <span id="krebs-turn">0</span> · Calvin Turns: <span id="calvin-turn">0</span>
         </div>
         <div class="krebs-turn-counter">
-          Glycolysis Runs: <span id="glycolysis-run">0</span>
+          Glycolysis Runs: <span id="glycolysis-run">0</span> · PPP Runs: <span id="ppp-run">0</span>
         </div>
       </div>
 
@@ -237,6 +255,7 @@
     </aside>
   </main>
 
+  <script src="anim.js"></script>
   <script src="enzymes.js"></script>
   <script src="renderer.js"></script>
   <script src="sim.js"></script>

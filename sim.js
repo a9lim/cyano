@@ -10,15 +10,23 @@
         glycolysisEnabled: true, pppEnabled: true, calvinEnabled: true, krebsEnabled: true,
         oxphosEnabled: true, linearLightEnabled: true, cyclicLightEnabled: true,
         autoPlay: false,
-        store: null // will reference the store object for renderer highlighting
+        store: null, // will reference the store object for renderer highlighting
+        // Animation state
+        calvinRot: Anim.rotAccum(),
+        krebsRot: Anim.rotAccum(),
+        pppRot: Anim.rotAccum(),
+        glycolysisFade: Anim.fade(1),
+        calvinFade: Anim.fade(1),
+        krebsFade: Anim.fade(1),
+        pppFade: Anim.fade(1)
     };
 
     const store = {
         // Core energy
         atp: 5, nadh: 0, nadph: 0, fadh2: 0,
-        totalAtpAdp: 20, totalNad: 20, totalNadp: 20,
+        totalAtpAdp: 20, totalNad: 20, totalNadp: 20, totalFad: 10,
         // Active tracking
-        protonGradient: 0, protonsPumped: 0, o2Produced: 0, o2Consumed: 0, h2oSplit: 0, electronsTransferred: 0, co2Fixed: 0, co2Produced: 0,
+        protonGradient: 0, protonsPumped: 0, o2Produced: 0, o2Consumed: 0, h2oSplit: 0, h2oProduced: 0, electronsTransferred: 0, co2Fixed: 0, co2Produced: 0,
 
         // --- Metabolite Pools ---
         // Glycolysis / Gluconeogenesis
@@ -43,22 +51,27 @@
         krebsToggle: document.getElementById('krebs-toggle'),
         autoplayToggle: document.getElementById('autoplay-toggle'),
         resetBtn: document.getElementById('reset-btn'),
+        addGlucoseBtn: document.getElementById('add-glucose-btn'),
         // Ratio Bars
         atpBar: document.getElementById('atp-bar'), atpRatio: document.getElementById('atp-ratio'),
         nadhBar: document.getElementById('nadh-bar'), nadhRatio: document.getElementById('nadh-ratio'),
         nadphBar: document.getElementById('nadph-bar'), nadphRatio: document.getElementById('nadph-ratio'),
+        fadh2Bar: document.getElementById('fadh2-bar'), fadh2Ratio: document.getElementById('fadh2-ratio'),
         // Counters
         protonGradient: document.getElementById('proton-gradient'),
         protonsPumped: document.getElementById('protons-pumped'), o2Produced: document.getElementById('o2-produced'),
         o2Consumed: document.getElementById('o2-consumed'), h2oSplit: document.getElementById('h2o-split'),
+        h2oProduced: document.getElementById('h2o-produced'),
         electronsTransferred: document.getElementById('electrons-transferred'), co2Fixed: document.getElementById('co2-fixed'), co2Produced: document.getElementById('co2-produced'),
+        co2Net: document.getElementById('co2-net'),
         // Active Step
         krebsEnzyme: document.getElementById('krebs-enzyme'), krebsReaction: document.getElementById('krebs-reaction'),
         krebsYield: document.getElementById('krebs-yield'), krebsTurn: document.getElementById('krebs-turn'),
         calvinTurn: document.getElementById('calvin-turn'), glycolysisRun: document.getElementById('glycolysis-run'),
+        pppRun: document.getElementById('ppp-run'),
     };
 
-    let krebsTurns = 0, calvinTurns = 0, glycRuns = 0;
+    let krebsTurns = 0, calvinTurns = 0, glycRuns = 0, pppRuns = 0;
 
     /* ---- Init ---- */
     Renderer.init(dom.canvas);
@@ -76,13 +89,15 @@
     dom.krebsToggle.addEventListener('change', () => simState.krebsEnabled = dom.krebsToggle.checked);
     if (dom.autoplayToggle) dom.autoplayToggle.addEventListener('change', () => simState.autoPlay = dom.autoplayToggle.checked);
     dom.resetBtn.addEventListener('click', resetSimulation);
+    if (dom.addGlucoseBtn) dom.addGlucoseBtn.addEventListener('click', () => { store.glucose++; updateDashboard(); });
 
     function resetSimulation() {
         Object.keys(store).forEach(k => store[k] = 0);
         store.atp = 5; store.glucose = 1; store.oaa = 2; store.rubp = 3;
-        store.totalAtpAdp = 20; store.totalNad = 20; store.totalNadp = 20;
-        krebsTurns = 0; calvinTurns = 0; glycRuns = 0;
+        store.totalAtpAdp = 20; store.totalNad = 20; store.totalNadp = 20; store.totalFad = 10;
+        krebsTurns = 0; calvinTurns = 0; glycRuns = 0; pppRuns = 0;
         dom.krebsTurn.textContent = '0'; dom.calvinTurn.textContent = '0'; dom.glycolysisRun.textContent = '0';
+        if (dom.pppRun) dom.pppRun.textContent = '0';
         simState.time = 0; simState.fermenting = false;
         Renderer.electrons = []; Renderer.protons = [];
         updateDashboard();
@@ -104,7 +119,7 @@
         if (y.nadh && store.nadh < store.totalNad) store.nadh = Math.min(store.nadh + y.nadh, store.totalNad);
         if (y.nadph && store.nadph < store.totalNadp) store.nadph = Math.min(store.nadph + y.nadph, store.totalNadp);
         if (y.nadphConsume && store.nadph >= y.nadphConsume) store.nadph -= y.nadphConsume;
-        if (y.fadh2) store.fadh2 += y.fadh2;
+        if (y.fadh2 && store.fadh2 < store.totalFad) store.fadh2 = Math.min(store.fadh2 + y.fadh2, store.totalFad);
         if (y.co2Fixed) store.co2Fixed += y.co2Fixed;
     }
 
@@ -137,7 +152,18 @@
         else if (pathway === 'atp_syn') ran = advanceATPSynthase();
         else if (pathway === 'br') ran = advanceBacteriorhodopsin();
 
+        // Nudge cycle rotations on successful reactions
+        if (ran) {
+            if (pathway === 'run_krebs') simState.krebsRot.angle += 0.5;
+            else if (pathway === 'krebs') simState.krebsRot.angle += 0.15;
+            if (pathway === 'run_calvin') simState.calvinRot.angle += 0.5;
+            else if (pathway === 'calvin') simState.calvinRot.angle += 0.15;
+            if (pathway === 'run_ppp') simState.pppRot.angle += 0.5;
+            else if (pathway === 'ppp') simState.pppRot.angle += 0.15;
+        }
+
         updateDashboard();
+        return ran;
     }
     Renderer.onEnzymeClick = advanceStep;
 
@@ -234,7 +260,7 @@
         else if (idx === 9) { // PK / PEPCK
             if (store.pep >= 2 && store.atp <= store.totalAtpAdp - 2) {
                 store.pep -= 2; store.pyruvate += 2; store.atp += 2;
-                glycRuns += 2; dom.glycolysisRun.textContent = Math.floor(glycRuns / 2); // 1 glucose = 2 pyruvates = 1 run
+                glycRuns++; dom.glycolysisRun.textContent = glycRuns;
                 showActiveStep('PK / PEPCK', '2× PEP + 2ADP → 2× Pyruvate + 2ATP', { atp: 2 });
                 return true;
             } else if (store.pyruvate >= 2 && store.atp >= 2) {
@@ -316,6 +342,7 @@
             if (store.pga6 > 0 && store.nadph < store.totalNadp) {
                 let t = Math.min(store.pga6, store.totalNadp - store.nadph, 2);
                 store.pga6 -= t; store.r5p += t; store.nadph += t; store.co2Produced += t;
+                pppRuns += t; if (dom.pppRun) dom.pppRun.textContent = pppRuns;
                 showActiveStep('6PGDH', '6-PGA → R5P + CO₂ + NADPH', { nadph: t });
                 return true;
             }
@@ -377,8 +404,8 @@
             }
         }
         else if (idx === 5) { // SDH
-            if (store.succinate > 0) {
-                let t = Math.min(store.succinate, 2);
+            if (store.succinate > 0 && store.fadh2 < store.totalFad) {
+                let t = Math.min(store.succinate, store.totalFad - store.fadh2, 2);
                 store.succinate -= t; store.fumarate += t; store.fadh2 += t;
                 showActiveStep('SDH', 'Succinate → Fumarate + FADH₂', { fadh2: t });
                 return true;
@@ -427,7 +454,7 @@
                 store.electronsTransferred += 2;
                 Renderer.spawnElectron(src, 'pq', 'resp');
                 setTimeout(() => { Renderer.spawnElectron('pq', 'cytb6f', 'resp'); pumpProtons(4, 'cytb6f'); }, 300);
-                setTimeout(() => { Renderer.spawnElectron('cytb6f', 'cytOx', 'resp'); pumpProtons(2, 'cytOx'); store.o2Consumed += 0.5; }, 600);
+                setTimeout(() => { Renderer.spawnElectron('cytb6f', 'cytOx', 'resp'); pumpProtons(2, 'cytOx'); store.o2Consumed += 0.5; store.h2oProduced++; }, 600);
                 return true;
             }
         } else if (pathway === 'etc_photo') {
@@ -475,10 +502,10 @@
     }
 
     function runKrebsCycle() {
-        if (!simState.oxygenAvailable || !simState.krebsEnabled || store.acetylCoA < 1 || store.totalNad - store.nadh < 3 || store.totalAtpAdp - store.atp < 1) return false;
+        if (!simState.oxygenAvailable || !simState.krebsEnabled || store.acetylCoA < 1 || store.totalNad - store.nadh < 3 || store.totalAtpAdp - store.atp < 1 || store.fadh2 >= store.totalFad) return false;
         store.acetylCoA--;
         store.nadh += 3;
-        store.fadh2++;
+        store.fadh2 = Math.min(store.fadh2 + 1, store.totalFad);
         store.atp++;
         store.co2Produced += 2;
         krebsTurns++;
@@ -488,7 +515,7 @@
     }
 
     function runGlycolysis() {
-        if (!simState.glycolysisEnabled || store.glucose < 1 || store.totalAtpAdp - store.atp < 2 || store.totalNad - store.nadh < 2) return false;
+        if (!simState.glycolysisEnabled || store.glucose < 1 || store.atp < 2 || store.totalAtpAdp - store.atp < 4 || store.totalNad - store.nadh < 2) return false;
         store.glucose--;
         store.atp += 2;
         store.nadh += 2;
@@ -500,7 +527,7 @@
     }
 
     function runCalvinCycle() {
-        if (!simState.calvinEnabled || store.atp < 9 || store.nadph < 6 || store.rubp < 3) return false;
+        if (!simState.calvinEnabled || !simState.lightOn || store.atp < 9 || store.nadph < 6 || store.rubp < 3) return false;
         store.atp -= 9;
         store.nadph -= 6;
         // Regenerates 3 RuBP, yielding 1 net G3P
@@ -518,11 +545,22 @@
         store.nadph += 2;
         store.r5p++;
         store.co2Produced++;
+        pppRuns++;
+        if (dom.pppRun) dom.pppRun.textContent = pppRuns;
         showActiveStep('PPP (Full)', 'G6P → R5P + CO₂ + 2 NADPH', { nadph: 2 });
         return true;
     }
 
     /* ---- Dashboard ---- */
+    function animateStatEl(el, newText) {
+        if (!el) return;
+        if (el.textContent !== newText) {
+            el.textContent = newText;
+            el.classList.add('bump');
+            setTimeout(() => el.classList.remove('bump'), 150);
+        }
+    }
+
     function updateDashboard() {
         const atpPct = Math.round((store.atp / store.totalAtpAdp) * 100);
         dom.atpBar.style.width = atpPct + '%'; dom.atpRatio.textContent = atpPct + '%';
@@ -530,13 +568,19 @@
         dom.nadhBar.style.width = nadhPct + '%'; dom.nadhRatio.textContent = nadhPct + '%';
         const nadphPct = Math.round((store.nadph / store.totalNadp) * 100);
         dom.nadphBar.style.width = nadphPct + '%'; dom.nadphRatio.textContent = nadphPct + '%';
+        const fadh2Pct = Math.round((store.fadh2 / store.totalFad) * 100);
+        if (dom.fadh2Bar) { dom.fadh2Bar.style.width = fadh2Pct + '%'; dom.fadh2Ratio.textContent = fadh2Pct + '%'; }
 
-        dom.protonGradient.textContent = store.protonGradient;
-        dom.protonsPumped.textContent = store.protonsPumped; dom.o2Produced.textContent = store.o2Produced.toFixed(1);
-        dom.o2Consumed.textContent = store.o2Consumed.toFixed(1); dom.h2oSplit.textContent = store.h2oSplit;
-        dom.electronsTransferred.textContent = store.electronsTransferred;
-        if (dom.co2Fixed) dom.co2Fixed.textContent = store.co2Fixed;
-        if (dom.co2Produced) dom.co2Produced.textContent = store.co2Produced;
+        animateStatEl(dom.protonGradient, '' + store.protonGradient);
+        animateStatEl(dom.protonsPumped, '' + store.protonsPumped);
+        animateStatEl(dom.o2Produced, store.o2Produced.toFixed(1));
+        animateStatEl(dom.o2Consumed, store.o2Consumed.toFixed(1));
+        animateStatEl(dom.h2oSplit, '' + store.h2oSplit);
+        animateStatEl(dom.h2oProduced, '' + store.h2oProduced);
+        animateStatEl(dom.electronsTransferred, '' + store.electronsTransferred);
+        animateStatEl(dom.co2Fixed, '' + store.co2Fixed);
+        animateStatEl(dom.co2Produced, '' + store.co2Produced);
+        animateStatEl(dom.co2Net, '' + (store.co2Produced - store.co2Fixed));
     }
 
     /* ---- Render Loop ---- */
@@ -548,27 +592,32 @@
         simState.time += dt;
         simState.protonGradient = store.protonGradient;
 
+        // Update animation accumulators
+        simState.calvinRot.update(dt, simState.calvinEnabled && simState.lightOn && simState.autoPlay);
+        simState.krebsRot.update(dt, simState.krebsEnabled && simState.oxygenAvailable && simState.autoPlay, -1.5);
+        simState.pppRot.update(dt, simState.pppEnabled && simState.autoPlay);
+        simState.glycolysisFade.update(dt, simState.glycolysisEnabled ? 1 : 0.08);
+        simState.calvinFade.update(dt, (simState.calvinEnabled && simState.lightOn) ? 1 : 0.08);
+        simState.krebsFade.update(dt, (simState.krebsEnabled && simState.oxygenAvailable) ? 1 : 0);
+        simState.pppFade.update(dt, simState.pppEnabled ? 1 : 0.08);
+
         // Auto-Play Logic
         if (simState.autoPlay) {
             autoPlayTimer += dt;
             if (autoPlayTimer > 0.4) {
                 autoPlayTimer = 0;
-                // Attempt pathways in some logical priority
-                if (!advanceStep('atp_syn')) {
-                    if (!advanceStep('etc_resp')) {
-                        if (!advanceStep('etc_photo')) {
-                            if (!advanceStep('etc_cyclic')) {
-                                if (!advanceStep('run_krebs')) {
-                                    if (!advanceStep('run_glycolysis')) {
-                                        if (!advanceStep('run_calvin')) {
-                                            advanceStep('run_ppp');
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                // Attempt pathways in logical priority
+                advanceStep('atp_syn')
+                    || advanceStep('etc_resp')
+                    || advanceStep('etc_photo')
+                    || advanceStep('etc_cyclic')
+                    || advanceStep('pdh')
+                    || advanceStep('run_krebs')
+                    || advanceStep('run_glycolysis')
+                    || advanceStep('fermentation')
+                    || advanceStep('run_calvin')
+                    || advanceStep('run_ppp')
+                    || advanceStep('br');
             }
         }
 

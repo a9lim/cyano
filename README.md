@@ -1,6 +1,6 @@
-# Cyanobacteria Metabolic Pathway Simulator
+# Metabolism Simulator
 
-An interactive, accurate, and visually polished HTML5 Canvas simulation of cyanobacterial carbon metabolism and electron transport chains.
+An interactive, accurate, and visually polished HTML5 Canvas simulation of cellular carbon metabolism and electron transport chains.
 
 ## Overview
 This project visualizes the interconnected nature of 7 major biochemical systems within a photosynthetic cell. It allows users to actively trace the flow of carbon, electrons, and energy (ATP/NADP(H)) by clicking on enzymatic reactions to advance the simulation step-by-step. 
