@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -18,12 +18,16 @@
 <body>
   <header>
     <h1>Metabolism Simulator</h1>
-    <p class="subtitle">Calvin Cycle · Glycolysis · Krebs Cycle · Electron Transport Chain · PPP</p>
   </header>
 
   <main>
     <div id="sim-container">
       <canvas id="sim-canvas"></canvas>
+      <div id="canvas-controls">
+        <button id="zoom-in-btn" aria-label="Zoom in" title="Zoom in">+</button>
+        <button id="zoom-out-btn" aria-label="Zoom out" title="Zoom out">&minus;</button>
+        <button id="zoom-reset-btn" aria-label="Reset zoom" title="Reset zoom">&#x21BA;</button>
+      </div>
       <div id="zoom-indicator">100%</div>
     </div>
 
@@ -87,18 +91,17 @@
         </div>
         <div class="control-row">
           <label for="autoplay-toggle">Auto-Play</label>
-          <div class="toggle-wrapper" style="margin-left:auto">
+          <div class="toggle-wrapper">
             <input type="checkbox" id="autoplay-toggle">
             <label for="autoplay-toggle" class="toggle-switch">
               <span class="toggle-knob"></span>
             </label>
           </div>
         </div>
-        <div class="control-row" style="flex-direction:column;align-items:flex-start;gap:2px">
-          <small style="color:var(--text-muted);font-size:0.75rem">💡 Click enzyme labels on the canvas to advance
-            reactions</small>
+        <div class="control-row hint-row">
+          <small class="hint-text">Click enzyme labels on the canvas to advance reactions</small>
         </div>
-        <div class="control-row" style="gap:4px">
+        <div class="control-row button-row">
           <button id="add-glucose-btn">+ Glucose</button>
           <button id="reset-btn">Reset</button>
         </div>
@@ -240,14 +243,11 @@
       <!-- Legend -->
       <div class="panel legend-panel">
         <h2>Legend</h2>
-        <div class="legend-item"><span class="legend-dot respiratory"></span> Respiratory chain</div>
-        <div class="legend-item"><span class="legend-dot photosynthetic"></span> Photosynthetic chain</div>
-        <div class="legend-item"><span class="legend-dot shared"></span> Shared complex</div>
-        <div class="legend-item"><span class="legend-dot calvin-dot"></span> Calvin cycle</div>
-        <div class="legend-item"><span class="legend-dot glycolysis-dot"></span> Glycolysis</div>
-        <div class="legend-item"><span class="legend-dot cyclic-dot"></span> Cyclic e⁻ flow</div>
-        <div class="legend-item"><span class="legend-dot ppp-dot"></span> Pentose phosphate</div>
-        <div class="legend-item"><span class="legend-dot br-dot"></span> Bacteriorhodopsin</div>
+        <div class="legend-item"><span class="legend-dot respiratory"></span> Respiratory chain / Krebs cycle</div>
+        <div class="legend-item"><span class="legend-dot photosynthetic"></span> Photosynthetic chain / Calvin cycle</div>
+        <div class="legend-item"><span class="legend-dot shared"></span> Glycolysis / Shared enzymes</div>
+        <div class="legend-item"><span class="legend-dot ppp-dot"></span> Pentose phosphate pathway</div>
+        <div class="legend-item"><span class="legend-dot cyclic-dot"></span> Cyclic e⁻ flow / Bacteriorhodopsin</div>
         <div class="legend-item"><span class="legend-dot ferment-dot"></span> Fermentation</div>
         <div class="legend-item"><span class="legend-dot electron"></span> Electron particle</div>
         <div class="legend-item"><span class="legend-dot proton"></span> H⁺ proton</div>
