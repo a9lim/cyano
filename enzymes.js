@@ -4,10 +4,10 @@
 
 // ---------- Drawing Constants ----------
 const CFG = {
-  arrowHeadLen: 10,
+  arrowHeadLen: 7,
   arrowHeadAngle: 0.4,
-  arrowLineWidth: 3.0,
-  arrowStopGap: 8,
+  arrowLineWidth: 2.5,
+  arrowStopGap: 5,
   cycleTargetRadius: 22,
   cycleStrokeWidth: 4.5,
   cycleTipLen: 14,
@@ -173,181 +173,80 @@ const EnzymeStyles = {
      ETC Complex Drawers — enzyme shapes that span/sit inside membrane
      ==================================================================== */
 
-  drawNDH1(ctx, cx, cy, w, h, glow, lightMode) {
+  /** Generic ETC complex — consistent rounded rect with label */
+  _drawETCComplex(ctx, cx, cy, w, h, glow, lightMode, paletteKey, label1, label2) {
+    const p = this.getPalette(paletteKey, lightMode, glow);
     this.roundedRect(ctx, cx - w / 2, cy - h / 2, w, h, 5);
-    const p = this.getPalette('respiratory', lightMode, glow);
     this.applyStyle(ctx, p, glow);
-    // FMN cofactor + Fe-S cluster
-    this.drawCofactorDot(ctx, cx - 8, cy + 2, 'rgba(251,191,36,0.4)');
-    this.drawFeS(ctx, cx + 6, cy + 2, 2.5);
-    this.drawLabel(ctx, 'NDH-1', cx, cy - 6, p.stroke, 9);
-    this.drawLabel(ctx, 'CI', cx, cy + 9, lightMode ? '#0c4a6e' : '#38bdf8', 7);
+    if (label2) {
+      this.drawLabel(ctx, label1, cx, cy - 5, p.stroke, 9);
+      this.drawLabel(ctx, label2, cx, cy + 6, p.stroke, 8);
+    } else {
+      this.drawLabel(ctx, label1, cx, cy, p.stroke, 9);
+    }
+  },
+
+  drawNDH1(ctx, cx, cy, w, h, glow, lightMode) {
+    this._drawETCComplex(ctx, cx, cy, w, h, glow, lightMode, 'respiratory', 'NDH-1', 'CI');
   },
 
   drawSDH(ctx, cx, cy, size, glow, lightMode) {
-    this.diamond(ctx, cx, cy, size, size);
-    const p = this.getPalette('respiratory', lightMode, glow);
-    this.applyStyle(ctx, p, glow);
-    // FAD cofactor
-    this.drawCofactorDot(ctx, cx, cy + 5, 'rgba(251,191,36,0.4)');
-    this.drawLabel(ctx, 'SDH', cx, cy - 5, p.stroke, 9);
-    this.drawLabel(ctx, 'CII', cx, cy + 10, lightMode ? '#0c4a6e' : '#38bdf8', 7);
+    this._drawETCComplex(ctx, cx, cy, size * 1.3, size * 1.3, glow, lightMode, 'respiratory', 'SDH', 'CII');
   },
 
   drawPSII(ctx, cx, cy, w, h, glow, lightMode) {
-    // Tall rectangle spanning membrane
-    this.roundedRect(ctx, cx - w / 2, cy - h / 2, w, h, 5);
-    const p = this.getPalette('photosynthetic', lightMode, glow);
-    this.applyStyle(ctx, p, glow);
-    // Chlorophyll reaction center (P680)
+    this._drawETCComplex(ctx, cx, cy, w, h, glow, lightMode, 'photosynthetic', 'PSII', 'P680');
+    // Chlorophyll P680 chromophore (centered in protein)
     ctx.beginPath();
-    ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-    const innerColor = lightMode ? `rgba(${this.colors.photosynthetic.glowRgba},0.35)` : 'rgba(52,211,153,0.35)';
-    ctx.fillStyle = innerColor;
+    ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+    ctx.fillStyle = lightMode ? `rgba(${_BASE.green.rgb},0.5)` : `rgba(${_BASE.green.rgb},0.4)`;
     ctx.fill();
-    // Antenna pigment dots
-    for (let i = 0; i < 4; i++) {
-      const a = (Math.PI * 2 / 4) * i + Math.PI / 4;
-      this.drawCofactorDot(ctx, cx + 10 * Math.cos(a), cy + 10 * Math.sin(a), 'rgba(52,211,153,0.25)');
-    }
-    this.drawLabel(ctx, 'PSII', cx, cy - 8, p.stroke, 9);
-    this.drawLabel(ctx, 'P680', cx, cy + 5, lightMode ? '#064e3b' : '#10b981', 7);
   },
 
   drawPSI(ctx, cx, cy, w, h, glow, lightMode) {
-    this.roundedRect(ctx, cx - w / 2, cy - h / 2, w, h, 5);
-    const p = this.getPalette('photosynthetic', lightMode, glow);
-    this.applyStyle(ctx, p, glow);
-    // Chlorophyll reaction center (P700)
+    this._drawETCComplex(ctx, cx, cy, w, h, glow, lightMode, 'photosynthetic', 'PSI', 'P700');
+    // Chlorophyll P700 chromophore (centered in protein)
     ctx.beginPath();
-    ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-    const innerColor = lightMode ? `rgba(${this.colors.photosynthetic.glowRgba},0.35)` : 'rgba(52,211,153,0.35)';
-    ctx.fillStyle = innerColor;
+    ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+    ctx.fillStyle = lightMode ? `rgba(${_BASE.green.rgb},0.5)` : `rgba(${_BASE.green.rgb},0.4)`;
     ctx.fill();
-    // Antenna pigment dots
-    for (let i = 0; i < 3; i++) {
-      const a = (Math.PI * 2 / 3) * i;
-      this.drawCofactorDot(ctx, cx + 9 * Math.cos(a), cy + 9 * Math.sin(a), 'rgba(52,211,153,0.2)');
-    }
-    this.drawLabel(ctx, 'PSI', cx, cy - 5, p.stroke, 9);
-    this.drawLabel(ctx, 'P700', cx, cy + 6, lightMode ? '#064e3b' : '#10b981', 7);
   },
 
   drawCytB6f(ctx, cx, cy, w, h, glow, lightMode) {
-    this.roundedRect(ctx, cx - w / 2, cy - h / 2, w, h, 5);
-    const p = this.getPalette('shared', lightMode, glow);
-    this.applyStyle(ctx, p, glow);
-    // 2 heme groups (bH, bL)
-    this.drawHeme(ctx, cx - 6, cy + 2, 4, 'rgba(220,60,60,0.4)');
-    this.drawHeme(ctx, cx + 6, cy + 2, 4, 'rgba(180,60,60,0.3)');
-    this.drawLabel(ctx, 'Cyt', cx, cy - 6, p.stroke, 9);
-    this.drawLabel(ctx, 'b6f', cx, cy + 8, p.stroke, 9);
+    this._drawETCComplex(ctx, cx, cy, w, h, glow, lightMode, 'shared', 'Cyt', 'b6f');
   },
 
   drawCytOx(ctx, cx, cy, w, h, glow, lightMode) {
-    this.roundedRect(ctx, cx - w / 2, cy - h / 2, w, h, 5);
-    const p = this.getPalette('respiratory', lightMode, glow);
-    this.applyStyle(ctx, p, glow);
-    // Heme a + CuA center
-    this.drawHeme(ctx, cx - 5, cy + 2, 3.5, 'rgba(220,60,60,0.4)');
-    this.drawCofactorDot(ctx, cx + 5, cy + 2, 'rgba(60,180,220,0.4)');
-    this.drawLabel(ctx, 'Cyt c', cx, cy - 8, p.stroke, 8);
-    this.drawLabel(ctx, 'Ox', cx, cy + 6, p.stroke, 8);
+    this._drawETCComplex(ctx, cx, cy, w, h, glow, lightMode, 'respiratory', 'Cyt c', 'Ox');
   },
 
   drawPC(ctx, cx, cy, radius, glow, lightMode) {
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.closePath();
-    const p = this.getPalette('photosynthetic', lightMode, glow);
-    this.applyStyle(ctx, p, glow);
-    this.drawLabel(ctx, 'PC', cx, cy, p.stroke, 8);
+    this._drawETCComplex(ctx, cx, cy, radius * 2, radius * 2, glow, lightMode, 'photosynthetic', 'PC');
   },
 
   drawFd(ctx, cx, cy, radius, glow, lightMode) {
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.closePath();
-    const p = this.getPalette('photosynthetic', lightMode, glow);
-    this.applyStyle(ctx, p, glow);
-    this.drawLabel(ctx, 'Fd', cx, cy, p.stroke, 8);
+    this._drawETCComplex(ctx, cx, cy, radius * 2, radius * 2, glow, lightMode, 'photosynthetic', 'Fd');
   },
 
   drawFNR(ctx, cx, cy, w, h, glow, lightMode) {
-    this.pill(ctx, cx, cy, w, h);
-    const p = this.getPalette('photosynthetic', lightMode, glow);
-    this.applyStyle(ctx, p, glow);
-    this.drawLabel(ctx, 'FNR', cx, cy, p.stroke, 9);
+    this._drawETCComplex(ctx, cx, cy, w, h, glow, lightMode, 'photosynthetic', 'FNR');
   },
 
   drawPQ(ctx, cx, cy, w, h, glow, lightMode) {
-    this.pill(ctx, cx, cy, w, h);
-    const p = this.getPalette('shared', lightMode, glow);
-    this.applyStyle(ctx, p, glow);
-    this.drawLabel(ctx, 'PQ', cx, cy, p.stroke, 9);
+    this._drawETCComplex(ctx, cx, cy, w, h, glow, lightMode, 'shared', 'PQ');
   },
 
   drawATPSynthase(ctx, cx, cy, w, h, rotation, glow, lightMode, protonGradient) {
-    // Tall shape spanning membrane with spinning rotor
-    this.roundedRect(ctx, cx - w / 2, cy - h / 2, w, h, 5);
-    const p = this.getPalette('atpSynthase', lightMode, glow);
-    this.applyStyle(ctx, p, glow);
-
-    // Proton channel indicator (animated dashes when gradient > 0)
-    const pg = protonGradient || 0;
-    if (pg > 0) {
-      ctx.save();
-      ctx.setLineDash([2, 3]);
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - h / 2 + 3);
-      ctx.lineTo(cx, cy + h / 2 - 3);
-      ctx.strokeStyle = `rgba(251,113,133,${Math.min(0.4, 0.1 + pg * 0.03)})`;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.restore();
-    }
-
-    // Rotor blades — spin faster with higher gradient
-    const spinSpeed = pg > 0 ? 1 + Math.min(pg / 10, 2) : 0.3;
-    ctx.save();
-    ctx.translate(cx, cy + 4);
-    ctx.rotate(rotation * spinSpeed);
-    for (let i = 0; i < 6; i++) {
-      const a = (Math.PI * 2 / 6) * i;
-      ctx.beginPath();
-      ctx.ellipse(Math.cos(a) * 7, Math.sin(a) * 7, 5, 2, a, 0, Math.PI * 2);
-      const bladeColor = lightMode ? `rgba(${this.colors.atpSynthase.glowRgba},0.3)` : 'rgba(251,146,60,0.3)';
-      ctx.fillStyle = bladeColor;
-      ctx.fill();
-    }
-    ctx.restore();
-
-    this.drawLabel(ctx, 'ATP', cx, cy - 10, p.stroke, 9);
-    this.drawLabel(ctx, 'Syn', cx, cy + 1, p.stroke, 8);
+    this._drawETCComplex(ctx, cx, cy, w, h, glow, lightMode, 'atpSynthase', 'ATP', 'Syn');
   },
 
-  /** Bacteriorhodopsin — 7-helix bundle (distinctive heptagon shape) */
   drawBR(ctx, cx, cy, w, h, glow, lightMode) {
-    // Draw 7-helix bundle as a heptagon
+    this._drawETCComplex(ctx, cx, cy, w, h, glow, lightMode, 'bacteriorhodopsin', 'BR');
+    // Retinal chromophore (centered in protein)
     ctx.beginPath();
-    for (let i = 0; i < 7; i++) {
-      const angle = (Math.PI * 2 / 7) * i - Math.PI / 2;
-      const px = cx + (w / 2) * Math.cos(angle);
-      const py = cy + (h / 2) * Math.sin(angle);
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-    const p = this.getPalette('bacteriorhodopsin', lightMode, glow);
-    this.applyStyle(ctx, p, glow);
-    // Retinal chromophore — small inner circle
-    ctx.beginPath();
-    ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-    const innerColor = lightMode ? `rgba(${this.colors.bacteriorhodopsin.glowRgba},0.35)` : 'rgba(192,132,252,0.35)';
-    ctx.fillStyle = innerColor;
+    ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+    ctx.fillStyle = lightMode ? `rgba(${_BASE.purple.rgb},0.5)` : `rgba(${_BASE.purple.rgb},0.4)`;
     ctx.fill();
-    this.drawLabel(ctx, 'BR', cx, cy, p.stroke, 9);
-    // Removed duplicate internal 1H+
   },
 
   /* ==== Krebs Cycle ==== */
@@ -426,7 +325,7 @@ const EnzymeStyles = {
       const bx = cx + w / 2 - 2, by = cy - h / 2 - 3;
       ctx.beginPath();
       ctx.arc(bx, by, badgeR, 0, Math.PI * 2);
-      ctx.fillStyle = lightMode ? 'rgba(30,41,59,0.85)' : 'rgba(251,191,36,0.9)';
+      ctx.fillStyle = lightMode ? 'rgba(30,41,59,0.85)' : `rgba(${_BASE.orange.rgb},0.9)`;
       ctx.fill();
       ctx.font = '700 7px JetBrains Mono, monospace';
       ctx.fillStyle = lightMode ? '#f1f5f9' : '#0f172a';
@@ -434,7 +333,7 @@ const EnzymeStyles = {
     }
     if (show2x) {
       ctx.font = '700 7px JetBrains Mono, monospace';
-      ctx.fillStyle = lightMode ? '#ea580c' : '#fdba74';
+      ctx.fillStyle = lightMode ? _BASE.rose.strokeLight : _BASE.rose.stroke;
       ctx.fillText('2x', cx, cy + 14);
     }
   },
@@ -465,26 +364,25 @@ const EnzymeStyles = {
 
     const useDual = color2 && color2 !== color;
     if (useDual) {
+      // Match arrow body: color2 on left (backward), color on right (forward)
       const grad = ctx.createLinearGradient(cx - w / 2, cy, cx + w / 2, cy);
-      grad.addColorStop(0, color);
-      grad.addColorStop(1, color2);
+      grad.addColorStop(0, color2);
+      grad.addColorStop(1, color);
       ctx.strokeStyle = grad;
     } else {
       ctx.strokeStyle = color;
     }
     ctx.lineWidth = 1.0;
     ctx.stroke();
-    ctx.globalAlpha = 1;
 
     if (useDual) {
       const grad = ctx.createLinearGradient(cx - w / 2, cy, cx + w / 2, cy);
-      grad.addColorStop(0, color);
-      grad.addColorStop(1, color2);
+      grad.addColorStop(0, color2);
+      grad.addColorStop(1, color);
       ctx.fillStyle = grad;
     } else {
       ctx.fillStyle = color;
     }
-    ctx.globalAlpha = 1;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(label, cx, cy);
@@ -492,84 +390,64 @@ const EnzymeStyles = {
 
   /* ---- Membrane band ---- */
   drawMembrane(ctx, x, y, w, h, lightMode, time) {
-    // Phospholipid bilayer look
-    const grad = ctx.createLinearGradient(x, y, x, y + h);
-    if (lightMode) {
-      grad.addColorStop(0, 'rgba(200,220,230,0.1)');
-      grad.addColorStop(0.08, 'rgba(180,210,230,0.4)');
-      grad.addColorStop(0.2, 'rgba(170,200,220,0.55)');
-      grad.addColorStop(0.5, 'rgba(160,195,215,0.65)');
-      grad.addColorStop(0.8, 'rgba(170,200,220,0.55)');
-      grad.addColorStop(0.92, 'rgba(180,210,230,0.4)');
-      grad.addColorStop(1, 'rgba(200,220,230,0.1)');
-    } else {
-      grad.addColorStop(0, 'rgba(20,40,70,0.15)');
-      grad.addColorStop(0.08, 'rgba(30,58,95,0.55)');
-      grad.addColorStop(0.2, 'rgba(25,50,85,0.7)');
-      grad.addColorStop(0.5, 'rgba(20,40,70,0.8)');
-      grad.addColorStop(0.8, 'rgba(25,50,85,0.7)');
-      grad.addColorStop(0.92, 'rgba(30,58,95,0.55)');
-      grad.addColorStop(1, 'rgba(20,40,70,0.15)');
-    }
-    ctx.fillStyle = grad;
-    ctx.fillRect(x, y, w, h);
-
-    // Lipid bilayer border lines
-    ctx.strokeStyle = lightMode ? 'rgba(20,120,140,0.3)' : 'rgba(56,189,248,0.18)';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(x, y + h); ctx.lineTo(x + w, y + h); ctx.stroke();
-    // Inner leaflet lines
-    ctx.strokeStyle = lightMode ? 'rgba(20,120,140,0.12)' : 'rgba(56,189,248,0.08)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 6]);
-    const inner1 = y + h * 0.3;
-    const inner2 = y + h * 0.7;
-    ctx.beginPath(); ctx.moveTo(x, inner1); ctx.lineTo(x + w, inner1); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(x, inner2); ctx.lineTo(x + w, inner2); ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Animated lipid head groups
-    const headSpacing = 12;
-    const headRadius = 2.5;
-    const headColor = lightMode ? 'rgba(20,120,140,0.15)' : 'rgba(56,189,248,0.1)';
-    const tailColor = lightMode ? 'rgba(20,120,140,0.08)' : 'rgba(56,189,248,0.05)';
     const t = time || 0;
+    const headSpacing = 6;
+    const headRadius = 2.5;
+    const tailLen = h * 0.32;
 
+    // Colors
+    const headColor = lightMode ? 'rgba(20,120,140,0.35)' : 'rgba(56,189,248,0.22)';
+    const tailColor = lightMode ? 'rgba(20,120,140,0.18)' : 'rgba(56,189,248,0.1)';
+    const midColor  = lightMode ? 'rgba(160,195,215,0.12)' : 'rgba(20,40,70,0.15)';
+
+    // Subtle interior tint (very faint — just enough to define the membrane zone)
+    ctx.fillStyle = midColor;
+    ctx.fillRect(x, y + h * 0.25, w, h * 0.5);
+
+    // Draw phospholipid bilayer as the primary visual
     for (let lx = x + 6; lx < x + w; lx += headSpacing) {
-      const wobble = Math.sin(t * 2 + lx * 0.1) * 1.5;
-      // Top leaflet heads
-      ctx.beginPath();
-      ctx.arc(lx, y + 3 + wobble, headRadius, 0, Math.PI * 2);
-      ctx.fillStyle = headColor; ctx.fill();
-      // Top tails
-      ctx.beginPath();
-      ctx.moveTo(lx, y + 3 + wobble + headRadius);
-      ctx.lineTo(lx + 0.5, y + h * 0.35);
-      ctx.strokeStyle = tailColor; ctx.lineWidth = 0.8; ctx.stroke();
+      const wobble = Math.sin(t * 2 + lx * 0.1) * 1.2;
 
-      // Bottom leaflet heads
+      // ── Outer leaflet (top) ──
+      const topHeadY = y + 3 + wobble;
+      // Head
       ctx.beginPath();
-      ctx.arc(lx + headSpacing / 2, y + h - 3 - wobble, headRadius, 0, Math.PI * 2);
+      ctx.arc(lx, topHeadY, headRadius, 0, Math.PI * 2);
       ctx.fillStyle = headColor; ctx.fill();
-      // Bottom tails
+      // Twin tails pointing inward
       ctx.beginPath();
-      ctx.moveTo(lx + headSpacing / 2, y + h - 3 - wobble - headRadius);
-      ctx.lineTo(lx + headSpacing / 2 - 0.5, y + h * 0.65);
-      ctx.strokeStyle = tailColor; ctx.lineWidth = 0.8; ctx.stroke();
+      ctx.moveTo(lx - 1, topHeadY + headRadius);
+      ctx.lineTo(lx - 1.5, topHeadY + headRadius + tailLen);
+      ctx.moveTo(lx + 1, topHeadY + headRadius);
+      ctx.lineTo(lx + 1.5, topHeadY + headRadius + tailLen);
+      ctx.strokeStyle = tailColor; ctx.lineWidth = 0.7; ctx.stroke();
+
+      // ── Inner leaflet (bottom) ──
+      const botHeadY = y + h - 3 - wobble;
+      const bx = lx + headSpacing / 2;
+      // Head
+      ctx.beginPath();
+      ctx.arc(bx, botHeadY, headRadius, 0, Math.PI * 2);
+      ctx.fillStyle = headColor; ctx.fill();
+      // Twin tails pointing inward
+      ctx.beginPath();
+      ctx.moveTo(bx - 1, botHeadY - headRadius);
+      ctx.lineTo(bx - 1.5, botHeadY - headRadius - tailLen);
+      ctx.moveTo(bx + 1, botHeadY - headRadius);
+      ctx.lineTo(bx + 1.5, botHeadY - headRadius - tailLen);
+      ctx.strokeStyle = tailColor; ctx.lineWidth = 0.7; ctx.stroke();
     }
   },
 
   /* ---- Particles ---- */
   drawElectron(ctx, x, y, intensity, type) {
-    let r, g, b;
-    if (type === 'photo')       { r = 52;  g = 211; b = 153; }
-    else if (type === 'cyclic') { r = 192; g = 132; b = 252; }
-    else                        { r = 103; g = 232; b = 249; }
+    const rgb = type === 'photo' ? _BASE.green.rgb
+              : type === 'cyclic' ? _BASE.purple.rgb
+              : _BASE.blue.rgb;
     ctx.beginPath();
     ctx.arc(x, y, CFG.electronRadius, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${r},${g},${b},${0.7 + 0.3 * intensity})`;
-    ctx.shadowColor = `rgba(${r},${g},${b},0.8)`;
+    ctx.fillStyle = `rgba(${rgb},${0.7 + 0.3 * intensity})`;
+    ctx.shadowColor = `rgba(${rgb},0.8)`;
     ctx.shadowBlur = 8 * intensity;
     ctx.fill();
     ctx.shadowBlur = 0;
@@ -578,8 +456,8 @@ const EnzymeStyles = {
   drawProton(ctx, x, y, intensity) {
     ctx.beginPath();
     ctx.arc(x, y, CFG.protonRadius, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(251,113,133,${0.6 + 0.4 * intensity})`;
-    ctx.shadowColor = 'rgba(251,113,133,0.7)';
+    ctx.fillStyle = `rgba(${_BASE.rose.rgb},${0.6 + 0.4 * intensity})`;
+    ctx.shadowColor = `rgba(${_BASE.rose.rgb},0.7)`;
     ctx.shadowBlur = 5 * intensity;
     ctx.fill();
     ctx.shadowBlur = 0;
@@ -594,9 +472,10 @@ const EnzymeStyles = {
 
   /** Core arrow renderer — all arrow variants delegate here */
   _drawArrowCore(ctx, x1, y1, x2, y2, opts) {
+    ctx.save();
     const o = opts || {};
     const a = o.alpha != null ? o.alpha : 1.0;
-    const c = o.color || '#38bdf8';
+    const c = o.color || _BASE.blue.stroke;
     const hl = CFG.arrowHeadLen, ha = CFG.arrowHeadAngle, gap = CFG.arrowStopGap;
 
     let angle;
@@ -608,10 +487,14 @@ const EnzymeStyles = {
     const stopX = x2 - gap * Math.cos(angle);
     const stopY = y2 - gap * Math.sin(angle);
 
+    // For bidir arrows, shorten start so line doesn't extend past backward arrowhead
+    const startX = o.bidir ? x1 + gap * Math.cos(angle) : x1;
+    const startY = o.bidir ? y1 + gap * Math.sin(angle) : y1;
+
     // Line
     ctx.beginPath();
     if (o.dashed) ctx.setLineDash([6, 5]);
-    ctx.moveTo(x1, y1);
+    ctx.moveTo(startX, startY);
     if (o.curved) ctx.quadraticCurveTo(o.cpx, o.cpy, stopX, stopY);
     else ctx.lineTo(stopX, stopY);
 
@@ -635,7 +518,7 @@ const EnzymeStyles = {
       const rAngle = Math.atan2(y1 - y2, x1 - x2);
       this._arrowhead(ctx, x1, y1, rAngle, o.color2 || c, a);
     }
-    ctx.globalAlpha = 1;
+    ctx.restore();
   },
 
   _arrowhead(ctx, x, y, angle, color, alpha) {
@@ -666,6 +549,7 @@ const EnzymeStyles = {
 
   drawCycleTarget(ctx, cx, cy, color, label, dir = 1, rotation = 0) {
     const radius = CFG.cycleTargetRadius;
+    const parentAlpha = ctx.globalAlpha;
 
     ctx.save();
     ctx.translate(cx, cy);
@@ -681,7 +565,7 @@ const EnzymeStyles = {
 
     ctx.strokeStyle = color;
     ctx.lineWidth = CFG.cycleStrokeWidth;
-    ctx.globalAlpha = 0.8;
+    ctx.globalAlpha = 0.8 * parentAlpha;
     ctx.stroke();
 
     // Tangential arrowhead
@@ -711,9 +595,8 @@ const EnzymeStyles = {
     ctx.lineTo(fin2X, fin2Y);
     ctx.closePath();
     ctx.fillStyle = color;
+    ctx.globalAlpha = parentAlpha;
     ctx.fill();
-
-    ctx.globalAlpha = 1;
 
     ctx.restore();
 

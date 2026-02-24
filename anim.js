@@ -66,8 +66,16 @@ const Anim = {
   rotAccum() {
     return {
       angle: 0,
+      targetAngle: 0,
       update(dt, active, speed = 1.5) {
-        if (active) this.angle += dt * speed;
+        if (active) this.targetAngle += dt * speed;
+        // Smoothly interpolate toward target (covers both auto-play drift and click nudges)
+        const diff = this.targetAngle - this.angle;
+        if (Math.abs(diff) > 0.001) {
+          this.angle += diff * Math.min(1, 6 * dt);
+        } else {
+          this.angle = this.targetAngle;
+        }
       }
     };
   },
