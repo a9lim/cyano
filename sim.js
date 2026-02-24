@@ -167,8 +167,8 @@
 
         // Nudge cycle rotations on successful reactions (smooth via targetAngle)
         if (ran) {
-            if (pathway === 'run_krebs') simState.krebsRot.targetAngle += Math.PI * 2;
-            else if (pathway === 'krebs') simState.krebsRot.targetAngle += 0.4;
+            if (pathway === 'run_krebs') simState.krebsRot.targetAngle -= Math.PI * 2;
+            else if (pathway === 'krebs') simState.krebsRot.targetAngle -= 0.4;
             if (pathway === 'run_calvin') simState.calvinRot.targetAngle += Math.PI * 2;
             else if (pathway === 'calvin') simState.calvinRot.targetAngle += 0.4;
             if (pathway === 'run_ppp') simState.pppRot.targetAngle += Math.PI * 2;
@@ -468,8 +468,8 @@
             if (src) {
                 store.electronsTransferred += 2;
                 Renderer.spawnElectron(src, 'pq', 'resp');
-                setTimeout(() => { Renderer.spawnElectron('pq', 'cytb6f', 'resp'); pumpProtons(4, 'cytb6f'); }, 300);
-                setTimeout(() => { Renderer.spawnElectron('cytb6f', 'cytOx', 'resp'); pumpProtons(2, 'cytOx'); store.o2Consumed += 0.5; store.h2oProduced++; }, 600);
+                setTimeout(() => { Renderer.spawnElectron('pq', 'cytb6f', 'resp'); pumpProtons(4, 'cytb6f'); }, 1900);
+                setTimeout(() => { Renderer.spawnElectron('cytb6f', 'cytOx', 'resp'); pumpProtons(2, 'cytOx'); store.o2Consumed += 0.5; store.h2oProduced++; }, 3800);
                 return true;
             }
         } else if (pathway === 'etc_photo') {
@@ -477,22 +477,22 @@
             store.h2oSplit++; store.o2Produced += 0.5; store.electronsTransferred += 2;
             pumpProtons(2, 'psii');
             Renderer.spawnElectron('psii', 'pq', 'photo');
-            setTimeout(() => { Renderer.spawnElectron('pq', 'cytb6f', 'photo'); pumpProtons(4, 'cytb6f'); }, 250);
-            setTimeout(() => Renderer.spawnElectron('cytb6f', 'pc', 'photo'), 500);
-            setTimeout(() => Renderer.spawnElectron('pc', 'psi', 'photo'), 750);
-            setTimeout(() => Renderer.spawnElectron('psi', 'fd', 'photo'), 1000);
+            setTimeout(() => { Renderer.spawnElectron('pq', 'cytb6f', 'photo'); pumpProtons(4, 'cytb6f'); }, 1900);
+            setTimeout(() => Renderer.spawnElectron('cytb6f', 'pc', 'photo'), 3800);
+            setTimeout(() => Renderer.spawnElectron('pc', 'psi', 'photo'), 5700);
+            setTimeout(() => Renderer.spawnElectron('psi', 'fd', 'photo'), 7600);
             setTimeout(() => {
                 Renderer.spawnElectron('fd', 'fnr', 'photo');
                 if (store.nadph < store.totalNadp) store.nadph++;
-            }, 1200);
+            }, 9500);
             return true;
         } else if (pathway === 'etc_cyclic') {
             if (!simState.lightOn || !simState.cyclicLightEnabled) return false;
             store.electronsTransferred += 2;
             Renderer.spawnElectron('fd', 'pq', 'cyclic');
-            setTimeout(() => { Renderer.spawnElectron('pq', 'cytb6f', 'cyclic'); pumpProtons(4, 'cytb6f'); }, 350);
-            setTimeout(() => Renderer.spawnElectron('cytb6f', 'pc', 'cyclic'), 700);
-            setTimeout(() => Renderer.spawnElectron('pc', 'psi', 'cyclic'), 1000);
+            setTimeout(() => { Renderer.spawnElectron('pq', 'cytb6f', 'cyclic'); pumpProtons(4, 'cytb6f'); }, 1900);
+            setTimeout(() => Renderer.spawnElectron('cytb6f', 'pc', 'cyclic'), 3800);
+            setTimeout(() => Renderer.spawnElectron('pc', 'psi', 'cyclic'), 5700);
             return true;
         }
         return false;
@@ -510,7 +510,7 @@
         if (store.protonGradient >= 4 && store.atp < store.totalAtpAdp) {
             store.protonGradient -= 4; store.atp++;
             const cx = Renderer.etcComplexes.atpSyn?.cx;
-            if (cx) for (let i = 0; i < 4; i++) setTimeout(() => Renderer.spawnProton(cx, 'down'), i * 60);
+            if (cx) for (let i = 0; i < 4; i++) setTimeout(() => Renderer.spawnProton(cx, 'down'), i * 200);
             return true;
         }
         return false;
