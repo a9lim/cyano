@@ -4,20 +4,20 @@
 
 // ---------- Drawing Constants ----------
 const CFG = {
-  arrowHeadLen: 7,
+  arrowHeadLen: 9,
   arrowHeadAngle: 0.4,
-  arrowLineWidth: 2.5,
-  arrowStopGap: 5,
-  cycleTargetRadius: 22,
-  cycleStrokeWidth: 4.5,
-  cycleTipLen: 14,
-  cycleFinLen: 8,
-  enzymeTagPad: 3,
-  enzymeTagFont: 6,
-  metabNodeHeight: 16,
-  metabBadgeRadius: 6,
-  electronRadius: 3,
-  protonRadius: 2.5,
+  arrowLineWidth: 3,
+  arrowStopGap: 6,
+  cycleTargetRadius: 42,
+  cycleStrokeWidth: 7,
+  cycleTipLen: 22,
+  cycleFinLen: 14,
+  enzymeTagPad: 4,
+  enzymeTagFont: 8,
+  metabNodeHeight: 20,
+  metabBadgeRadius: 8,
+  electronRadius: 4,
+  protonRadius: 3.5,
   trailMaxLen: 10,
 };
 
@@ -157,12 +157,12 @@ const EnzymeStyles = {
     ctx.fill();
     ctx.shadowBlur = 0;
     ctx.strokeStyle = palette.stroke;
-    ctx.lineWidth = 1.0;
+    ctx.lineWidth = 2.5;
     ctx.stroke();
   },
 
   drawLabel(ctx, text, cx, cy, color, fontSize) {
-    ctx.font = `700 ${fontSize || 11}px 'JetBrains Mono', monospace`;
+    ctx.font = `700 ${fontSize || 13}px 'IBM Plex Mono', monospace`;
     ctx.fillStyle = color || '#e2e8f0';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -176,13 +176,13 @@ const EnzymeStyles = {
   /** Generic ETC complex — consistent rounded rect with label */
   _drawETCComplex(ctx, cx, cy, w, h, glow, lightMode, paletteKey, label1, label2) {
     const p = this.getPalette(paletteKey, lightMode, glow);
-    this.roundedRect(ctx, cx - w / 2, cy - h / 2, w, h, 5);
+    this.roundedRect(ctx, cx - w / 2, cy - h / 2, w, h, Math.min(w, h) * 0.3);
     this.applyStyle(ctx, p, glow);
     if (label2) {
-      this.drawLabel(ctx, label1, cx, cy - 5, p.stroke, 9);
-      this.drawLabel(ctx, label2, cx, cy + 6, p.stroke, 8);
+      this.drawLabel(ctx, label1, cx, cy - 7, p.stroke, 13);
+      this.drawLabel(ctx, label2, cx, cy + 8, p.stroke, 11);
     } else {
-      this.drawLabel(ctx, label1, cx, cy, p.stroke, 9);
+      this.drawLabel(ctx, label1, cx, cy, p.stroke, 13);
     }
   },
 
@@ -312,7 +312,7 @@ const EnzymeStyles = {
     }
     ctx.lineWidth = 1.0;
     this.applyStyle(ctx, palette, active ? 6 : 0);
-    ctx.font = '600 7px JetBrains Mono, monospace';
+    ctx.font = '600 9px IBM Plex Mono, monospace';
     ctx.fillStyle = lightMode
       ? (active ? '#0f172a' : '#334155')
       : (active ? '#f1f5f9' : '#94a3b8');
@@ -322,19 +322,19 @@ const EnzymeStyles = {
     // Count badge above node
     if (count > 0) {
       const badgeR = CFG.metabBadgeRadius;
-      const bx = cx + w / 2 - 2, by = cy - h / 2 - 3;
+      const bx = cx + w / 2 - 2, by = cy - h / 2 - 4;
       ctx.beginPath();
       ctx.arc(bx, by, badgeR, 0, Math.PI * 2);
       ctx.fillStyle = lightMode ? 'rgba(30,41,59,0.85)' : `rgba(${_BASE.orange.rgb},0.9)`;
       ctx.fill();
-      ctx.font = '700 7px JetBrains Mono, monospace';
+      ctx.font = '700 9px IBM Plex Mono, monospace';
       ctx.fillStyle = lightMode ? '#f1f5f9' : '#0f172a';
       ctx.fillText(count, bx, by);
     }
     if (show2x) {
-      ctx.font = '700 7px JetBrains Mono, monospace';
+      ctx.font = '700 9px IBM Plex Mono, monospace';
       ctx.fillStyle = lightMode ? _BASE.rose.strokeLight : _BASE.rose.stroke;
-      ctx.fillText('2x', cx, cy + 14);
+      ctx.fillText('2x', cx, cy + 17);
     }
   },
 
@@ -343,10 +343,10 @@ const EnzymeStyles = {
    *  the pill border and text use a left→right gradient of both pathway colors. */
   drawEnzymeTag(ctx, cx, cy, label, color, active, lightMode, color2) {
     const pad = CFG.enzymeTagPad;
-    ctx.font = `${active ? 700 : 400} ${CFG.enzymeTagFont}px JetBrains Mono, monospace`;
+    ctx.font = `${active ? 700 : 400} ${CFG.enzymeTagFont}px IBM Plex Mono, monospace`;
     const tw = ctx.measureText(label).width;
     const w = tw + pad * 2;
-    const h = 11;
+    const h = 14;
 
     // Background pill
     ctx.beginPath();
@@ -440,10 +440,13 @@ const EnzymeStyles = {
   },
 
   /* ---- Particles ---- */
-  drawElectron(ctx, x, y, intensity, type) {
+  drawElectron(ctx, x, y, intensity, type, fade) {
     const rgb = type === 'photo' ? _BASE.green.rgb
               : type === 'cyclic' ? _BASE.purple.rgb
               : _BASE.blue.rgb;
+    const a = fade != null ? fade : 1;
+    ctx.save();
+    ctx.globalAlpha = a;
     ctx.beginPath();
     ctx.arc(x, y, CFG.electronRadius, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(${rgb},${0.7 + 0.3 * intensity})`;
@@ -451,9 +454,13 @@ const EnzymeStyles = {
     ctx.shadowBlur = 8 * intensity;
     ctx.fill();
     ctx.shadowBlur = 0;
+    ctx.restore();
   },
 
-  drawProton(ctx, x, y, intensity) {
+  drawProton(ctx, x, y, intensity, fade) {
+    const a = fade != null ? fade : 1;
+    ctx.save();
+    ctx.globalAlpha = a;
     ctx.beginPath();
     ctx.arc(x, y, CFG.protonRadius, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(${_BASE.rose.rgb},${0.6 + 0.4 * intensity})`;
@@ -461,11 +468,12 @@ const EnzymeStyles = {
     ctx.shadowBlur = 5 * intensity;
     ctx.fill();
     ctx.shadowBlur = 0;
-    ctx.font = '600 6px JetBrains Mono, monospace';
-    ctx.fillStyle = '#fff';
+    ctx.font = '600 8px IBM Plex Mono, monospace';
+    ctx.fillStyle = `rgba(255,255,255,${a})`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('+', x, y);
+    ctx.restore();
   },
 
   /* ---- Arrows ---- */
@@ -601,7 +609,7 @@ const EnzymeStyles = {
     ctx.restore();
 
     // Label in the middle (drawn outside rotation so text stays upright)
-    ctx.font = '700 8px JetBrains Mono, monospace';
+    ctx.font = '700 13px IBM Plex Mono, monospace';
     ctx.fillStyle = color;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';

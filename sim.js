@@ -94,6 +94,14 @@
     dom.resetBtn.addEventListener('click', resetSimulation);
     if (dom.addGlucoseBtn) dom.addGlucoseBtn.addEventListener('click', () => { store.glucose++; updateDashboard(); });
 
+    // Zoom controls
+    const zoomInBtn = document.getElementById('zoom-in-btn');
+    const zoomOutBtn = document.getElementById('zoom-out-btn');
+    const zoomResetBtn = document.getElementById('zoom-reset-btn');
+    if (zoomInBtn) zoomInBtn.addEventListener('click', () => Renderer.zoomIn());
+    if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => Renderer.zoomOut());
+    if (zoomResetBtn) zoomResetBtn.addEventListener('click', () => Renderer.resetZoom());
+
     function resetSimulation() {
         Object.keys(store).forEach(k => store[k] = 0);
         store.atp = 5; store.glucose = 1; store.oaa = 1; store.rubp = 6;
@@ -677,7 +685,7 @@
                 updateDashboard();
             }
 
-            if (autoPlayTimer > 0.4) {
+            if (autoPlayTimer > 0.8) {
                 autoPlayTimer = 0;
                 // Run full-cycle processes each tick (no step-by-step).
                 advanceStep('atp_syn');
