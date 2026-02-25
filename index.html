@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -247,15 +247,21 @@
       <!-- Legend -->
       <div class="panel legend-panel">
         <h2>Legend</h2>
-        <div class="legend-item"><span class="legend-dot respiratory"></span> Respiratory chain / Krebs cycle</div>
-        <div class="legend-item"><span class="legend-dot photosynthetic"></span> Photosynthetic chain / Calvin cycle</div>
-        <div class="legend-item"><span class="legend-dot shared"></span> Glycolysis / Shared enzymes</div>
-        <div class="legend-item"><span class="legend-dot ppp-dot"></span> Pentose phosphate pathway</div>
-        <div class="legend-item"><span class="legend-dot cyclic-dot"></span> Cyclic e⁻ flow / Bacteriorhodopsin</div>
-        <div class="legend-item"><span class="legend-dot ferment-dot"></span> Fermentation</div>
-        <div class="legend-item"><span class="legend-dot electron"></span> Electron (e⁻)</div>
-        <div class="legend-item"><span class="legend-dot proton"></span> Proton (H⁺)</div>
-        <div class="legend-item"><span class="legend-dot photon"></span> Photon </div>
+        <div class="legend-group">
+          <div class="legend-group-label">Pathways</div>
+          <div class="legend-item"><span class="legend-dot respiratory"></span> Respiratory / Krebs</div>
+          <div class="legend-item"><span class="legend-dot photosynthetic"></span> Photosynthetic / Calvin</div>
+          <div class="legend-item"><span class="legend-dot shared"></span> Glycolysis / Shared</div>
+          <div class="legend-item"><span class="legend-dot ppp-dot"></span> Pentose Phosphate / ATP Synthase</div>
+          <div class="legend-item"><span class="legend-dot cyclic-dot"></span> Cyclic / Bacteriorhodopsin</div>
+          <div class="legend-item"><span class="legend-dot ferment-dot"></span> Fermentation / NNT</div>
+        </div>
+        <div class="legend-group">
+          <div class="legend-group-label">Particles</div>
+          <div class="legend-item"><span class="legend-dot electron"></span> Electron (e⁻)</div>
+          <div class="legend-item"><span class="legend-dot proton"></span> Proton (H⁺)</div>
+          <div class="legend-item"><span class="legend-dot photon"></span> Photon</div>
+        </div>
       </div>
     </aside>
   </main>

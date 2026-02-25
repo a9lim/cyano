@@ -8,7 +8,13 @@
       "Bash(wc:*)",
       "Bash(echo Server stopped:*)",
       "Bash(echo done:*)",
-      "Skill(claude-md-management:revise-claude-md)"
+      "Skill(claude-md-management:revise-claude-md)",
+      "WebFetch(domain:ndstudio.gov)",
+      "WebFetch(domain:trumprx.gov)",
+      "WebFetch(domain:realfood.gov)",
+      "Bash(curl:*)",
+      "Bash(grep:*)",
+      "WebSearch"
     ]
   },
   "outputStyle": "default"
