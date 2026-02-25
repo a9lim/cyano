@@ -93,3 +93,21 @@ Each membrane protein has a unique silhouette in `enzymes.js` reflecting its rea
 ### Light/Dark Mode
 
 CSS `.light-mode` class on `<body>` toggles theme variables. Canvas drawing reads `lightMode` flag and calls `getPalette(key, lightMode)` to swap fill/stroke colors. Both UI and canvas adapt simultaneously.
+
+### HTML ↔ JS Binding Contract
+
+`sim.js` and `renderer.js` bind to DOM elements exclusively via `getElementById` (~37 IDs). **Class names, hierarchy, and structure can change freely** — only element IDs must be preserved. The only CSS class references in JS are `light-mode` on `<body>` and `bump` on stat value elements.
+
+To verify after HTML restructuring:
+```bash
+diff <(grep -oP "getElementById\('\K[^']*" sim.js renderer.js | sort -u) <(grep -oP 'id="[^"]*"' index.html | sed 's/id="//;s/"//' | sort -u)
+```
+All JS IDs must appear in the HTML output.
+
+### Dashboard Tabbed Sidebar
+
+The sidebar uses a tabbed interface with three panels: **Controls** (pathway/environment toggles), **Stats** (bioenergetics counters), **Reference** (net equations, legend). Tab switching is handled by a small inline `<script>` before the sim scripts load. Active Step and Metabolite Gauges stay pinned above the tabs (always visible).
+
+### CSS Design Tokens
+
+CSS custom properties use shortened names: `--pw-glyc`, `--pw-krebs`, `--pw-calvin`, `--pw-ppp`, `--pw-cyclic`, `--pw-ferment` for pathway colors; `--co-atp`, `--co-nadh`, `--co-nadph`, `--co-fadh2` for cofactor bar colors. Each has a companion `-rgb` variable for `rgba()` usage.
