@@ -12,7 +12,7 @@ No build step or package manager. Serve with any static HTTP server:
 ```bash
 npx serve .
 # or
-python -m http.server 3000
+python3 -m http.server 3000 --bind 127.0.0.1
 ```
 Open `http://localhost:3000` in a browser. There are no tests, linters, or CI pipelines.
 
@@ -20,9 +20,10 @@ Open `http://localhost:3000` in a browser. There are no tests, linters, or CI pi
 
 **Zero dependencies** — vanilla HTML5/CSS3/JS with ES6 IIFE module pattern. Scripts load in order via `<script>` tags in `index.html`:
 
-1. **enzymes.js** → `EnzymeStyles` global + `_BASE`/`_pal` helpers — drawing functions for membrane complexes, metabolite nodes, particles, arrows. All pathway color palettes are derived from 5 base color families (`_BASE.orange`, `.blue`, `.green`, `.purple`, `.rose`) via the `_pal()` factory.
-2. **renderer.js** → `Renderer` global — Canvas 2D engine handling layout computation, zoom/pan, hit detection, and the draw pipeline (membrane → ETC complexes → cytoplasm network → Krebs cycle → particles → labels).
-3. **sim.js** → initialization and game loop — owns the `store` object (all metabolite counts), `simState` (pathway toggles, environment flags), reaction validation/execution, dashboard DOM sync, and the `requestAnimationFrame` main loop.
+1. **anim.js** → `Anim` global — easing functions, fade trackers (smooth pathway enable/disable), trail ring-buffers for particle glow, and rotation accumulators. Must load before `enzymes.js`.
+2. **enzymes.js** → `EnzymeStyles` global + `_BASE`/`_pal` helpers — drawing functions for membrane complexes, metabolite nodes, particles, arrows. All pathway color palettes are derived from 6 base color families (`_BASE.orange`, `.blue`, `.green`, `.purple`, `.rose`, `.brown`) via the `_pal()` factory.
+3. **renderer.js** → `Renderer` global — Canvas 2D engine handling layout computation, zoom/pan, hit detection, and the draw pipeline (membrane → ETC complexes → cytoplasm network → Krebs cycle → particles → labels).
+4. **sim.js** → initialization and game loop — owns the `store` object (all metabolite counts), `simState` (pathway toggles, environment flags), reaction validation/execution, dashboard DOM sync, and the `requestAnimationFrame` main loop.
 
 ### Key Data Flow
 
@@ -51,10 +52,24 @@ Open `http://localhost:3000` in a browser. There are no tests, linters, or CI pi
 | Pathway | Color |
 |---------|-------|
 | Glycolysis / Shared | `#fb923c` (orange) |
-| Calvin Cycle | `#10b981` (green) |
-| PPP | `#c084fc` (purple) |
-| Krebs / Respiratory ETC | `#38bdf8` (cyan) |
-| Fermentation | `#f43f5e` (rose) |
+| Calvin Cycle / Photosynthetic | `#10b981` (green) |
+| PPP | `#f43f5e` (rose) |
+| Krebs / Respiratory ETC | `#38bdf8` (blue) |
+| Cyclic / Bacteriorhodopsin | `#c084fc` (purple) |
+| Fermentation | `#c49058` (brown) |
+| ATP Synthase | `#fb923c` (orange) |
+
+### Dev Workflow
+
+- `node -c *.js` — quick syntax check all JS files (no test runner exists)
+- Kill stale server: `lsof -ti:<port> | xargs kill -9`
+
+### Key Patterns
+
+- `_dispatch` / `_rotNudge` maps in sim.js replace a 20-branch if-else in `advanceStep`
+- Module-scope constants (`_TWO_X`, `_KREBS_METABS` Sets; `_fadeCurve` fn) avoid per-frame allocation in hot render path
+- `_calcEndpoints` + `_ep` reusable object shared across all three arrow-draw methods in renderer.js
+- `drawSmallProtonArrow(ctx, x, y, label, dir)` — `dir='down'` variant for ATP Synthase; label renders below arrowhead tip
 
 ### Light/Dark Mode
 

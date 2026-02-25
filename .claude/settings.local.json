@@ -4,7 +4,11 @@
       "Bash(node:*)",
       "Bash(git add:*)",
       "Bash(git push:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(wc:*)",
+      "Bash(echo Server stopped:*)",
+      "Bash(echo done:*)",
+      "Skill(claude-md-management:revise-claude-md)"
     ]
   },
   "outputStyle": "default"
