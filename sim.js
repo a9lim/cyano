@@ -168,6 +168,7 @@
         run_glycolysis_lower:   ()     => runGlycolysisLower(),
         atp_syn:                ()     => advanceATPSynthase(),
         br:                     ()     => advanceBacteriorhodopsin(),
+        nnt:                    ()     => advanceNNT(),
     };
 
     // Rotation nudges keyed by pathway (only for cycle-related pathways)
@@ -566,6 +567,17 @@
         return true;
     }
 
+    function advanceNNT() {
+        // NADH + NADP⁺ + H⁺(gradient) → NADPH + NAD⁺
+        if (store.protonGradient < 1 || store.nadh < 1 || store.nadph >= store.totalNadp) return false;
+        store.protonGradient -= 1;
+        store.nadh -= 1;
+        store.nadph += 1;
+        const cx = Renderer.etcComplexes.nnt?.cx;
+        if (cx) Renderer.spawnProton(cx, 'down');
+        return true;
+    }
+
     function advanceATPSynthase() {
         if (store.protonGradient >= 4 && store.atp < store.totalAtpAdp) {
             store.protonGradient -= 4; store.atp++;
@@ -748,6 +760,7 @@
                 advanceStep('atp_syn');
                 advanceStep('etc_resp');  // NADH first, then FADH2
                 advanceStep('etc_photo');
+                advanceStep('nnt');
             }
 
             // Metabolic pathways — slow tick, round-robin
