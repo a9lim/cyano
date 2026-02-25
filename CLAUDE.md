@@ -20,8 +20,8 @@ Open `http://localhost:3000` in a browser. There are no tests, linters, or CI pi
 
 **Zero dependencies** — vanilla HTML5/CSS3/JS with ES6 IIFE module pattern. Scripts load in order via `<script>` tags in `index.html`:
 
-1. **anim.js** → `Anim` global — easing functions, fade trackers (smooth pathway enable/disable), trail ring-buffers for particle glow, and rotation accumulators. Must load before `enzymes.js`.
-2. **enzymes.js** → `EnzymeStyles` global + `_BASE`/`_ROLE`/`_THEME`/`_pal` helpers — drawing functions for membrane complexes, metabolite nodes, particles, arrows. All pathway stroke colors derive from `_BASE` color families via `_ROLE` → `_pal()`. All other canvas UI colors (surfaces, text, membrane, labels, cofactors, particles) are centralised in `_THEME` with `dark`/`light` sub-objects. Access via `EnzymeStyles.t(lightMode)` for mode-dependent colors, `EnzymeStyles.theme.*` for mode-independent (e.g. `photonFill`, `cofactorDot`).
+1. **anim.js** → `Anim` global + `_TWO_PI`/`_HALF_PI` cached math constants — easing functions, fade trackers (smooth pathway enable/disable), trail ring-buffers for particle glow, and rotation accumulators. Must load before `enzymes.js`.
+2. **enzymes.js** → `EnzymeStyles` global + `_BASE`/`_ROLE`/`_THEME`/`_pal`/`_FONT`/`_FILL` helpers — drawing functions for membrane complexes, metabolite nodes, particles, arrows. All pathway stroke colors derive from `_BASE` color families via `_ROLE` → `_pal()`. All other canvas UI colors (surfaces, text, membrane, labels, cofactors, particles) are centralised in `_THEME` with `dark`/`light` sub-objects. Access via `EnzymeStyles.t(lightMode)` for mode-dependent colors, `EnzymeStyles.theme.*` for mode-independent (e.g. `photonFill`, `cofactorDot`).
 3. **renderer.js** → `Renderer` global — Canvas 2D engine handling layout computation, zoom/pan, hit detection, and the draw pipeline (membrane → ETC complexes → cytoplasm network → Krebs cycle → particles → labels).
 4. **sim.js** → initialization and game loop — owns the `store` object (all metabolite counts), `simState` (pathway toggles, environment flags), reaction validation/execution, dashboard DOM sync, and the `requestAnimationFrame` main loop.
 
@@ -77,9 +77,11 @@ Each membrane protein has a unique silhouette in `enzymes.js` reflecting its rea
 ### Key Patterns
 
 - `_dispatch` / `_rotNudge` maps in sim.js replace a 20-branch if-else in `advanceStep`
-- Module-scope constants (`_TWO_X`, `_KREBS_METABS` Sets; `_fadeCurve` fn) avoid per-frame allocation in hot render path
+- Module-scope constants (`_TWO_PI`/`_HALF_PI`, `_KREBS_METABS` Sets, `_FONT`/`_FILL` lookups, `_fadeCurve` fn) avoid per-frame allocation in hot render path
 - `_calcEndpoints` + `_ep` reusable object shared across all three arrow-draw methods in renderer.js
 - `drawSmallProtonArrow(ctx, x, y, label, dir)` — `dir='down'` variant for ATP Synthase/NNT; label renders below arrowhead tip
+- `_drawRunArrow()` in renderer.js — shared helper for glycolysis upper/lower run arrows (hitbox + label + arrowhead)
+- `updateBar()` in sim.js — shared helper for cofactor bar DOM updates
 - ATP Synthase and NNT are always visible (no fade alpha); they glow when `protonGradient > 0`. Other ETC complexes fade with `rA`/`phA`.
 
 ### Adding a New Membrane Complex
@@ -100,7 +102,7 @@ CSS `.light-mode` class on `<body>` toggles theme variables. Canvas drawing read
 
 To verify after HTML restructuring:
 ```bash
-diff <(grep -oP "getElementById\('\K[^']*" sim.js renderer.js | sort -u) <(grep -oP 'id="[^"]*"' index.html | sed 's/id="//;s/"//' | sort -u)
+diff <(grep -oP "getElementById\('\K[^']*" sim.js renderer.js | sed 's/.*://' | sort -u) <(grep -oP 'id="[^"]*"' index.html | sed 's/id="//;s/"//' | sort -u)
 ```
 All JS IDs must appear in the HTML output.
 
@@ -111,3 +113,5 @@ The sidebar uses a tabbed interface with three panels: **Controls** (pathway/env
 ### CSS Design Tokens
 
 CSS custom properties use shortened names: `--pw-glyc`, `--pw-krebs`, `--pw-calvin`, `--pw-ppp`, `--pw-cyclic`, `--pw-ferment` for pathway colors; `--co-atp`, `--co-nadh`, `--co-nadph`, `--co-fadh2` for cofactor bar colors. Each has a companion `-rgb` variable for `rgba()` usage.
+
+Additional CSS tokens: `--pw-electron`, `--pw-proton`, `--pw-photon` for particle legend colors; `--accent` / `--accent-rgb` / `--accent-light` for the gold accent; `--tog-bg` / `--tog-thumb-on` for toggle switch base colors. Toggle gradient colors derive from pathway/cofactor variables via `color-mix(in srgb, var(--pw-*), black N%)` — no raw hex in toggle rules.

@@ -314,7 +314,7 @@ const Renderer = {
     },
 
     drawLabels(ctx, state, lm) {
-        ctx.font = '300 9px Sora, sans-serif';
+        ctx.font = `300 9px ${_FONT.body}`;
         const th = EnzymeStyles.t(lm);
         ctx.fillStyle = th.sectionLabel;
         ctx.textAlign = 'center';
@@ -322,20 +322,20 @@ const Renderer = {
         const lightY = this.membraneY * 0.25;
         if (state.lightOn) {
             ctx.save();
-            ctx.font = '500 14px Sora, sans-serif'; ctx.fillStyle = EnzymeStyles.roleColors.lightIndicator.stroke;
+            ctx.font = `500 14px ${_FONT.body}`; ctx.fillStyle = EnzymeStyles.roleColors.lightIndicator.stroke;
             ctx.fillText('LIGHT', this.W * 0.5, lightY - 24);
-            ctx.font = '38px sans-serif';
+            ctx.font = `38px ${_FONT.emoji}`;
             ctx.shadowColor = `rgba(${EnzymeStyles.roleColors.lightIndicator.rgb},0.4)`; ctx.shadowBlur = 16;
             ctx.fillText('☀', this.W * 0.5, lightY + 14); ctx.shadowBlur = 0;
             ctx.restore();
         } else {
-            ctx.font = '500 14px Sora, sans-serif'; ctx.fillStyle = th.nightText;
+            ctx.font = `500 14px ${_FONT.body}`; ctx.fillStyle = th.nightText;
             ctx.fillText('DARK', this.W * 0.5, lightY - 24);
-            ctx.font = '38px sans-serif'; ctx.fillStyle = th.nightIcon;
+            ctx.font = `38px ${_FONT.emoji}`; ctx.fillStyle = th.nightIcon;
             ctx.fillText('☾', this.W * 0.5, lightY + 14);
         }
         if (!state.oxygenAvailable) {
-            ctx.font = '600 20px JetBrains Mono, monospace'; ctx.fillStyle = th.textMuted;
+            ctx.font = `600 20px ${_FONT.mono}`; ctx.fillStyle = th.textMuted;
             ctx.textAlign = 'right'; ctx.fillText('ANAEROBIC', this.W - 12, 26);
         }
     },
@@ -453,7 +453,7 @@ const Renderer = {
         EnzymeStyles.drawNNT(ctx, c.nnt.cx, c.nnt.cy, cxW - 4, cxH * 0.6, nntGlow, lm);
 
         // Yield labels: moved inside synced alpha blocks to dim instead of disappearing
-        ctx.font = '500 10px JetBrains Mono,monospace'; ctx.textAlign = 'center';
+        ctx.font = `500 10px ${_FONT.mono}`; ctx.textAlign = 'center';
 
         ctx.save();
         ctx.globalAlpha = phA;
@@ -473,7 +473,7 @@ const Renderer = {
         // ATP Synthase: downward 4H⁺ arrow (protons flowing through to make ATP) + +ATP label below
         const atpBotY = c.atpSyn.cy + cxH * 0.8 / 2;
         this.drawSmallProtonArrow(ctx, c.atpSyn.cx, atpBotY + 3, '4H⁺', 'down');
-        ctx.font = '500 10px JetBrains Mono,monospace';
+        ctx.font = `500 10px ${_FONT.mono}`;
         ctx.fillStyle = atpSynC; ctx.textAlign = 'center';
         ctx.fillText('+ATP', c.atpSyn.cx, atpBotY + 47);
 
@@ -481,7 +481,7 @@ const Renderer = {
         {
             const nntBotY = c.nnt.cy + cxH * 0.6 / 2;
             this.drawSmallProtonArrow(ctx, c.nnt.cx, nntBotY + 3, '1H⁺', 'down');
-            ctx.font = '500 10px JetBrains Mono,monospace';
+            ctx.font = `500 10px ${_FONT.mono}`;
             ctx.fillStyle = nntC; ctx.textAlign = 'center';
             ctx.fillText('+NADPH', c.nnt.cx, nntBotY + 47);
             ctx.fillText('-NADH', c.nnt.cx, nntBotY + 59);
@@ -499,12 +499,32 @@ const Renderer = {
         this.enzymeHitboxes.push({ cx: c.psi.cx, cy: c.psi.cy, w: cxW + 10, h: cxH + 10, pathway: 'etc_cyclic', stepIndex: 0 });
     },
 
+    /** Horizontal labeled run-arrow with arrowhead and hitbox (used for glycolysis upper/lower) */
+    _drawRunArrow(ctx, fromX, toX, y, color, alpha, lineW, headLen, label, pathway) {
+        const midX = (fromX + toX) / 2;
+        const halfW = (toX - fromX) / 2 - 16;
+        const x1 = midX - halfW, x2 = midX + halfW;
+        ctx.beginPath();
+        ctx.moveTo(x1, y); ctx.lineTo(midX - 38, y);
+        ctx.moveTo(midX + 38, y); ctx.lineTo(x2 - headLen, y);
+        ctx.strokeStyle = color; ctx.lineWidth = lineW; ctx.globalAlpha = alpha; ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x2, y);
+        ctx.lineTo(x2 - headLen, y - headLen * 0.5);
+        ctx.lineTo(x2 - headLen, y + headLen * 0.5);
+        ctx.fillStyle = color; ctx.fill();
+        ctx.font = `700 12px ${_FONT.mono}`;
+        ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(label, midX, y);
+        this.enzymeHitboxes.push({ cx: midX, cy: y, w: halfW * 2, h: 30, pathway, stepIndex: 0 });
+    },
+
     drawSmallProtonArrow(ctx, x, y, label, dir = 'up') {
         const protonC = EnzymeStyles.roleColors.proton.stroke;
         const parentAlpha = ctx.globalAlpha;
         ctx.save();
         ctx.strokeStyle = protonC; ctx.lineWidth = 2;
-        ctx.font = '600 10px JetBrains Mono,monospace'; ctx.fillStyle = protonC; ctx.textAlign = 'center';
+        ctx.font = `600 10px ${_FONT.mono}`; ctx.fillStyle = protonC; ctx.textAlign = 'center';
         if (dir === 'down') {
             // y = top anchor; line goes down, arrowhead at bottom, label below tip
             ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 14);
@@ -536,7 +556,7 @@ const Renderer = {
         const fC = this.pathwayColors.fermentation;
 
 
-        ctx.font = '400 8px Sora, sans-serif';
+        ctx.font = `400 8px ${_FONT.body}`;
         ctx.fillStyle = EnzymeStyles.t(lm).sectionLabelAlt;
         ctx.textAlign = 'left';
         ctx.fillText('CYTOPLASMIC CARBON METABOLISM', 5, this.membraneY + this.membraneH + 16);
@@ -603,55 +623,8 @@ const Renderer = {
             const glw = CFG.cycleStrokeWidth; // match cycle target thickness
             const gAhL = CFG.cycleTipLen;      // arrowhead length matching cycles
 
-            // Upper half: Glucose → G3P
-            const upperMidX = (m.glucose.cx + splitX) / 2;
-            const upperHalfW = (splitX - m.glucose.cx) / 2 - 16;
-            const upperX1 = upperMidX - upperHalfW;
-            const upperX2 = upperMidX + upperHalfW;
-
-            ctx.beginPath();
-            ctx.moveTo(upperX1, runY);
-            ctx.lineTo(upperMidX - 38, runY);
-            ctx.moveTo(upperMidX + 38, runY);
-            ctx.lineTo(upperX2 - gAhL, runY);
-            ctx.strokeStyle = gC;
-            ctx.lineWidth = glw;
-            ctx.globalAlpha = gA;
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(upperX2, runY);
-            ctx.lineTo(upperX2 - gAhL, runY - gAhL * 0.5);
-            ctx.lineTo(upperX2 - gAhL, runY + gAhL * 0.5);
-            ctx.fillStyle = gC; ctx.fill();
-            ctx.font = '700 12px JetBrains Mono, monospace';
-            ctx.fillStyle = gC; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText('Glc→G3P', upperMidX, runY);
-            this.enzymeHitboxes.push({ cx: upperMidX, cy: runY, w: upperHalfW * 2, h: 30, pathway: 'run_glycolysis_upper', stepIndex: 0 });
-
-            // Lower half: G3P → Pyruvate
-            const lowerMidX = (splitX + m.pyruvate.cx) / 2;
-            const lowerHalfW = (m.pyruvate.cx - splitX) / 2 - 16;
-            const lowerX1 = lowerMidX - lowerHalfW;
-            const lowerX2 = lowerMidX + lowerHalfW;
-
-            ctx.beginPath();
-            ctx.moveTo(lowerX1, runY);
-            ctx.lineTo(lowerMidX - 38, runY);
-            ctx.moveTo(lowerMidX + 38, runY);
-            ctx.lineTo(lowerX2 - gAhL, runY);
-            ctx.strokeStyle = gC;
-            ctx.lineWidth = glw;
-            ctx.globalAlpha = gA;
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(lowerX2, runY);
-            ctx.lineTo(lowerX2 - gAhL, runY - gAhL * 0.5);
-            ctx.lineTo(lowerX2 - gAhL, runY + gAhL * 0.5);
-            ctx.fillStyle = gC; ctx.fill();
-            ctx.font = '700 12px JetBrains Mono, monospace';
-            ctx.fillStyle = gC; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText('G3P→Pyr', lowerMidX, runY);
-            this.enzymeHitboxes.push({ cx: lowerMidX, cy: runY, w: lowerHalfW * 2, h: 30, pathway: 'run_glycolysis_lower', stepIndex: 0 });
+            this._drawRunArrow(ctx, m.glucose.cx, splitX, runY, gC, gA, glw, gAhL, 'Glc→G3P', 'run_glycolysis_upper');
+            this._drawRunArrow(ctx, splitX, m.pyruvate.cx, runY, gC, gA, glw, gAhL, 'G3P→Pyr', 'run_glycolysis_lower');
 
             ctx.restore();
         }
@@ -777,7 +750,7 @@ const Renderer = {
         // ══════════════════════════════════════════════════
         // METABOLITE NODES (drawn last, on top)
         // ══════════════════════════════════════════════════
-        ctx.font = '600 9px JetBrains Mono, monospace';
+        ctx.font = `600 9px ${_FONT.mono}`;
         for (const key of this._metabKeys) {
             const mA = this.getMetabAlpha(key, gA, cA, pA, kA, state);
             if (mA > 0.01) {
@@ -889,7 +862,7 @@ const Renderer = {
 
     drawYieldBadge(ctx, node, active, text, color) {
         if (!active) return;
-        ctx.font = '500 9px JetBrains Mono, monospace'; ctx.fillStyle = color;
+        ctx.font = `500 9px ${_FONT.mono}`; ctx.fillStyle = color;
         ctx.textAlign = 'center'; ctx.fillText(text, node.cx, node.cy + 19);
     },
 
@@ -904,7 +877,7 @@ const Renderer = {
         ctx.save();
         ctx.globalAlpha = krebsAlpha;
 
-        ctx.font = '400 8px Sora, sans-serif';
+        ctx.font = `400 8px ${_FONT.body}`;
         ctx.fillStyle = EnzymeStyles.t(lm).protonPoolLabel; ctx.textAlign = 'center';
 
         // Citrate Synthase: AcCoA → Citrate + OAA → Citrate (both straight)
@@ -942,7 +915,7 @@ const Renderer = {
 
     drawFloatLabel(ctx, x, y, text, color) {
         ctx.save();
-        ctx.font = '500 10px JetBrains Mono, monospace';
+        ctx.font = `500 10px ${_FONT.mono}`;
         ctx.fillStyle = color;
         ctx.textAlign = 'center';
         ctx.fillText(text, x, y - 10);
@@ -952,7 +925,7 @@ const Renderer = {
     /** Two-part float label with separate colors, centered as a unit */
     drawDualFloatLabel(ctx, x, y, text1, color1, text2, color2) {
         ctx.save();
-        ctx.font = '500 10px JetBrains Mono, monospace';
+        ctx.font = `500 10px ${_FONT.mono}`;
         const w1 = ctx.measureText(text1).width;
         const gap = ctx.measureText(' ').width;
         const w2 = ctx.measureText(text2).width;
@@ -1025,7 +998,7 @@ const Renderer = {
             if (p.progress >= 1) { this.protons.splice(i, 1); continue; }
             const t = p.progress;
             EnzymeStyles.drawProton(ctx,
-                p.x + Math.sin(t * Math.PI * 2) * 2,
+                p.x + Math.sin(t * _TWO_PI) * 2,
                 p.y + (p.ty - p.y) * t,
                 1 - Math.abs(t - 0.5) * 2,
                 _fadeCurve(t));
@@ -1039,7 +1012,7 @@ const Renderer = {
             const fade = t < 0.3 ? t / 0.3 : (t > 0.7 ? (1 - t) / 0.3 : 1);
             ctx.globalAlpha = fade * 0.9;
             ctx.beginPath();
-            ctx.arc(ph.x + (ph.tx - ph.x) * t, ph.y + (ph.ty - ph.y) * t, 3, 0, Math.PI * 2);
+            ctx.arc(ph.x + (ph.tx - ph.x) * t, ph.y + (ph.ty - ph.y) * t, 3, 0, _TWO_PI);
             ctx.fillStyle = EnzymeStyles.theme.photonFill;
             ctx.shadowColor = EnzymeStyles.theme.photonGlow;
             ctx.shadowBlur = 12;

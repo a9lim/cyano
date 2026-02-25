@@ -2,6 +2,14 @@
    enzymes.js — Stylized enzyme and complex drawing functions
    =================================================================== */
 
+// ---------- Font Constants ----------
+// Single source of truth for all canvas font families
+const _FONT = {
+  mono:  "'JetBrains Mono', monospace",
+  body:  "'Sora', sans-serif",
+  emoji: "sans-serif",
+};
+
 // ---------- Drawing Constants ----------
 const CFG = {
   arrowHeadLen: 8,
@@ -47,6 +55,26 @@ const _ROLE = {
   electronResp: _BASE.cyan, electronPhoto: _BASE.cyan, electronCyclic: _BASE.cyan,
   proton: _BASE.red,
   lightIndicator: _BASE.orange,
+};
+
+// ---------- Palette Fill Colors (dark mode) ----------
+// Background fills for enzyme shapes — extracted from _pal() calls
+const _FILL = {
+  respiratory:      '#091c38',
+  photosynthetic:   '#061e15',
+  shared:           '#1a1208',
+  atpSynthase:      '#1e0a14',
+  glycolysis:       '#1a1208',
+  glycolysisActive: '#291c0b',
+  krebs:            '#091c38',
+  krebsActive:      '#0e2a52',
+  calvin:           '#061e15',
+  calvinActive:     '#0a3020',
+  ppp:              '#1e0a14',
+  pppActive:        '#33101e',
+  cyclic:           '#150a28',
+  fermentation:     '#1a1108',
+  nnt:              '#1a1108',
 };
 
 function _pal(b, fill, glowA) {
@@ -135,22 +163,22 @@ const EnzymeStyles = {
   t(lm) { return lm ? _THEME.light : _THEME.dark; },
 
   colors: {
-    respiratory:        _pal(_ROLE.respiratory,      '#091c38', 0.35),
-    photosynthetic:     _pal(_ROLE.photosynthetic,   '#061e15', 0.35),
-    shared:             _pal(_ROLE.shared,           '#1a1208', 0.3),
-    atpSynthase:        _pal(_ROLE.atpSynthase,      '#1e0a14', 0.35),
-    glycolysis:         _pal(_ROLE.glycolysis,       '#1a1208', 0.3),
-    glycolysisActive:   _pal(_ROLE.glycolysis,       '#291c0b', 0.5),
-    krebs:              _pal(_ROLE.krebs,            '#091c38', 0.25),
-    krebsActive:        _pal(_ROLE.krebs,            '#0e2a52', 0.5),
-    calvin:             _pal(_ROLE.calvin,           '#061e15', 0.3),
-    calvinActive:       _pal(_ROLE.calvin,           '#0a3020', 0.5),
-    ppp:                _pal(_ROLE.ppp,              '#1e0a14', 0.25),
-    pppActive:          _pal(_ROLE.ppp,              '#33101e', 0.5),
-    bacteriorhodopsin:  _pal(_ROLE.bacteriorhodopsin,'#150a28', 0.35),
-    cyclic:             _pal(_ROLE.cyclic,           '#150a28', 0.35),
-    fermentation:       _pal(_ROLE.fermentation,     '#1a1108', 0.3),
-    nnt:                _pal(_ROLE.nnt,              '#1a1108', 0.3),
+    respiratory:        _pal(_ROLE.respiratory,       _FILL.respiratory, 0.35),
+    photosynthetic:     _pal(_ROLE.photosynthetic,    _FILL.photosynthetic, 0.35),
+    shared:             _pal(_ROLE.shared,            _FILL.shared, 0.3),
+    atpSynthase:        _pal(_ROLE.atpSynthase,       _FILL.atpSynthase, 0.35),
+    glycolysis:         _pal(_ROLE.glycolysis,        _FILL.glycolysis, 0.3),
+    glycolysisActive:   _pal(_ROLE.glycolysis,        _FILL.glycolysisActive, 0.5),
+    krebs:              _pal(_ROLE.krebs,             _FILL.krebs, 0.25),
+    krebsActive:        _pal(_ROLE.krebs,            _FILL.krebsActive, 0.5),
+    calvin:             _pal(_ROLE.calvin,            _FILL.calvin, 0.3),
+    calvinActive:       _pal(_ROLE.calvin,           _FILL.calvinActive, 0.5),
+    ppp:                _pal(_ROLE.ppp,               _FILL.ppp, 0.25),
+    pppActive:          _pal(_ROLE.ppp,              _FILL.pppActive, 0.5),
+    bacteriorhodopsin:  _pal(_ROLE.bacteriorhodopsin, _FILL.cyclic, 0.35),
+    cyclic:             _pal(_ROLE.cyclic,            _FILL.cyclic, 0.35),
+    fermentation:       _pal(_ROLE.fermentation,      _FILL.fermentation, 0.3),
+    nnt:                _pal(_ROLE.nnt,               _FILL.nnt, 0.3),
   },
 
   getPalette(key, lightMode, glowIntensity = 0) {
@@ -222,24 +250,24 @@ const EnzymeStyles = {
 
   /** Iron-sulfur cluster: two overlapping circles with Fe-S coloring */
   drawFeS(ctx, x, y, radius) {
-    ctx.beginPath(); ctx.arc(x - 2, y, radius, 0, Math.PI * 2);
+    ctx.beginPath(); ctx.arc(x - 2, y, radius, 0, _TWO_PI);
     ctx.fillStyle = _THEME.feSIron; ctx.fill();
-    ctx.beginPath(); ctx.arc(x + 2, y, radius, 0, Math.PI * 2);
+    ctx.beginPath(); ctx.arc(x + 2, y, radius, 0, _TWO_PI);
     ctx.fillStyle = _THEME.feSSulfur; ctx.fill();
   },
 
   /** Heme group: ring with colored center */
   drawHeme(ctx, x, y, radius, hemeColor) {
-    ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.beginPath(); ctx.arc(x, y, radius, 0, _TWO_PI);
     ctx.strokeStyle = hemeColor || _THEME.hemeStroke;
     ctx.lineWidth = 1.5; ctx.stroke();
-    ctx.beginPath(); ctx.arc(x, y, radius * 0.4, 0, Math.PI * 2);
+    ctx.beginPath(); ctx.arc(x, y, radius * 0.4, 0, _TWO_PI);
     ctx.fillStyle = hemeColor || _THEME.hemeFill; ctx.fill();
   },
 
   /** Quinone / cofactor indicator dot */
   drawCofactorDot(ctx, x, y, color) {
-    ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2);
+    ctx.beginPath(); ctx.arc(x, y, 2, 0, _TWO_PI);
     ctx.fillStyle = color || _THEME.cofactorDot; ctx.fill();
   },
 
@@ -258,7 +286,7 @@ const EnzymeStyles = {
   },
 
   drawLabel(ctx, text, cx, cy, color, fontSize) {
-    ctx.font = `700 ${fontSize || 13}px 'JetBrains Mono', monospace`;
+    ctx.font = `700 ${fontSize || 13}px ${_FONT.mono}`;
     ctx.fillStyle = color || _THEME.dark.textPrimary;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -333,7 +361,7 @@ const EnzymeStyles = {
     const p = this.getPalette('photosynthetic', lightMode, glow);
     const cA = this.t(lightMode).chromophoreAlpha;
     ctx.beginPath();
-    ctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, _TWO_PI);
     this.applyStyle(ctx, p, glow);
     // Dimer interface
     ctx.save();
@@ -345,7 +373,7 @@ const EnzymeStyles = {
     ctx.setLineDash([]); ctx.restore();
     // P680 chromophore
     ctx.beginPath();
-    ctx.arc(cx, cy + 2, 6, 0, Math.PI * 2);
+    ctx.arc(cx, cy + 2, 6, 0, _TWO_PI);
     ctx.fillStyle = `rgba(${_ROLE.photosynthetic.rgb},${cA})`; ctx.fill();
     this.drawLabel(ctx, 'PSII', cx, cy - 14, p.stroke, 12);
     this.drawLabel(ctx, 'P680', cx, cy + 16, p.stroke, 9);
@@ -356,11 +384,11 @@ const EnzymeStyles = {
     const p = this.getPalette('photosynthetic', lightMode, glow);
     const cA = this.t(lightMode).chromophoreAlpha;
     ctx.beginPath();
-    ctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, _TWO_PI);
     this.applyStyle(ctx, p, glow);
     // P700 chromophore
     ctx.beginPath();
-    ctx.arc(cx, cy + 2, 6, 0, Math.PI * 2);
+    ctx.arc(cx, cy + 2, 6, 0, _TWO_PI);
     ctx.fillStyle = `rgba(${_ROLE.photosynthetic.rgb},${cA})`; ctx.fill();
     this.drawLabel(ctx, 'PSI', cx, cy - 12, p.stroke, 12);
     this.drawLabel(ctx, 'P700', cx, cy + 16, p.stroke, 9);
@@ -403,10 +431,10 @@ const EnzymeStyles = {
   drawPC(ctx, cx, cy, radius, glow, lightMode) {
     const p = this.getPalette('shared', lightMode, glow);
     ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.arc(cx, cy, radius, 0, _TWO_PI);
     this.applyStyle(ctx, p, glow);
     ctx.beginPath();
-    ctx.arc(cx, cy + 5, 3, 0, Math.PI * 2);
+    ctx.arc(cx, cy + 5, 3, 0, _TWO_PI);
     ctx.fillStyle = _THEME.cofactorDot; ctx.fill();
     this.drawLabel(ctx, 'PC', cx, cy - 4, p.stroke, 10);
   },
@@ -425,7 +453,7 @@ const EnzymeStyles = {
   drawFNR(ctx, cx, cy, w, h, glow, lightMode) {
     const p = this.getPalette('photosynthetic', lightMode, glow);
     ctx.beginPath();
-    ctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, _TWO_PI);
     this.applyStyle(ctx, p, glow);
     this.drawLabel(ctx, 'FNR', cx, cy, p.stroke, 10);
   },
@@ -501,7 +529,7 @@ const EnzymeStyles = {
     ctx.restore();
     // Retinal chromophore
     ctx.beginPath();
-    ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 6, 0, _TWO_PI);
     ctx.fillStyle = `rgba(${_ROLE.bacteriorhodopsin.rgb},${cA})`; ctx.fill();
     this.drawLabel(ctx, 'BR', cx, cy - 14, p.stroke, 12);
   },
@@ -542,7 +570,7 @@ const EnzymeStyles = {
     const glow = active ? 10 + 3 * Math.sin(pulsePhase) : 0;
     const palette = active ? this.colors.calvinActive : this.colors.calvin;
     ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.arc(cx, cy, radius, 0, _TWO_PI);
     ctx.closePath();
     this.applyStyle(ctx, palette, glow);
     this.drawLabel(ctx, label, cx, cy, palette.stroke, 8);
@@ -555,7 +583,7 @@ const EnzymeStyles = {
     // Pentagon shape for PPP (pentose = 5)
     ctx.beginPath();
     for (let i = 0; i < 5; i++) {
-      const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+      const angle = (_TWO_PI / 5) * i - Math.PI / 2;
       const px = cx + radius * Math.cos(angle);
       const py = cy + radius * Math.sin(angle);
       if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
@@ -588,7 +616,7 @@ const EnzymeStyles = {
     }
     ctx.lineWidth = 1.0;
     this.applyStyle(ctx, palette, active ? 6 : 0);
-    ctx.font = '600 9px JetBrains Mono, monospace';
+    ctx.font = `600 9px ${_FONT.mono}`;
     ctx.fillStyle = active ? th.textPrimary : th.textSecondary;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -598,15 +626,15 @@ const EnzymeStyles = {
       const badgeR = CFG.metabBadgeRadius;
       const bx = cx + w / 2 - 2, by = cy - h / 2 - 4;
       ctx.beginPath();
-      ctx.arc(bx, by, badgeR, 0, Math.PI * 2);
+      ctx.arc(bx, by, badgeR, 0, _TWO_PI);
       ctx.fillStyle = th.accentBadge;
       ctx.fill();
-      ctx.font = '700 8px JetBrains Mono, monospace';
+      ctx.font = `700 8px ${_FONT.mono}`;
       ctx.fillStyle = th.textOnAccent;
       ctx.fillText(count, bx, by);
     }
     if (show2x) {
-      ctx.font = '600 8px JetBrains Mono, monospace';
+      ctx.font = `600 8px ${_FONT.mono}`;
       ctx.fillStyle = th.textMuted;
       ctx.fillText('2x', cx, cy + 18);
     }
@@ -617,7 +645,7 @@ const EnzymeStyles = {
    *  the pill border and text use a left→right gradient of both pathway colors. */
   drawEnzymeTag(ctx, cx, cy, label, color, active, lightMode, color2) {
     const pad = CFG.enzymeTagPad;
-    ctx.font = `${active ? 700 : 500} ${CFG.enzymeTagFont}px JetBrains Mono, monospace`;
+    ctx.font = `${active ? 700 : 500} ${CFG.enzymeTagFont}px ${_FONT.mono}`;
     const tw = ctx.measureText(label).width;
     const w = tw + pad * 2;
     const h = 15;
@@ -683,7 +711,7 @@ const EnzymeStyles = {
       const topHeadY = y + 3 + wobble;
       // Head
       ctx.beginPath();
-      ctx.arc(lx, topHeadY, headRadius, 0, Math.PI * 2);
+      ctx.arc(lx, topHeadY, headRadius, 0, _TWO_PI);
       ctx.fillStyle = headColor; ctx.fill();
       // Twin tails pointing inward
       ctx.beginPath();
@@ -698,7 +726,7 @@ const EnzymeStyles = {
       const bx = lx + headSpacing / 2;
       // Head
       ctx.beginPath();
-      ctx.arc(bx, botHeadY, headRadius, 0, Math.PI * 2);
+      ctx.arc(bx, botHeadY, headRadius, 0, _TWO_PI);
       ctx.fillStyle = headColor; ctx.fill();
       // Twin tails pointing inward
       ctx.beginPath();
@@ -717,7 +745,7 @@ const EnzymeStyles = {
     ctx.save();
     ctx.globalAlpha = a;
     ctx.beginPath();
-    ctx.arc(x, y, CFG.electronRadius, 0, Math.PI * 2);
+    ctx.arc(x, y, CFG.electronRadius, 0, _TWO_PI);
     ctx.fillStyle = `rgba(${rgb},${0.7 + 0.3 * intensity})`;
     ctx.shadowColor = `rgba(${rgb},0.8)`;
     ctx.shadowBlur = 8 * intensity;
@@ -731,13 +759,13 @@ const EnzymeStyles = {
     ctx.save();
     ctx.globalAlpha = a;
     ctx.beginPath();
-    ctx.arc(x, y, CFG.protonRadius, 0, Math.PI * 2);
+    ctx.arc(x, y, CFG.protonRadius, 0, _TWO_PI);
     ctx.fillStyle = `rgba(${_ROLE.proton.rgb},${0.6 + 0.4 * intensity})`;
     ctx.shadowColor = `rgba(${_ROLE.proton.rgb},0.7)`;
     ctx.shadowBlur = 5 * intensity;
     ctx.fill();
     ctx.shadowBlur = 0;
-    ctx.font = '600 8px JetBrains Mono, monospace';
+    ctx.font = `600 8px ${_FONT.mono}`;
     ctx.fillStyle = `rgba(${_THEME.protonTextRgb},${a})`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -835,9 +863,9 @@ const EnzymeStyles = {
 
     ctx.beginPath();
     if (dir === 1) {
-      ctx.arc(cx, cy, radius, 0.4, Math.PI * 2 - 0.4, false);
+      ctx.arc(cx, cy, radius, 0.4, _TWO_PI - 0.4, false);
     } else {
-      ctx.arc(cx, cy, radius, Math.PI * 2 - 0.4, 0.4, true);
+      ctx.arc(cx, cy, radius, _TWO_PI - 0.4, 0.4, true);
     }
 
     ctx.strokeStyle = color;
@@ -849,7 +877,7 @@ const EnzymeStyles = {
     ctx.beginPath();
     let tangentAngle, endAngle;
     if (dir === 1) {
-      endAngle = Math.PI * 2 - 0.4;
+      endAngle = _TWO_PI - 0.4;
       tangentAngle = endAngle + Math.PI / 2;
     } else {
       endAngle = 0.4;
@@ -878,7 +906,7 @@ const EnzymeStyles = {
     ctx.restore();
 
     // Label in the middle (drawn outside rotation so text stays upright)
-    ctx.font = '700 12px JetBrains Mono, monospace';
+    ctx.font = `700 12px ${_FONT.mono}`;
     ctx.fillStyle = color;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
