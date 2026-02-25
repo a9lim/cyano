@@ -62,11 +62,9 @@
         fadh2Bar: document.getElementById('fadh2-bar'), fadh2Ratio: document.getElementById('fadh2-ratio'),
         // Counters
         protonGradient: document.getElementById('proton-gradient'),
-        protonsPumped: document.getElementById('protons-pumped'), o2Produced: document.getElementById('o2-produced'),
-        o2Consumed: document.getElementById('o2-consumed'), h2oSplit: document.getElementById('h2o-split'),
-        h2oProduced: document.getElementById('h2o-produced'),
-        electronsTransferred: document.getElementById('electrons-transferred'), co2Fixed: document.getElementById('co2-fixed'), co2Produced: document.getElementById('co2-produced'),
         co2Net: document.getElementById('co2-net'),
+        o2Net: document.getElementById('o2-net'),
+        h2oNet: document.getElementById('h2o-net'),
         // Active Step
         krebsEnzyme: document.getElementById('krebs-enzyme'), krebsReaction: document.getElementById('krebs-reaction'),
         krebsYield: document.getElementById('krebs-yield'), krebsTurn: document.getElementById('krebs-turn'),
@@ -173,11 +171,11 @@
 
     // Rotation nudges keyed by pathway (only for cycle-related pathways)
     const _rotNudge = {
-        run_krebs:  { rot: 'krebsRot',  delta: -Math.PI * 2 },
+        run_krebs:  { rot: 'krebsRot',  delta: -_TWO_PI },
         krebs:      { rot: 'krebsRot',  delta: -0.4 },
-        run_calvin: { rot: 'calvinRot', delta:  Math.PI * 2 },
+        run_calvin: { rot: 'calvinRot', delta:  _TWO_PI },
         calvin:     { rot: 'calvinRot', delta:  0.4 },
-        run_ppp:    { rot: 'pppRot',    delta:  Math.PI * 2 },
+        run_ppp:    { rot: 'pppRot',    delta:  _TWO_PI },
         ppp:        { rot: 'pppRot',    delta:  0.4 },
     };
 
@@ -692,26 +690,21 @@
         }
     }
 
+    function updateBar(bar, ratio, val, total) {
+        const pct = Math.round((val / total) * 100) + '%';
+        if (bar) { bar.style.width = pct; ratio.textContent = pct; }
+    }
+
     function updateDashboard() {
-        const atpPct = Math.round((store.atp / store.totalAtpAdp) * 100);
-        dom.atpBar.style.width = atpPct + '%'; dom.atpRatio.textContent = atpPct + '%';
-        const nadhPct = Math.round((store.nadh / store.totalNad) * 100);
-        dom.nadhBar.style.width = nadhPct + '%'; dom.nadhRatio.textContent = nadhPct + '%';
-        const nadphPct = Math.round((store.nadph / store.totalNadp) * 100);
-        dom.nadphBar.style.width = nadphPct + '%'; dom.nadphRatio.textContent = nadphPct + '%';
-        const fadh2Pct = Math.round((store.fadh2 / store.totalFad) * 100);
-        if (dom.fadh2Bar) { dom.fadh2Bar.style.width = fadh2Pct + '%'; dom.fadh2Ratio.textContent = fadh2Pct + '%'; }
+        updateBar(dom.atpBar, dom.atpRatio, store.atp, store.totalAtpAdp);
+        updateBar(dom.nadhBar, dom.nadhRatio, store.nadh, store.totalNad);
+        updateBar(dom.nadphBar, dom.nadphRatio, store.nadph, store.totalNadp);
+        updateBar(dom.fadh2Bar, dom.fadh2Ratio, store.fadh2, store.totalFad);
 
         animateStatEl(dom.protonGradient, '' + store.protonGradient);
-        animateStatEl(dom.protonsPumped, '' + store.protonsPumped);
-        animateStatEl(dom.o2Produced, store.o2Produced.toFixed(1));
-        animateStatEl(dom.o2Consumed, store.o2Consumed.toFixed(1));
-        animateStatEl(dom.h2oSplit, '' + store.h2oSplit);
-        animateStatEl(dom.h2oProduced, '' + store.h2oProduced);
-        animateStatEl(dom.electronsTransferred, '' + store.electronsTransferred);
-        animateStatEl(dom.co2Fixed, '' + store.co2Fixed);
-        animateStatEl(dom.co2Produced, '' + store.co2Produced);
         animateStatEl(dom.co2Net, '' + (store.co2Produced - store.co2Fixed));
+        animateStatEl(dom.o2Net, (store.o2Produced - store.o2Consumed).toFixed(1));
+        animateStatEl(dom.h2oNet, '' + (store.h2oProduced - store.h2oSplit));
     }
 
     /* ---- Render Loop ---- */

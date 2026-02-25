@@ -4,6 +4,10 @@
    and rotation accumulators used by the rendering pipeline.
    =================================================================== */
 
+// Cached math constants (shared across all modules — anim.js loads first)
+const _TWO_PI = Math.PI * 2;
+const _HALF_PI = Math.PI / 2;
+
 const Anim = {
   // ---- Easing functions ----
   lerp(a, b, t) { return a + (b - a) * t; },
@@ -49,7 +53,7 @@ const Anim = {
         for (let i = pts.length - 1; i >= 0; i--) {
           const p = pts[i];
           ctx.beginPath();
-          ctx.arc(p.x, p.y, radius * (0.4 + 0.6 * p.alpha), 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, radius * (0.4 + 0.6 * p.alpha), 0, _TWO_PI);
           ctx.fillStyle = color;
           ctx.globalAlpha = p.alpha * 0.35;
           ctx.fill();
