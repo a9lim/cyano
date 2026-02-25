@@ -35,14 +35,14 @@ const _BASE = {
 // ---------- Semantic Role → Base Family ----------
 // Change a role's color here and it propagates everywhere
 const _ROLE = {
-  glycolysis: _BASE.blue, calvin: _BASE.green, ppp: _BASE.orange,
-  krebs: _BASE.rose, fermentation: _BASE.brown,
-  respiratory: _BASE.rose, photosynthetic: _BASE.green,
+  glycolysis: _BASE.blue, calvin: _BASE.green, ppp: _BASE.rose,
+  krebs: _BASE.orange, fermentation: _BASE.brown,
+  respiratory: _BASE.orange, photosynthetic: _BASE.green,
   shared: _BASE.blue, atpSynthase: _BASE.blue,
   cyclic: _BASE.purple, bacteriorhodopsin: _BASE.purple,
   link: _BASE.blue,
-  electronResp: _BASE.rose, electronPhoto: _BASE.green, electronCyclic: _BASE.purple,
-  proton: _BASE.rose,
+  electronResp: _BASE.orange, electronPhoto: _BASE.green, electronCyclic: _BASE.purple,
+  proton: _BASE.orange,
   lightIndicator: _BASE.orange,
 };
 

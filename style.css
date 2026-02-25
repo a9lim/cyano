@@ -42,12 +42,12 @@
   /* Pathway colors — change here to recolor a pathway everywhere in the UI */
   --pw-glycolysis: var(--accent-blue);
   --pw-glycolysis-rgb: 56, 189, 248;
-  --pw-krebs: var(--accent-red);
-  --pw-krebs-rgb: 244, 63, 94;
+  --pw-krebs: var(--accent-orange);
+  --pw-krebs-rgb: 251, 146, 60;
   --pw-calvin: var(--accent-green);
   --pw-calvin-rgb: 16, 185, 129;
-  --pw-ppp: var(--accent-orange);
-  --pw-ppp-rgb: 251, 146, 60;
+  --pw-ppp: var(--accent-red);
+  --pw-ppp-rgb: 244, 63, 94;
   --pw-cyclic: var(--accent-purple);
   --pw-cyclic-rgb: 192, 132, 252;
   --pw-fermentation: #c49058;
