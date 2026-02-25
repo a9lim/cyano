@@ -14,7 +14,8 @@
       "WebFetch(domain:realfood.gov)",
       "Bash(curl:*)",
       "Bash(grep:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git status:*)"
     ]
   },
   "outputStyle": "default"
