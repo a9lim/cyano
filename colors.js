@@ -18,22 +18,22 @@ const _FONT = Object.freeze({
 // ---------- Palette ----------
 const _PALETTE = Object.freeze({
   // Pathway / particle base hues
-  orange: '#fb923c',
-  blue:   '#38bdf8',
-  green:  '#10b981',
-  purple: '#c084fc',
-  rose:   '#f43f5e',
-  brown:  '#a0694a',
-  red:    '#ef4444',
-  cyan:   '#67e8f9',
-  yellow: '#fde68a',
-  slate:  '#7c859c',
+  orange: '#d9924c',
+  blue:   '#5898ba',
+  green:  '#52a87a',
+  purple: '#a882bc',
+  rose:   '#c85c74',
+  brown:  '#9e6842',
+  red:    '#cc4c3c',
+  cyan:   '#48b4aa',
+  yellow: '#dbb850',
+  slate:  '#847a70',
 
   // Cofactor bar colors
-  atp:   '#fbbf24',
-  nadh:  '#22d3ee',
-  nadph: '#14b8a6',
-  fadh2: '#fb7185',
+  atp:   '#cc9e30',
+  nadh:  '#40a2b0',
+  nadph: '#3a9e82',
+  fadh2: '#bc6e78',
 
   // Mode-independent accent & text-on-accent
   accent:      '#FE3B01',
@@ -57,6 +57,7 @@ const _PALETTE = Object.freeze({
     text:          '#1A1612',
     textSecondary: '#78706A',
     textMuted:     '#A8A098',
+    togBg:         '#c8ccd4',
   }),
 });
 
@@ -124,6 +125,53 @@ const _BASE = {
 (function injectPaletteVars() {
   const P = _PALETTE, D = P.dark, L = P.light;
 
+  // Themed vars: [css-name, palette-key]             → direct value
+  //              [css-name, palette-key, alpha]       → same alpha both themes
+  //              [css-name, palette-key, lightA, darkA] → per-theme alpha
+  const themed = [
+    ['bg-canvas',      'canvas'],
+    ['bg-panel',       'panelSolid',    0.55,  0.58],
+    ['bg-panel-solid', 'panelSolid'],
+    ['bg-elevated',    'elevated'],
+    ['bg-hover',       'text',          0.039, 0.051],
+    ['border',         'text',          0.078, 0.059],
+    ['border-strong',  'text',          0.141, 0.122],
+    ['text',           'text'],
+    ['text-secondary', 'textSecondary'],
+    ['text-muted',     'textMuted'],
+  ];
+
+  // Mode-independent vars (emitted once in :root)
+  const shared = [
+    ['text-on-accent', 'textOnAccent'],
+    ['accent',         'accent'],
+    ['accent-light',   'accentLight'],
+    ['accent-glow',    'accent',   0.18],
+    ['accent-subtle',  'accent',   0.078],
+    ['pw-glyc',        'orange'],
+    ['pw-krebs',       'blue'],
+    ['pw-calvin',      'green'],
+    ['pw-ppp',         'rose'],
+    ['pw-cyclic',      'purple'],
+    ['pw-ferment',     'brown'],
+    ['co-atp',         'atp'],
+    ['co-nadh',        'nadh'],
+    ['co-nadph',       'nadph'],
+    ['co-fadh2',       'fadh2'],
+    ['pw-electron',    'cyan'],
+    ['pw-proton',      'red'],
+    ['pw-photon',      'yellow'],
+  ];
+
+  const gen = (T, dark) => themed.map(([name, key, lA, dA]) => {
+    const a = dark ? (dA ?? lA) : lA;
+    return `  --${name}: ${a != null ? _r(T[key], a) : T[key]};`;
+  }).join('\n');
+
+  const genShared = () => shared.map(([name, key, a]) =>
+    `  --${name}: ${a != null ? _r(P[key], a) : P[key]};`
+  ).join('\n');
+
   const style = document.createElement('style');
   style.id = 'palette-vars';
   style.textContent =
@@ -132,54 +180,42 @@ const _BASE = {
   --font-body:        ${_FONT.body};
   --font-mono:        ${_FONT.mono};
 
-  --bg-canvas:        ${D.canvas};
-  --bg-panel:         ${_r(D.panelSolid, 0.58)};
-  --bg-panel-solid:   ${D.panelSolid};
-  --bg-elevated:      ${D.elevated};
-  --bg-hover:         ${_r(D.text, 0.051)};
+${gen(L, false)}
+${genShared()}
 
-  --border:           ${_r(D.text, 0.059)};
-  --border-strong:    ${_r(D.text, 0.122)};
+  --bg-scrim:         #ffffff33;
+  --bg-track:         #00000014;
+  --metab-card-bg:    #00000005;
 
-  --text:             ${D.text};
-  --text-secondary:   ${D.textSecondary};
-  --text-muted:       ${D.textMuted};
-  --text-on-accent:   ${P.textOnAccent};
+  --shadow-sm:        0 1px 4px #0000000a, 0 0 0 1px #00000005;
+  --shadow-md:        0 4px 20px #0000000f, 0 0 0 1px #00000005;
+  --shadow-lg:        0 12px 48px #0000001a, 0 0 0 1px #00000005;
 
-  --accent:           ${P.accent};
-  --accent-light:     ${P.accentLight};
-  --accent-glow:      ${_r(P.accent, 0.18)};
-  --accent-subtle:    ${_r(P.accent, 0.078)};
-
-  --pw-glyc:          ${P.orange};
-  --pw-krebs:         ${P.blue};
-  --pw-calvin:        ${P.green};
-  --pw-ppp:           ${P.rose};
-  --pw-cyclic:        ${P.purple};
-  --pw-ferment:       ${P.brown};
-
-  --co-atp:           ${P.atp};
-  --co-nadh:          ${P.nadh};
-  --co-nadph:         ${P.nadph};
-  --co-fadh2:         ${P.fadh2};
-
-  --pw-electron:      ${P.cyan};
-  --pw-proton:        ${P.red};
-  --pw-photon:        ${P.yellow};
+  --tog-bg:           ${L.togBg};
+  --tog-thumb-on:     #ffffff;
+  --tog-border:       #0000000f;
+  --tog-inset:        #00000014;
+  --track-shadow:     inset 0 1px 1px #0000000f;
 }
-body.light-mode {
-  --bg-canvas:        ${L.canvas};
-  --bg-panel:         ${_r(L.panelSolid, 0.55)};
-  --bg-panel-solid:   ${L.panelSolid};
-  --bg-elevated:      ${L.elevated};
-  --bg-hover:         ${_r(L.text, 0.039)};
+[data-theme="dark"] {
+${gen(D, true)}
 
-  --border:           ${_r(L.text, 0.078)};
-  --border-strong:    ${_r(L.text, 0.141)};
+  --bg-scrim:         #00000026;
+  --bg-track:         #ffffff0a;
+  --metab-card-bg:    transparent;
 
-  --text:             ${L.text};
-  --text-secondary:   ${L.textSecondary};
-  --text-muted:       ${L.textMuted};
+  --shadow-sm:        0 1px 4px #00000033, 0 0 0 1px #ffffff08;
+  --shadow-md:        0 4px 20px #0000004d, 0 0 0 1px #ffffff08;
+  --shadow-lg:        0 12px 48px #00000066, 0 0 0 1px #ffffff08;
+
+  --tog-bg:           ${D.panelSolid};
+  --tog-thumb-on:     var(--text);
+  --tog-border:       #ffffff0f;
+  --tog-inset:        #00000059;
+  --tog-thumb-shadow: #00000073;
+  --tog-checked-inset: #00000033;
+  --tog-checked-extra: #0000004d;
+  --track-shadow:     none;
 }`;
   document.head.appendChild(style);
 })();
