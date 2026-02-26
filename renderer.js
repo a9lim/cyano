@@ -393,9 +393,9 @@ const Renderer = {
             ctx.fillText('☀', cx, lightY + 14); ctx.shadowBlur = 0;
             ctx.restore();
         } else {
-            ctx.font = `500 14px ${_FONT.body}`; ctx.fillStyle = EnzymeStyles.theme.nightText;
+            ctx.font = `500 14px ${_FONT.body}`; ctx.fillStyle = _r(EnzymeStyles.roleColors.nightIndicator.stroke, 0.3);
             ctx.fillText('DARK', cx, lightY - 24);
-            ctx.font = `38px ${_FONT.emoji}`; ctx.fillStyle = EnzymeStyles.theme.nightIcon;
+            ctx.font = `38px ${_FONT.emoji}`; ctx.fillStyle = _r(EnzymeStyles.roleColors.nightIndicator.stroke, 0.2);
             ctx.fillText('☾', cx, lightY + 14);
         }
     },
@@ -1044,8 +1044,8 @@ const Renderer = {
             ctx.globalAlpha = fade * 0.9;
             ctx.beginPath();
             ctx.arc(ph.x + (ph.tx - ph.x) * t, ph.y + (ph.ty - ph.y) * t, 3, 0, _TWO_PI);
-            ctx.fillStyle = EnzymeStyles.theme.photonFill;
-            ctx.shadowColor = EnzymeStyles.theme.photonGlow;
+            ctx.fillStyle = _r(EnzymeStyles.roleColors.photon.stroke, 0.9);
+            ctx.shadowColor = _r(EnzymeStyles.roleColors.photon.stroke, 0.5);
             ctx.shadowBlur = 12;
             ctx.fill();
         }

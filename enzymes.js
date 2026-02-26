@@ -2,13 +2,7 @@
    enzymes.js — Stylized enzyme and complex drawing functions
    =================================================================== */
 
-// ---------- Font Constants ----------
-// Single source of truth for all canvas font families
-const _FONT = {
-  mono:  "'JetBrains Mono', monospace",
-  body:  "'Sora', sans-serif",
-  emoji: "sans-serif",
-};
+// _FONT defined in colors.js (canvas font families)
 
 // ---------- Drawing Constants ----------
 const CFG = {
@@ -78,27 +72,38 @@ function _makeBase(stroke, fillL) {
 }
 
 const _BASE = {
-  orange: _makeBase('#fb923c', 7),
-  blue:   _makeBase('#38bdf8', 13),
-  green:  _makeBase('#10b981', 7),
-  purple: _makeBase('#c084fc', 10),
-  rose:   _makeBase('#f43f5e', 8),
-  brown:  _makeBase('#a0694a', 7),
-  red:    _makeBase('#ef4444'),
-  cyan:   _makeBase('#67e8f9'),
+  orange: _makeBase(_PALETTE.orange, 7),
+  blue:   _makeBase(_PALETTE.blue, 13),
+  green:  _makeBase(_PALETTE.green, 7),
+  purple: _makeBase(_PALETTE.purple, 10),
+  rose:   _makeBase(_PALETTE.rose, 8),
+  brown:  _makeBase(_PALETTE.brown, 7),
+  red:    _makeBase(_PALETTE.red),
+  cyan:   _makeBase(_PALETTE.cyan),
+  yellow: _makeBase(_PALETTE.yellow),
+  slate:  _makeBase(_PALETTE.slate),
 };
 
 // ---------- Semantic Role → Base Family ----------
 // Change a role's color here and it propagates everywhere
 const _ROLE = {
-  glycolysis: _BASE.orange, calvin: _BASE.green, ppp: _BASE.rose,
-  krebs: _BASE.blue, fermentation: _BASE.brown,
-  respiratory: _BASE.blue, photosynthetic: _BASE.green,
-  shared: _BASE.orange, atpSynthase: _BASE.rose,
-  cyclic: _BASE.purple, bacteriorhodopsin: _BASE.purple, nnt: _BASE.brown,
+  glycolysis: _BASE.orange,
+  calvin: _BASE.green,
+  ppp: _BASE.rose,
+  krebs: _BASE.blue,
+  fermentation: _BASE.brown,
+  respiratory: _BASE.blue,
+  photosynthetic: _BASE.green,
+  shared: _BASE.orange,
+  atpSynthase: _BASE.rose,
+  cyclic: _BASE.purple,
+  bacteriorhodopsin: _BASE.purple,
+  nnt: _BASE.brown,
   electron: _BASE.cyan,
   proton: _BASE.red,
+  photon: _BASE.yellow,
   lightIndicator: _BASE.orange,
+  nightIndicator: _BASE.slate,
 };
 
 function _pal(b, fill, glowA) {
@@ -106,71 +111,61 @@ function _pal(b, fill, glowA) {
 }
 
 // ---------- Theme Colors ----------
-// Centralised UI colors for canvas drawing — change here, propagates everywhere
-const _r = (hex, a) => hex + Math.round(a * 255).toString(16).padStart(2, '0');
-
-// Shared hex bases (only extracted when used 3+ times)
-const _night = '#7c859c';
-const _lAccent = '#1e293b';
-const _dAccent = '#e8a838';
+// Centralised UI colors for canvas drawing — _r and _PALETTE from colors.js
 
 const _THEME = {
   // Mode-independent
-  photonFill:     '#fde68a',
-  photonGlow:     '#fbbf24',
-  protonText:     '#ffffff',
-  nightText:      _r(_night, 0.3),
-  nightIcon:      _r(_night, 0.2),
+  protonText:     _PALETTE.dark.text,
 
   dark: {
-    textPrimary:          '#e0e5ee',
-    textSecondary:        '#8892a4',
-    textMuted:            '#7c859c',
-    textOnAccent:         '#0a0c14',
+    textPrimary:          _PALETTE.dark.text,
+    textSecondary:        _PALETTE.dark.textSecondary,
+    textMuted:            _PALETTE.dark.textMuted,
+    textOnAccent:         _PALETTE.textOnAccent,
 
-    surfacePrimary:       _r('#0a101c', 0.88),
-    surfaceSecondary:     _r('#0a101c', 0.65),
-    surfaceElevated:      _r('#263042', 0.92),
-    surfaceMuted:         _r('#121a2a', 0.78),
+    surfacePrimary:       _r(_PALETTE.dark.panelSolid, 0.88),
+    surfaceSecondary:     _r(_PALETTE.dark.panelSolid, 0.65),
+    surfaceElevated:      _r(_PALETTE.dark.elevated, 0.92),
+    surfaceMuted:         _r(_PALETTE.dark.panelSolid, 0.78),
 
-    accentBadge:          _r(_dAccent, 0.9),
-    accentGlow:           _r(_dAccent, 0.2),
+    accentBadge:          _r(_PALETTE.accent, 0.9),
+    accentGlow:           _r(_PALETTE.accent, 0.2),
 
-    metabActiveStroke:    '#e0e5ee',
-    metabInactiveStroke:  _r('#828ea8', 0.4),
+    metabActiveStroke:    _PALETTE.dark.text,
+    metabInactiveStroke:  _r(_PALETTE.dark.textSecondary, 0.4),
 
-    membraneHead:         _r('#82afd7', 0.15),
-    membraneTail:         _r('#82afd7', 0.06),
+    membraneHead:         _r(_PALETTE.dark.text, 0.15),
+    membraneTail:         _r(_PALETTE.dark.text, 0.06),
 
-    sectionLabel:         _r(_dAccent, 0.25),
-    sectionLabelAlt:      _r(_dAccent, 0.2),
+    sectionLabel:         _r(_PALETTE.accent, 0.25),
+    sectionLabelAlt:      _r(_PALETTE.accent, 0.2),
     protonPoolLabel:      _r(_BASE.blue.stroke, 0.2),
 
     chromophoreAlpha:     0.5,
   },
 
   light: {
-    textPrimary:          '#0f172a',
-    textSecondary:        '#334155',
-    textMuted:            '#64748b',
-    textOnAccent:         '#f1f5f9',
+    textPrimary:          _PALETTE.light.text,
+    textSecondary:        _PALETTE.light.textSecondary,
+    textMuted:            _PALETTE.light.textMuted,
+    textOnAccent:         _PALETTE.textOnAccent,
 
-    surfacePrimary:       _r('#ffffff', 0.95),
-    surfaceSecondary:     _r('#f1f5f9', 0.85),
-    surfaceElevated:      _r('#ffffff', 0.95),  // intentionally same as surfacePrimary
-    surfaceMuted:         _r('#f1f5f9', 0.9),
+    surfacePrimary:       _r(_PALETTE.light.panelSolid, 0.95),
+    surfaceSecondary:     _r(_PALETTE.light.canvas, 0.85),
+    surfaceElevated:      _r(_PALETTE.light.elevated, 0.95),
+    surfaceMuted:         _r(_PALETTE.light.canvas, 0.9),
 
-    accentBadge:          _r(_lAccent, 0.85),
-    accentGlow:           _r(_lAccent, 0.2),
+    accentBadge:          _r(_PALETTE.accent, 0.85),
+    accentGlow:           _r(_PALETTE.accent, 0.2),
 
-    metabActiveStroke:    '#1e293b',
-    metabInactiveStroke:  '#475569',
+    metabActiveStroke:    _PALETTE.light.text,
+    metabInactiveStroke:  _PALETTE.light.textSecondary,
 
-    membraneHead:         _r('#14788c', 0.3),
-    membraneTail:         _r('#14788c', 0.15),
+    membraneHead:         _r(_PALETTE.light.textSecondary, 0.3),
+    membraneTail:         _r(_PALETTE.light.textSecondary, 0.15),
 
-    sectionLabel:         _r(_lAccent, 0.25),
-    sectionLabelAlt:      _r(_lAccent, 0.2),
+    sectionLabel:         _r(_PALETTE.accent, 0.25),
+    sectionLabelAlt:      _r(_PALETTE.accent, 0.2),
     protonPoolLabel:      _r(_BASE.blue.strokeLight, 0.25),
 
     chromophoreAlpha:     0.6,

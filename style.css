@@ -8,67 +8,13 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* ───── Design Tokens (Dark default) ───── */
+/* Shared color vars (surfaces, text, accent, pathways, cofactors, particles)
+   are injected by colors.js via <style id="palette-vars"> */
 :root {
-  /* Surfaces — Gerry dark palette */
-  --bg-canvas:        #0C0B09;
-  --bg-panel:         rgba(24, 22, 18, 0.88);
-  --bg-panel-solid:   #181612;
-  --bg-elevated:      #1E1C18;
-  --bg-hover:         rgba(232, 226, 212, 0.05);
-
-  /* Borders — Gerry */
-  --border:           rgba(232, 226, 212, 0.06);
-  --border-strong:    rgba(232, 226, 212, 0.12);
-
-  /* Text — Gerry */
-  --text:             #E8E2D4;
-  --text-secondary:   #8A8278;
-  --text-muted:       #5A544C;
-
-  /* Accent — Gerry rust red */
-  --accent:           #E89B80;
-  --accent-rgb:       232, 155, 128;
-  --accent-light:     #F0B8A0;
-  --accent-glow:      rgba(232, 155, 128, 0.18);
-  --accent-subtle:    rgba(232, 155, 128, 0.08);
-
-  /* Pathway colors — synced with enzymes.js _BASE */
-  --pw-glyc:          #fb923c;
-  --pw-glyc-rgb:      251, 146, 60;
-  --pw-krebs:         #38bdf8;
-  --pw-krebs-rgb:     56, 189, 248;
-  --pw-calvin:        #10b981;
-  --pw-calvin-rgb:    16, 185, 129;
-  --pw-ppp:           #f43f5e;
-  --pw-ppp-rgb:       244, 63, 94;
-  --pw-cyclic:        #c084fc;
-  --pw-cyclic-rgb:    192, 132, 252;
-  --pw-ferment:       #a0694a;
-  --pw-ferment-rgb:   160, 105, 74;
-
-  /* Cofactor bar colors */
-  --co-atp:           #fbbf24;
-  --co-atp-rgb:       251, 191, 36;
-  --co-nadh:          #22d3ee;
-  --co-nadh-rgb:      34, 211, 238;
-  --co-nadph:         #14b8a6;
-  --co-nadph-rgb:     20, 184, 166;
-  --co-fadh2:         #fb7185;
-  --co-fadh2-rgb:     251, 113, 133;
-
-  /* Particle colors (synced with enzymes.js _BASE / _THEME) */
-  --pw-electron:      #67e8f9;
-  --pw-electron-rgb:  103, 232, 249;
-  --pw-proton:        #ef4444;
-  --pw-proton-rgb:    239, 68, 68;
-  --pw-photon:        #fde68a;
-  --pw-photon-glow-rgb: 251, 191, 36;
-
-  /* Typography — Gerry fonts for UI, canvas keeps JetBrains/Sora */
-  --font-display:     'Instrument Serif', Georgia, 'Times New Roman', serif;
-  --font-body:        'Geist', system-ui, -apple-system, sans-serif;
-  --font-mono:        'Geist Mono', 'SF Mono', 'Menlo', monospace;
-  --font-label:       'Sora', var(--font-body);
+  --bg-scrim:         #00000026;
+  --bg-track:         #ffffff0a;
+  --track-shadow:     none;
+  --metab-card-bg:    transparent;
 
   /* Radius — Gerry */
   --radius-sm:  8px;
@@ -81,9 +27,9 @@
   --panel-w:    350px;
 
   /* Shadows — Gerry dark */
-  --shadow-sm:  0 1px 4px rgba(0,0,0,0.20), 0 0 0 1px rgba(255,255,255,0.03);
-  --shadow-md:  0 4px 20px rgba(0,0,0,0.30), 0 0 0 1px rgba(255,255,255,0.03);
-  --shadow-lg:  0 12px 48px rgba(0,0,0,0.40), 0 0 0 1px rgba(255,255,255,0.03);
+  --shadow-sm:  0 1px 4px #00000033, 0 0 0 1px #ffffff08;
+  --shadow-md:  0 4px 20px #0000004d, 0 0 0 1px #ffffff08;
+  --shadow-lg:  0 12px 48px #00000066, 0 0 0 1px #ffffff08;
 
   /* Easing — Gerry */
   --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
@@ -91,8 +37,14 @@
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Toggle */
-  --tog-bg:         #181612;
-  --tog-thumb-on:   var(--text);
+  --tog-bg:           #181612;
+  --tog-thumb-on:     var(--text);
+  --tog-border:       #ffffff0f;
+  --tog-inset:        #00000059;
+  --tog-thumb-shadow: #00000073;
+  --tog-checked-inset: #00000033;
+  --tog-checked-extra: #0000004d;
+  --tog-shadow:       inset 0 1px 3px var(--tog-inset);
 }
 
 
@@ -139,8 +91,8 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 25% 35%, rgba(232, 155, 128, 0.08) 0%, transparent 55%),
-    radial-gradient(ellipse at 75% 65%, rgba(56, 189, 248, 0.04) 0%, transparent 45%);
+    radial-gradient(ellipse at 25% 35%, var(--accent-subtle) 0%, transparent 55%),
+    radial-gradient(ellipse at 75% 65%, color-mix(in srgb, var(--pw-krebs) 4%, transparent) 0%, transparent 45%);
   animation: introBgPulse 10s ease-in-out infinite alternate;
 }
 
@@ -249,7 +201,7 @@
   font-family: var(--font-body);
   font-size: 0.92rem;
   font-weight: 500;
-  color: #FDFBF5;
+  color: var(--text-on-accent);
   background: var(--accent);
   border: none;
   border-radius: var(--radius-pill);
@@ -257,13 +209,13 @@
   cursor: pointer;
   letter-spacing: 0.02em;
   transition: all 0.3s var(--ease-out);
-  box-shadow: 0 0 40px var(--accent-glow), 0 0 80px rgba(232, 155, 128, 0.08);
+  box-shadow: 0 0 40px var(--accent-glow), 0 0 80px var(--accent-subtle);
 }
 
 #intro-start:hover {
   background: var(--accent-light);
   transform: translateY(-2px);
-  box-shadow: 0 0 50px var(--accent-glow), 0 0 100px rgba(232, 155, 128, 0.12);
+  box-shadow: 0 0 50px var(--accent-glow), 0 0 100px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 #intro-start:active {
@@ -438,7 +390,7 @@ main {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--bg-scrim);
   position: relative;
   cursor: grab;
   touch-action: none;
@@ -586,7 +538,7 @@ main {
 }
 
 .glucose-pill:hover {
-  background: rgba(var(--pw-calvin-rgb), 0.1);
+  background: color-mix(in srgb, var(--pw-calvin) 10%, transparent);
 }
 
 .glucose-pill:active { transform: scale(0.96); }
@@ -744,6 +696,7 @@ main {
 }
 
 .metab-card {
+  background: var(--metab-card-bg);
   border-radius: var(--radius-md);
   padding: 0.4rem 0.5rem;
   transition: all 0.28s ease;
@@ -776,9 +729,10 @@ main {
 .metab-track {
   width: 100%;
   height: 4px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-track);
   border-radius: 2px;
   overflow: hidden;
+  box-shadow: var(--track-shadow);
 }
 
 .metab-fill {
@@ -790,46 +744,46 @@ main {
 
 /* ATP */
 .mc-atp {
-  background: rgba(var(--co-atp-rgb), 0.05);
+  background: color-mix(in srgb, var(--co-atp) 5%, transparent);
 }
-.mc-atp:hover { box-shadow: 0 0 16px rgba(var(--co-atp-rgb), 0.06); }
+.mc-atp:hover { box-shadow: 0 0 16px color-mix(in srgb, var(--co-atp) 6%, transparent); }
 .mc-atp .metab-pct { color: var(--co-atp); }
 #atp-bar {
   background: linear-gradient(90deg, color-mix(in srgb, var(--co-atp), black 20%), var(--co-atp));
-  box-shadow: 0 0 6px rgba(var(--co-atp-rgb), 0.35);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--co-atp) 35%, transparent);
 }
 
 /* NADH */
 .mc-nadh {
-  background: rgba(var(--co-nadh-rgb), 0.05);
+  background: color-mix(in srgb, var(--co-nadh) 5%, transparent);
 }
-.mc-nadh:hover { box-shadow: 0 0 16px rgba(var(--co-nadh-rgb), 0.06); }
+.mc-nadh:hover { box-shadow: 0 0 16px color-mix(in srgb, var(--co-nadh) 6%, transparent); }
 .mc-nadh .metab-pct { color: var(--co-nadh); }
 #nadh-bar {
   background: linear-gradient(90deg, color-mix(in srgb, var(--co-nadh), black 20%), var(--co-nadh));
-  box-shadow: 0 0 6px rgba(var(--co-nadh-rgb), 0.35);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--co-nadh) 35%, transparent);
 }
 
 /* NADPH */
 .mc-nadph {
-  background: rgba(var(--co-nadph-rgb), 0.05);
+  background: color-mix(in srgb, var(--co-nadph) 5%, transparent);
 }
-.mc-nadph:hover { box-shadow: 0 0 16px rgba(var(--co-nadph-rgb), 0.06); }
+.mc-nadph:hover { box-shadow: 0 0 16px color-mix(in srgb, var(--co-nadph) 6%, transparent); }
 .mc-nadph .metab-pct { color: var(--co-nadph); }
 #nadph-bar {
   background: linear-gradient(90deg, color-mix(in srgb, var(--co-nadph), black 20%), var(--co-nadph));
-  box-shadow: 0 0 6px rgba(var(--co-nadph-rgb), 0.35);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--co-nadph) 35%, transparent);
 }
 
 /* FADH₂ */
 .mc-fadh2 {
-  background: rgba(var(--co-fadh2-rgb), 0.05);
+  background: color-mix(in srgb, var(--co-fadh2) 5%, transparent);
 }
-.mc-fadh2:hover { box-shadow: 0 0 16px rgba(var(--co-fadh2-rgb), 0.06); }
+.mc-fadh2:hover { box-shadow: 0 0 16px color-mix(in srgb, var(--co-fadh2) 6%, transparent); }
 .mc-fadh2 .metab-pct { color: var(--co-fadh2); }
 #fadh2-bar {
   background: linear-gradient(90deg, color-mix(in srgb, var(--co-fadh2), black 20%), var(--co-fadh2));
-  box-shadow: 0 0 6px rgba(var(--co-fadh2-rgb), 0.35);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--co-fadh2) 35%, transparent);
 }
 
 
@@ -965,8 +919,8 @@ main {
   border-radius: 11px;
   cursor: pointer;
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--tog-border);
+  box-shadow: var(--tog-shadow);
   transition: all 0.28s ease;
   overflow: hidden;
 }
@@ -979,7 +933,7 @@ main {
   height: 14px;
   border-radius: 50%;
   background: var(--text-muted);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 1px 3px var(--tog-thumb-shadow);
   transition: all 0.35s var(--ease-spring);
   z-index: 2;
 }
@@ -999,14 +953,14 @@ main {
 /* Base checked state */
 .tog-wrap input:checked + .tog {
   background: linear-gradient(135deg, color-mix(in srgb, var(--accent), black 82%), color-mix(in srgb, var(--accent), black 72%));
-  border-color: rgba(var(--accent-rgb), 0.14);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  border-color: color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow: inset 0 1px 3px var(--tog-checked-inset);
 }
 
 .tog-wrap input:checked + .tog .tog-thumb {
   transform: translateX(20px);
   background: var(--accent);
-  box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 50%, transparent), 0 1px 2px var(--tog-checked-extra);
 }
 
 .tog-wrap input:checked + .tog .tog-icon-on { opacity: 1; }
@@ -1015,78 +969,78 @@ main {
 /* Sunlight toggle */
 #light-toggle:checked + .tog-light {
   background: linear-gradient(135deg, color-mix(in srgb, var(--co-atp), black 82%), color-mix(in srgb, var(--co-atp), black 72%));
-  border-color: rgba(var(--co-atp-rgb), 0.35);
-  box-shadow: 0 0 14px rgba(var(--co-atp-rgb), 0.12), inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  border-color: color-mix(in srgb, var(--co-atp) 35%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--co-atp) 12%, transparent), inset 0 1px 2px var(--tog-checked-inset);
 }
 
 #light-toggle:checked + .tog-light .tog-thumb {
   transform: translateX(20px);
   background: var(--co-atp);
-  box-shadow: 0 0 14px rgba(var(--co-atp-rgb), 0.65), 0 0 4px rgba(var(--co-atp-rgb), 1);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--co-atp) 65%, transparent), 0 0 4px var(--co-atp);
 }
 
 /* O₂ toggle */
 #oxygen-toggle:checked + .tog-o2 {
   background: linear-gradient(135deg, color-mix(in srgb, var(--co-nadh), black 82%), color-mix(in srgb, var(--co-nadh), black 72%));
-  border-color: rgba(var(--co-nadh-rgb), 0.22);
+  border-color: color-mix(in srgb, var(--co-nadh) 22%, transparent);
 }
 
 #oxygen-toggle:checked + .tog-o2 .tog-thumb {
   transform: translateX(20px);
   background: var(--co-nadh);
-  box-shadow: 0 0 8px rgba(var(--co-nadh-rgb), 0.5);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--co-nadh) 50%, transparent);
 }
 
 /* Pathway-colored toggles */
 #glyc-toggle:checked + .tog-glyc {
   background: linear-gradient(135deg, color-mix(in srgb, var(--pw-glyc), black 82%), color-mix(in srgb, var(--pw-glyc), black 72%));
-  border-color: rgba(var(--pw-glyc-rgb), 0.22);
+  border-color: color-mix(in srgb, var(--pw-glyc) 22%, transparent);
 }
 #glyc-toggle:checked + .tog-glyc .tog-thumb {
   transform: translateX(20px);
   background: var(--pw-glyc);
-  box-shadow: 0 0 8px rgba(var(--pw-glyc-rgb), 0.5);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--pw-glyc) 50%, transparent);
 }
 
 #ppp-toggle:checked + .tog-ppp {
   background: linear-gradient(135deg, color-mix(in srgb, var(--pw-ppp), black 82%), color-mix(in srgb, var(--pw-ppp), black 72%));
-  border-color: rgba(var(--pw-ppp-rgb), 0.22);
+  border-color: color-mix(in srgb, var(--pw-ppp) 22%, transparent);
 }
 #ppp-toggle:checked + .tog-ppp .tog-thumb {
   transform: translateX(20px);
   background: var(--pw-ppp);
-  box-shadow: 0 0 8px rgba(var(--pw-ppp-rgb), 0.5);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--pw-ppp) 50%, transparent);
 }
 
 #calvin-toggle:checked + .tog-calvin {
   background: linear-gradient(135deg, color-mix(in srgb, var(--pw-calvin), black 82%), color-mix(in srgb, var(--pw-calvin), black 72%));
-  border-color: rgba(var(--pw-calvin-rgb), 0.22);
+  border-color: color-mix(in srgb, var(--pw-calvin) 22%, transparent);
 }
 #calvin-toggle:checked + .tog-calvin .tog-thumb {
   transform: translateX(20px);
   background: var(--pw-calvin);
-  box-shadow: 0 0 8px rgba(var(--pw-calvin-rgb), 0.5);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--pw-calvin) 50%, transparent);
 }
 
 #krebs-toggle:checked + .tog-krebs {
   background: linear-gradient(135deg, color-mix(in srgb, var(--pw-krebs), black 82%), color-mix(in srgb, var(--pw-krebs), black 72%));
-  border-color: rgba(var(--pw-krebs-rgb), 0.22);
+  border-color: color-mix(in srgb, var(--pw-krebs) 22%, transparent);
 }
 #krebs-toggle:checked + .tog-krebs .tog-thumb {
   transform: translateX(20px);
   background: var(--pw-krebs);
-  box-shadow: 0 0 8px rgba(var(--pw-krebs-rgb), 0.5);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--pw-krebs) 50%, transparent);
 }
 
 /* Auto-play toggle — accent */
 #autoplay-toggle:checked + .tog-auto {
   background: linear-gradient(135deg, color-mix(in srgb, var(--accent), black 82%), color-mix(in srgb, var(--accent), black 72%));
-  border-color: rgba(var(--accent-rgb), 0.22);
+  border-color: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 #autoplay-toggle:checked + .tog-auto .tog-thumb {
   transform: translateX(20px);
   background: var(--accent);
-  box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.55);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 
@@ -1233,17 +1187,17 @@ main {
 
 .legend-dot.electron {
   background: var(--pw-electron);
-  box-shadow: 0 0 5px rgba(var(--pw-electron-rgb), 0.5);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--pw-electron) 50%, transparent);
 }
 
 .legend-dot.proton {
   background: var(--pw-proton);
-  box-shadow: 0 0 5px rgba(var(--pw-proton-rgb), 0.4);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--pw-proton) 40%, transparent);
 }
 
 .legend-dot.photon {
   background: var(--pw-photon);
-  box-shadow: 0 0 5px rgba(var(--pw-photon-glow-rgb), 0.5);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--pw-photon) 50%, transparent);
 }
 
 
@@ -1251,31 +1205,21 @@ main {
    LIGHT MODE — Gerry light palette
    ═══════════════════════════════════════ */
 body.light-mode {
-  --bg-canvas:        #F0EDE4;
-  --bg-panel:         rgba(252, 250, 244, 0.82);
-  --bg-panel-solid:   #FCFAF4;
-  --bg-elevated:      #FDFBF5;
-  --bg-hover:         rgba(26, 22, 18, 0.04);
+  /* Shared color overrides injected by colors.js */
 
-  --border:           rgba(26, 22, 18, 0.08);
-  --border-strong:    rgba(26, 22, 18, 0.14);
-
-  --text:             #1A1612;
-  --text-secondary:   #78706A;
-  --text-muted:       #A8A098;
-
-  --accent:           #D97757;
-  --accent-rgb:       217, 119, 87;
-  --accent-light:     #E89B80;
-  --accent-glow:      rgba(217, 119, 87, 0.20);
-  --accent-subtle:    rgba(217, 119, 87, 0.07);
-
-  --shadow-sm:  0 1px 4px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.02);
-  --shadow-md:  0 4px 20px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.02);
-  --shadow-lg:  0 12px 48px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.02);
+  --shadow-sm:  0 1px 4px #0000000a, 0 0 0 1px #00000005;
+  --shadow-md:  0 4px 20px #0000000f, 0 0 0 1px #00000005;
+  --shadow-lg:  0 12px 48px #0000001a, 0 0 0 1px #00000005;
 
   --tog-bg:           #c8ccd4;
   --tog-thumb-on:     #fff;
+  --bg-scrim:         #ffffff33;
+  --bg-track:         #00000014;
+  --track-shadow:     inset 0 1px 1px #0000000f;
+  --metab-card-bg:    #00000005;
+  --tog-border:       #0000000f;
+  --tog-inset:        #00000014;
+  --tog-shadow:       inset 0 1px 2px var(--tog-inset);
 
   color-scheme: light;
 }
@@ -1286,90 +1230,75 @@ body.light-mode .header-brand h1 em {
   background-clip: text;
 }
 
-body.light-mode #sim-container {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-body.light-mode .tog {
-  background: var(--tog-bg);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
-}
-
 /* Light-mode toggle overrides */
 body.light-mode #light-toggle:checked + .tog-light {
   background: linear-gradient(135deg, var(--co-atp), color-mix(in srgb, var(--co-atp), black 25%));
-  border-color: rgba(var(--co-atp-rgb), 0.35);
-  box-shadow: 0 0 12px rgba(var(--co-atp-rgb), 0.3);
+  border-color: color-mix(in srgb, var(--co-atp) 35%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--co-atp) 30%, transparent);
 }
 body.light-mode #light-toggle:checked + .tog-light .tog-thumb {
   background: var(--tog-thumb-on);
-  box-shadow: 0 0 8px rgba(var(--co-atp-rgb), 0.6);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--co-atp) 60%, transparent);
 }
 
 body.light-mode #oxygen-toggle:checked + .tog-o2 {
   background: linear-gradient(135deg, var(--co-nadh), color-mix(in srgb, var(--co-nadh), black 25%));
-  border-color: rgba(var(--co-nadh-rgb), 0.35);
+  border-color: color-mix(in srgb, var(--co-nadh) 35%, transparent);
 }
 body.light-mode #oxygen-toggle:checked + .tog-o2 .tog-thumb {
   background: var(--tog-thumb-on);
-  box-shadow: 0 0 6px rgba(var(--co-nadh-rgb), 0.5);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--co-nadh) 50%, transparent);
 }
 
 body.light-mode #glyc-toggle:checked + .tog-glyc {
   background: linear-gradient(135deg, var(--pw-glyc), color-mix(in srgb, var(--pw-glyc), black 25%));
-  border-color: rgba(var(--pw-glyc-rgb), 0.35);
+  border-color: color-mix(in srgb, var(--pw-glyc) 35%, transparent);
 }
 body.light-mode #glyc-toggle:checked + .tog-glyc .tog-thumb {
   background: var(--tog-thumb-on);
-  box-shadow: 0 0 6px rgba(var(--pw-glyc-rgb), 0.5);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--pw-glyc) 50%, transparent);
 }
 
 body.light-mode #ppp-toggle:checked + .tog-ppp {
   background: linear-gradient(135deg, var(--pw-ppp), color-mix(in srgb, var(--pw-ppp), black 25%));
-  border-color: rgba(var(--pw-ppp-rgb), 0.35);
+  border-color: color-mix(in srgb, var(--pw-ppp) 35%, transparent);
 }
 body.light-mode #ppp-toggle:checked + .tog-ppp .tog-thumb {
   background: var(--tog-thumb-on);
-  box-shadow: 0 0 6px rgba(var(--pw-ppp-rgb), 0.5);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--pw-ppp) 50%, transparent);
 }
 
 body.light-mode #calvin-toggle:checked + .tog-calvin {
   background: linear-gradient(135deg, var(--pw-calvin), color-mix(in srgb, var(--pw-calvin), black 25%));
-  border-color: rgba(var(--pw-calvin-rgb), 0.35);
+  border-color: color-mix(in srgb, var(--pw-calvin) 35%, transparent);
 }
 body.light-mode #calvin-toggle:checked + .tog-calvin .tog-thumb {
   background: var(--tog-thumb-on);
-  box-shadow: 0 0 6px rgba(var(--pw-calvin-rgb), 0.5);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--pw-calvin) 50%, transparent);
 }
 
 body.light-mode #krebs-toggle:checked + .tog-krebs {
   background: linear-gradient(135deg, var(--pw-krebs), color-mix(in srgb, var(--pw-krebs), black 25%));
-  border-color: rgba(var(--pw-krebs-rgb), 0.35);
+  border-color: color-mix(in srgb, var(--pw-krebs) 35%, transparent);
 }
 body.light-mode #krebs-toggle:checked + .tog-krebs .tog-thumb {
   background: var(--tog-thumb-on);
-  box-shadow: 0 0 6px rgba(var(--pw-krebs-rgb), 0.5);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--pw-krebs) 50%, transparent);
 }
 
 body.light-mode #autoplay-toggle:checked + .tog-auto {
   background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent), black 25%));
-  border-color: rgba(var(--accent-rgb), 0.35);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
 }
 body.light-mode #autoplay-toggle:checked + .tog-auto .tog-thumb {
   background: var(--tog-thumb-on);
-  box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.5);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
-body.light-mode .metab-card { background: rgba(0, 0, 0, 0.02); }
-body.light-mode .mc-atp { background: rgba(var(--co-atp-rgb), 0.08); }
-body.light-mode .mc-nadh { background: rgba(var(--co-nadh-rgb), 0.08); }
-body.light-mode .mc-nadph { background: rgba(var(--co-nadph-rgb), 0.08); }
-body.light-mode .mc-fadh2 { background: rgba(var(--co-fadh2-rgb), 0.08); }
-
-body.light-mode .metab-track {
-  background: rgba(0, 0, 0, 0.08);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.06);
-}
+body.light-mode .mc-atp { background: color-mix(in srgb, var(--co-atp) 8%, transparent); }
+body.light-mode .mc-nadh { background: color-mix(in srgb, var(--co-nadh) 8%, transparent); }
+body.light-mode .mc-nadph { background: color-mix(in srgb, var(--co-nadph) 8%, transparent); }
+body.light-mode .mc-fadh2 { background: color-mix(in srgb, var(--co-fadh2) 8%, transparent); }
 
 body.light-mode .pulse-dot {
   background: var(--accent);
