@@ -60,6 +60,66 @@ const _PALETTE = Object.freeze({
   }),
 });
 
+// ---------- Color Math Helpers ----------
+const _parseHex = (hex) => [
+  parseInt(hex.slice(1, 3), 16) / 255,
+  parseInt(hex.slice(3, 5), 16) / 255,
+  parseInt(hex.slice(5, 7), 16) / 255
+];
+
+function _rgb2hsl(r, g, b) {
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  const l = (max + min) / 2;
+  let h = 0, s = 0;
+  if (d) {
+    s = d / (1 - Math.abs(2 * l - 1));
+    if (max === r) h = ((g - b) / d + 6) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+  }
+  return [h, s, l];
+}
+
+function _hsl2hex(h, s, l) {
+  const a = s * Math.min(l, 1 - l);
+  const f = n => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+  const toHex = v => Math.round(v * 255).toString(16).padStart(2, '0');
+  return '#' + toHex(f(0)) + toHex(f(8)) + toHex(f(4));
+}
+
+// _darkFill: same hue, fixed sat (0.55), custom lightness — for dark-mode fills
+function _darkFill(base, lightness) {
+  const [h] = _rgb2hsl(..._parseHex(base.stroke));
+  return _hsl2hex(h, 0.55, lightness / 100);
+}
+
+// _strokeDark: same hue, reduced sat/lightness — for light-mode stroke variants
+function _strokeDark(hex) {
+  const [h, s, l] = _rgb2hsl(..._parseHex(hex));
+  return _hsl2hex(h, s * 0.92, l * 0.75);
+}
+
+function _makeBase(stroke, fillL) {
+  const o = { stroke, strokeLight: _strokeDark(stroke) };
+  if (fillL != null) o.fill = _darkFill(o, fillL);
+  return o;
+}
+
+// ---------- Base Color Families ----------
+const _BASE = {
+  orange: _makeBase(_PALETTE.orange, 7),
+  blue:   _makeBase(_PALETTE.blue, 13),
+  green:  _makeBase(_PALETTE.green, 7),
+  purple: _makeBase(_PALETTE.purple, 10),
+  rose:   _makeBase(_PALETTE.rose, 8),
+  brown:  _makeBase(_PALETTE.brown, 7),
+  red:    _makeBase(_PALETTE.red),
+  cyan:   _makeBase(_PALETTE.cyan),
+  yellow: _makeBase(_PALETTE.yellow),
+  slate:  _makeBase(_PALETTE.slate),
+};
+
 // ---------- CSS Custom Property Injection ----------
 (function injectPaletteVars() {
   const P = _PALETTE, D = P.dark, L = P.light;
@@ -73,7 +133,7 @@ const _PALETTE = Object.freeze({
   --font-mono:        ${_FONT.mono};
 
   --bg-canvas:        ${D.canvas};
-  --bg-panel:         ${_r(D.panelSolid, 0.878)};
+  --bg-panel:         ${_r(D.panelSolid, 0.58)};
   --bg-panel-solid:   ${D.panelSolid};
   --bg-elevated:      ${D.elevated};
   --bg-hover:         ${_r(D.text, 0.051)};
@@ -109,7 +169,7 @@ const _PALETTE = Object.freeze({
 }
 body.light-mode {
   --bg-canvas:        ${L.canvas};
-  --bg-panel:         ${_r(L.panelSolid, 0.82)};
+  --bg-panel:         ${_r(L.panelSolid, 0.55)};
   --bg-panel-solid:   ${L.panelSolid};
   --bg-elevated:      ${L.elevated};
   --bg-hover:         ${_r(L.text, 0.039)};
