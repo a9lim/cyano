@@ -22,9 +22,9 @@ diff <(grep -oP "getElementById\('\K[^']*" sim.js renderer.js | sed 's/.*://' | 
 
 Zero dependencies — vanilla HTML5/CSS3/JS, ES6 IIFE pattern. Scripts load in order via `<script>` tags:
 
-0. **colors.js** → `_r`, `_FONT`, `_PALETTE` — Single source of truth for all shared design tokens (colors, fonts). Loads in `<head>`, injects `<style id="palette-vars">` with CSS custom properties (`:root` dark defaults + `body.light-mode` surface/text overrides). Accent/fonts are mode-independent.
+0. **colors.js** → `_r`, `_FONT`, `_PALETTE`, `_parseHex`, `_rgb2hsl`, `_hsl2hex`, `_darkFill`, `_strokeDark`, `_makeBase`, `_BASE` — Single source of truth for all shared design tokens (colors, fonts) and color math helpers. Loads in `<head>`, injects `<style id="palette-vars">` with CSS custom properties (`:root` dark defaults + `body.light-mode` surface/text overrides). Accent/fonts are mode-independent.
 1. **anim.js** → `Anim`, `_TWO_PI`, `_HALF_PI` — easing, fade trackers, trail ring-buffers, rotation accumulators. Must load before enzymes.js.
-2. **enzymes.js** → `EnzymeStyles`, `CFG`, `_BASE`, `_ROLE`, `_THEME` — enzyme/particle/arrow drawing. Color pipeline: `_PALETTE` → `_BASE` families → `_ROLE` semantics → `_pal()` palettes. `_THEME.dark`/`light` derived from `_PALETTE` values.
+2. **enzymes.js** → `EnzymeStyles`, `CFG`, `_ROLE`, `_THEME` — enzyme/particle/arrow drawing. Color pipeline: `_PALETTE` → `_BASE` families → `_ROLE` semantics → `_pal()` palettes. `_THEME.dark`/`light` derived from `_PALETTE` values.
 3. **renderer.js** → `Renderer` — Canvas 2D engine: layout, zoom/pan, hit detection, draw pipeline.
 4. **sim.js** → IIFE — `store` (metabolites), `simState` (toggles/flags), reaction logic, dashboard DOM sync, `requestAnimationFrame` loop.
 
@@ -82,7 +82,7 @@ No hardcoded colors in CSS rules — every color is a `var()` or `color-mix()`. 
 - Module-scope constants (`_TWO_PI`, `_KREBS_METABS` Sets, `_FONT`, `_METAB_ALPHA`, `_fadeCurve`) avoid per-frame allocation
 - `_r(hex, a)` — appends alpha byte to hex (`_r('#E89B80', 0.2)` → `'#E89B8033'`); defined in colors.js, used throughout `_THEME` and CSS injection
 - `_PALETTE` — frozen object in colors.js; single source of truth for all shared hex values (pathways, cofactors, mode surfaces/text/accent)
-- `_parseHex`/`_rgb2hsl`/`_hsl2hex` — shared color math; `_darkFill`/`_strokeDark` wrap these
+- `_parseHex`/`_rgb2hsl`/`_hsl2hex` — shared color math in colors.js; `_darkFill`/`_strokeDark` wrap these
 - `_calcEndpoints` + `_ep` reusable object shared across arrow-draw methods in renderer.js
 - `_drawRunArrow()` — shared helper for glycolysis run arrows (hitbox + label + arrowhead)
 - ATP Synthase and NNT always visible (no fade alpha); glow when `protonGradient > 0`. Other ETC complexes fade with `rA`/`phA`.
