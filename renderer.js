@@ -9,6 +9,28 @@ const _TWO_X = new Set(['g3p', 'bpg', 'pga3', 'pga2', 'pep', 'pyruvate', 'acetyl
 const _KREBS_METABS = new Set(['acetylCoA', 'citrate', 'isocitrate', 'akg', 'succoa', 'succinate', 'fumarate', 'malate', 'oaa']);
 const _fadeCurve = (t) => t < 0.15 ? t / 0.15 : t > 0.85 ? (1 - t) / 0.15 : 1;
 
+// Static lookup for metabolite fade alpha — replaces 17-branch if/else in getMetabAlpha
+const _fermentAlpha = (state) => state.fermentFade ? state.fermentFade.value : ((!state.oxygenAvailable && state.glycolysisEnabled) ? 1 : 0);
+const _METAB_ALPHA = {
+    glucose:      (g) => g,
+    g6p:          (g, c, p) => Math.max(g, p),
+    f6p:          (g, c, p) => Math.max(g, c, p),
+    f16bp:        (g, c) => Math.max(g, c),
+    g3p:          (g, c) => Math.max(g, c),
+    bpg:          (g, c) => Math.max(g, c),
+    pga3:         (g, c) => Math.max(g, c),
+    pga2:         (g) => g,
+    pep:          (g) => g,
+    pyruvate:     (g, c, p, k) => Math.max(g, k),
+    ethanol:      (g, c, p, k, s) => Math.max(_fermentAlpha(s), k),
+    acetaldehyde: (g, c, p, k, s) => Math.max(_fermentAlpha(s), k),
+    aceticAcid:   (g, c, p, k) => k,
+    pgl6:         (g, c, p) => p,
+    pga6:         (g, c, p) => p,
+    r5p:          (g, c, p) => Math.max(p, c),
+    rubp:         (g, c) => c,
+};
+
 const Renderer = {
     canvas: null, ctx: null, W: 0, H: 0, dpr: 1,
     zoom: 1, panX: 0, panY: 0,
@@ -45,7 +67,7 @@ const Renderer = {
             calvin:       R.calvin.stroke,
             ppp:          R.ppp.stroke,
             krebs:        R.krebs.stroke,
-            link:         R.link.stroke,
+
             fermentation: R.fermentation.stroke,
             shared:       R.shared.stroke,
         };
@@ -367,13 +389,13 @@ const Renderer = {
             ctx.font = `500 14px ${_FONT.body}`; ctx.fillStyle = EnzymeStyles.roleColors.lightIndicator.stroke;
             ctx.fillText('LIGHT', cx, lightY - 24);
             ctx.font = `38px ${_FONT.emoji}`;
-            ctx.shadowColor = `rgba(${EnzymeStyles.roleColors.lightIndicator.rgb},0.4)`; ctx.shadowBlur = 16;
+            ctx.shadowColor = _r(EnzymeStyles.roleColors.lightIndicator.stroke, 0.4); ctx.shadowBlur = 16;
             ctx.fillText('☀', cx, lightY + 14); ctx.shadowBlur = 0;
             ctx.restore();
         } else {
-            ctx.font = `500 14px ${_FONT.body}`; ctx.fillStyle = th.nightText;
+            ctx.font = `500 14px ${_FONT.body}`; ctx.fillStyle = EnzymeStyles.theme.nightText;
             ctx.fillText('DARK', cx, lightY - 24);
-            ctx.font = `38px ${_FONT.emoji}`; ctx.fillStyle = th.nightIcon;
+            ctx.font = `38px ${_FONT.emoji}`; ctx.fillStyle = EnzymeStyles.theme.nightIcon;
             ctx.fillText('☾', cx, lightY + 14);
         }
     },
@@ -454,7 +476,7 @@ const Renderer = {
 
         ctx.beginPath(); ctx.setLineDash([2, 2]);
         ctx.moveTo(c.atpSyn.cx, this.membraneY - 2); ctx.lineTo(c.atpSyn.cx, this.membraneY + this.membraneH + 2);
-        ctx.strokeStyle = `rgba(${EnzymeStyles.roleColors.respiratory.rgb},0.15)`; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
+        ctx.strokeStyle = _r(EnzymeStyles.roleColors.respiratory.stroke, 0.15); ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
 
         ctx.save(); ctx.globalAlpha = rA;
         EnzymeStyles.drawNDH1(ctx, c.ndh1.cx, c.ndh1.cy, cxW, cxH * 0.6, respPulse, lm);
@@ -559,26 +581,17 @@ const Renderer = {
 
     drawSmallProtonArrow(ctx, x, y, label, dir = 'up') {
         const protonC = EnzymeStyles.roleColors.proton.stroke;
-        const parentAlpha = ctx.globalAlpha;
-        ctx.save();
         ctx.strokeStyle = protonC; ctx.lineWidth = 2;
         ctx.font = `600 10px ${_FONT.mono}`; ctx.fillStyle = protonC; ctx.textAlign = 'center';
         if (dir === 'down') {
-            // y = top anchor; line goes down, arrowhead at bottom, label below tip
-            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 14);
-            ctx.globalAlpha = parentAlpha; ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(x, y + 17); ctx.lineTo(x - 5, y + 11); ctx.lineTo(x + 5, y + 11); ctx.closePath();
-            ctx.globalAlpha = parentAlpha; ctx.fill();
+            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 14); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x, y + 17); ctx.lineTo(x - 5, y + 11); ctx.lineTo(x + 5, y + 11); ctx.closePath(); ctx.fill();
             ctx.fillText(label, x, y + 28);
         } else {
-            // y = arrowhead tip; line goes down from y+14, tip at y
-            ctx.beginPath(); ctx.moveTo(x, y + 14); ctx.lineTo(x, y);
-            ctx.globalAlpha = parentAlpha; ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(x, y - 3); ctx.lineTo(x - 5, y + 3); ctx.lineTo(x + 5, y + 3); ctx.closePath();
-            ctx.globalAlpha = parentAlpha; ctx.fill();
+            ctx.beginPath(); ctx.moveTo(x, y + 14); ctx.lineTo(x, y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x, y - 3); ctx.lineTo(x - 5, y + 3); ctx.lineTo(x + 5, y + 3); ctx.closePath(); ctx.fill();
             ctx.fillText(label, x, y - 7);
         }
-        ctx.restore();
     },
 
     /* ================================================================
@@ -818,24 +831,8 @@ const Renderer = {
 
     /** Returns the fade alpha (0–1) for a metabolite based on its owning pathways */
     getMetabAlpha(key, gA, cA, pA, kA, state) {
-        if (key === 'glucose') return gA;
-        if (key === 'g6p') return Math.max(gA, pA);
-        if (key === 'f6p') return Math.max(gA, cA, pA);
-        if (key === 'f16bp') return Math.max(gA, cA);
-        if (key === 'g3p') return Math.max(gA, cA);
-        if (key === 'bpg') return Math.max(gA, cA);
-        if (key === 'pga3') return Math.max(gA, cA);
-        if (key === 'pga2') return gA;
-        if (key === 'pep') return gA;
-        if (key === 'pyruvate') return Math.max(gA, kA);
-        if (key === 'ethanol' || key === 'acetaldehyde') {
-            const fmA = state.fermentFade ? state.fermentFade.value : ((!state.oxygenAvailable && state.glycolysisEnabled) ? 1 : 0);
-            return Math.max(fmA, kA);
-        }
-        if (key === 'aceticAcid') return kA;
-        if (key === 'pgl6' || key === 'pga6') return pA;
-        if (key === 'r5p') return Math.max(pA, cA);
-        if (key === 'rubp') return cA;
+        const fn = _METAB_ALPHA[key];
+        if (fn) return fn(gA, cA, pA, kA, state);
         if (_KREBS_METABS.has(key)) return kA;
         return 1;
     },
@@ -952,17 +949,14 @@ const Renderer = {
     },
 
     drawFloatLabel(ctx, x, y, text, color) {
-        ctx.save();
         ctx.font = `500 10px ${_FONT.mono}`;
         ctx.fillStyle = color;
         ctx.textAlign = 'center';
         ctx.fillText(text, x, y - 10);
-        ctx.restore();
     },
 
     /** Two-part float label with separate colors, centered as a unit */
     drawDualFloatLabel(ctx, x, y, text1, color1, text2, color2) {
-        ctx.save();
         ctx.font = `500 10px ${_FONT.mono}`;
         const w1 = ctx.measureText(text1).width;
         const gap = ctx.measureText(' ').width;
@@ -975,7 +969,6 @@ const Renderer = {
         ctx.fillText(text1, startX, y - 10);
         ctx.fillStyle = color2;
         ctx.fillText(text2, startX + w1 + gap, y - 10);
-        ctx.restore();
     },
 
     /* ---- PARTICLES ---- */
@@ -983,12 +976,12 @@ const Renderer = {
         const f = this.etcComplexes[fk], t = this.etcComplexes[tk];
         if (!f || !t) return;
         const type = tp || 'resp';
-        const rgb = EnzymeStyles.roleColors.electron.rgb;
+        const hex = EnzymeStyles.roleColors.electron.stroke;
         this.electrons.push({
             x: f.cx, y: f.cy, tx: t.cx, ty: t.cy,
             progress: 0, speed: 0.025,
             type, trail: Anim.trail(10),
-            _trailColor: `rgba(${rgb},0.5)`
+            _trailColor: _r(hex, 0.5)
         });
     },
     spawnProton(cx, dir) {

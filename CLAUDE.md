@@ -21,7 +21,7 @@ Open `http://localhost:3000` in a browser. There are no tests, linters, or CI pi
 **Zero dependencies** — vanilla HTML5/CSS3/JS with ES6 IIFE module pattern. Scripts load in order via `<script>` tags in `index.html`:
 
 1. **anim.js** → `Anim` global + `_TWO_PI`/`_HALF_PI` cached math constants — easing functions, fade trackers (smooth pathway enable/disable), trail ring-buffers for particle glow, and rotation accumulators. Must load before `enzymes.js`.
-2. **enzymes.js** → `EnzymeStyles` global + `_BASE`/`_ROLE`/`_THEME`/`_pal`/`_FONT`/`_FILL` helpers — drawing functions for membrane complexes, metabolite nodes, particles, arrows. All pathway stroke colors derive from `_BASE` color families via `_ROLE` → `_pal()`. All other canvas UI colors (surfaces, text, membrane, labels, cofactors, particles) are centralised in `_THEME` with `dark`/`light` sub-objects. Access via `EnzymeStyles.t(lightMode)` for mode-dependent colors, `EnzymeStyles.theme.*` for mode-independent (e.g. `photonFill`, `cofactorDot`).
+2. **enzymes.js** → `EnzymeStyles` global + `_BASE`/`_ROLE`/`_THEME`/`_pal`/`_FONT` helpers — drawing functions for membrane complexes, metabolite nodes, particles, arrows. Color math via `_parseHex`/`_rgb2hsl`/`_hsl2hex` shared helpers. All pathway stroke colors derive from `_BASE` color families via `_ROLE` → `_pal()`. All other canvas UI colors (surfaces, text, membrane, labels, cofactors, particles) are centralised in `_THEME` with `dark`/`light` sub-objects. Access via `EnzymeStyles.t(lightMode)` for mode-dependent colors, `EnzymeStyles.theme.*` for mode-independent (e.g. `photonFill`, `photonGlow`).
 3. **renderer.js** → `Renderer` global — Canvas 2D engine handling layout computation, zoom/pan, hit detection, and the draw pipeline (membrane → ETC complexes → cytoplasm network → Krebs cycle → particles → labels).
 4. **sim.js** → initialization and game loop — owns the `store` object (all metabolite counts), `simState` (pathway toggles, environment flags), reaction validation/execution, dashboard DOM sync, and the `requestAnimationFrame` main loop.
 
@@ -29,7 +29,7 @@ Open `http://localhost:3000` in a browser. There are no tests, linters, or CI pi
 
 - **Click-to-react**: Canvas click → `Renderer.enzymeHitboxes` lookup → `advanceStep(pathway, stepIndex)` in sim.js → validates substrates → mutates `store` → spawns particle animation → calls `updateDashboard()`.
 - **Auto-play**: 400ms tick in `mainLoop()` attempts pathways in priority order (ATP Synthase → ETC → PDH → Krebs → Glycolysis → Fermentation → Calvin → PPP → BR), respecting toggles and metabolite availability.
-- **Shared metabolite nodes**: Metabolites like G3P, F6P, R5P are drawn once but referenced by multiple pathways. `shouldDrawMetab()` controls visibility based on enabled pathway toggles.
+- **Shared metabolite nodes**: Metabolites like G3P, F6P, R5P are drawn once but referenced by multiple pathways. `_METAB_ALPHA` lookup table in renderer.js maps each metabolite to its owning-pathway fade alpha function; `getMetabAlpha()` dispatches through it.
 
 ### Rendering Pipeline
 
@@ -67,7 +67,7 @@ Membrane is near the top of the canvas (`membraneY = H * 0.22`). Above membrane 
 
 ### ETC Complex Shapes
 
-Each membrane protein has a unique silhouette in `enzymes.js` reflecting its real structure: ATP Synthase (mushroom: Fo + stalk + F1), NDH-1 (T-shape: narrow neck + wide peripheral head), Cyt b6f (hourglass), PSII/PSI (ellipses), SDH/CytOx (trapezoids), PQ/Fd (diamonds), PC (circle), FNR (ellipse), BR (barrel with helix lines), NNT (rounded rect with subunit dividers). All share the same call signature `(ctx, cx, cy, w, h, glow, lightMode)` — renderer.js positions/sizes are independent of shape internals.
+Each membrane protein has a unique silhouette in `enzymes.js` reflecting its real structure: ATP Synthase (mushroom: Fo + stalk + F1), NDH-1 (T-shape: narrow neck + wide peripheral head), Cyt b6f (hourglass), PSII/PSI (ellipses), SDH/CytOx (trapezoids), PQ/Fd (diamonds), PC (circle), FNR (ellipse), BR (barrel with helix lines), NNT (rounded rect with subunit dividers). All share the same call signature `(ctx, cx, cy, w, h, glow, lightMode)` — renderer.js positions/sizes are independent of shape internals. PSII, PSI, and BR share `_drawChromophore()` for their reaction-center circles.
 
 ### Dev Workflow
 
@@ -77,7 +77,8 @@ Each membrane protein has a unique silhouette in `enzymes.js` reflecting its rea
 ### Key Patterns
 
 - `_dispatch` / `_rotNudge` maps in sim.js replace a 20-branch if-else in `advanceStep`
-- Module-scope constants (`_TWO_PI`/`_HALF_PI`, `_KREBS_METABS` Sets, `_FONT`/`_FILL` lookups, `_fadeCurve` fn) avoid per-frame allocation in hot render path
+- Module-scope constants (`_TWO_PI`/`_HALF_PI`, `_KREBS_METABS` Sets, `_FONT` lookup, `_METAB_ALPHA` table, `_fadeCurve` fn) avoid per-frame allocation in hot render path
+- `_parseHex`/`_rgb2hsl`/`_hsl2hex` in enzymes.js — shared color math; `_darkFill` and `_strokeDark` are both 2-line wrappers around these
 - `_calcEndpoints` + `_ep` reusable object shared across all three arrow-draw methods in renderer.js
 - `drawSmallProtonArrow(ctx, x, y, label, dir)` — `dir='down'` variant for ATP Synthase/NNT; label renders below arrowhead tip
 - `_drawRunArrow()` in renderer.js — shared helper for glycolysis upper/lower run arrows (hitbox + label + arrowhead)
@@ -96,17 +97,11 @@ Each membrane protein has a unique silhouette in `enzymes.js` reflecting its rea
 
 Three-state theme toggle in the toolbar: **Simulation** (follows sunlight toggle), **Light**, **Dark**. CSS `.light-mode` class on `<body>` toggles theme variables. Canvas drawing reads `simState.visualLightMode` (set by `updateTheme()` in sim.js) to decouple visual theme from simulation `lightOn` state. `getPalette(key, lightMode)` swaps fill/stroke colors. Both UI and canvas adapt simultaneously.
 
-### Intro Screen
+### UI Overlays & Layout
 
-Full-viewport overlay (`#intro-screen`, z-index 1000) shown on load. Displays title, description, instruction cards, and "Begin Simulation" button. Dismissal adds `.hidden` class (0.85s fade-out) and `.app-ready` class to `<body>`, which triggers staggered entrance animations for header (0.08s delay), glucose bar (0.2s), and zoom controls (0.35s). After 850ms the intro screen is set to `display: none`.
-
-### Sidebar Push & Membrane Extension
-
-Opening/closing the sidebar smoothly shifts the canvas metabolic network layout via `Renderer.sidebarInset`. The renderer animates `_sidebarInsetCurrent` toward `sidebarInset` using the same cubic-bezier and duration as the CSS sidebar transition (`0.45s cubic-bezier(0.23, 1, 0.32, 1)`), recomputing `computeLayout()` each frame during animation. Layout uses effective width `LW = W - _sidebarInsetCurrent` for ETC complexes and cytoplasm columns. The membrane is drawn `W + 400` wide so it extends behind the translucent sidebar without an abrupt cutoff.
-
-### Floating Glucose Bar
-
-The glucose button lives in a Gerry-style floating pill bar (`#glucose-bar`) fixed to bottom-center of the viewport. It appears via `paletteEnter` animation after `.app-ready` is set.
+- **Intro screen** (`#intro-screen`): Full-viewport overlay, dismissed via `.hidden` class → `.app-ready` on `<body>` triggers staggered entrance animations for header, glucose bar, zoom controls.
+- **Sidebar push**: `Renderer.sidebarInset` animates layout width (`LW = W - inset`) in sync with CSS sidebar transition. Membrane extends `W + 400` wide to avoid cutoff behind the translucent sidebar.
+- **Glucose bar** (`#glucose-bar`): Fixed bottom-center floating pill, appears after `.app-ready`.
 
 ### HTML ↔ JS Binding Contract
 
