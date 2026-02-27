@@ -122,6 +122,7 @@
 
     // Menu button — toggles sidebar + smoothly pushes canvas layout
     const _sidebarW = 374; // panel-w(350) + gap(24)
+    function _isMobile() { return window.innerWidth <= 900; }
     function toggleSidebar(forceClose) {
         if (forceClose) {
             dom.dashboard.classList.remove('open');
@@ -130,17 +131,31 @@
         }
         const isOpen = dom.dashboard.classList.contains('open');
         if (dom.menuBtn) dom.menuBtn.classList.toggle('active', isOpen);
-        Renderer.sidebarInset = isOpen ? _sidebarW : 0;
+        // On mobile, don't push the canvas — sidebar is an overlay
+        Renderer.sidebarInset = (isOpen && !_isMobile()) ? _sidebarW : 0;
     }
     if (dom.menuBtn) dom.menuBtn.addEventListener('click', () => toggleSidebar());
     if (dom.closeStats) dom.closeStats.addEventListener('click', () => toggleSidebar(true));
+
+    // Swipe-to-dismiss for mobile bottom sheet
+    if (typeof initSwipeDismiss === 'function' && dom.dashboard) {
+        initSwipeDismiss(dom.dashboard, {
+            onDismiss() {
+                if (dom.menuBtn) dom.menuBtn.classList.remove('active');
+                Renderer.sidebarInset = 0;
+            }
+        });
+    }
 
     // Intro screen dismissal
     if (dom.introStart && dom.introScreen) {
         dom.introStart.addEventListener('click', () => {
             dom.introScreen.classList.add('hidden');
             document.body.classList.add('app-ready');
-            dom.dashboard.classList.add('open');
+            // Only auto-open sidebar on desktop; on mobile, user opens manually
+            if (!_isMobile()) {
+                dom.dashboard.classList.add('open');
+            }
             setTimeout(() => { dom.introScreen.style.display = 'none'; }, 850);
         });
     }

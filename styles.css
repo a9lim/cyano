@@ -22,6 +22,7 @@ html {
   font-size: clamp(14px, 1.5vw, 16px);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -529,48 +530,52 @@ main {
 
 /* ═══════════════════════════════════════
    RESPONSIVE — Tablet (≤ 900px)
+   Full-viewport canvas + bottom sheet overlay
    ═══════════════════════════════════════ */
 @media (max-width: 900px) {
   body {
-    height: auto;
-    min-height: 100vh;
-    min-height: 100dvh;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
   }
 
   #top-bar {
-    position: sticky;
-    top: 0;
-    left: 0;
-    right: 0;
-    border-radius: 0;
-    margin: 0;
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    z-index: 100;
+    border-radius: var(--radius-lg);
   }
 
   main {
-    flex-direction: column;
-    height: auto;
+    position: fixed;
+    inset: 0;
+    height: 100%;
   }
 
   #sim-container {
-    height: 50vh;
-    height: 50dvh;
-    min-height: 280px;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
   }
 
+  /* Dashboard becomes bottom sheet overlay */
   #dashboard {
-    position: relative;
+    position: fixed;
     top: auto;
-    right: auto;
-    bottom: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
     width: 100%;
-    border-radius: 0;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    background: var(--bg-panel-solid);
-    transform: none !important;
+    max-height: 60vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    transform: translateY(100%);
+    z-index: 95;
+    overflow: hidden;
+  }
+
+  #dashboard.open {
+    transform: translateY(0);
   }
 
   #glucose-bar {
@@ -585,6 +590,10 @@ main {
 
   .tab-bar {
     position: static;
+  }
+
+  .tab-panels {
+    max-height: calc(60vh - 120px);
   }
 }
 
@@ -609,12 +618,6 @@ main {
   .tool-btn svg {
     width: 16px;
     height: 16px;
-  }
-
-  #sim-container {
-    height: 42vh;
-    height: 42dvh;
-    min-height: 220px;
   }
 
   .tab-panel {

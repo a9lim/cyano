@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="/shared-base.css">
   <link rel="stylesheet" href="styles.css">
   <script src="/shared-tokens.js"></script>
+  <script src="/shared-touch.js"></script>
   <script src="colors.js"></script>
 </head>
 
@@ -74,6 +75,7 @@
   <!-- ═══ Header ═══ -->
   <header id="top-bar" class="sim-toolbar glass">
     <div class="header-brand">
+      <a href="/" class="sim-home" title="a9l.im"><img src="/logo.svg" alt="a9l.im" height="28"></a>
       <h1 class="sim-brand">Cellular <em>Metabolism</em></h1>
     </div>
     <div class="header-tools sim-toolbar-actions">
@@ -129,6 +131,7 @@
 
     <!-- Dashboard Sidebar -->
     <aside id="dashboard" class="sim-panel glass">
+      <div class="sheet-handle"></div>
       <div class="stats-header">
         <h2 class="stats-title">Metabolism</h2>
         <button id="close-stats" class="tool-btn" title="Close" aria-label="Close panel">
