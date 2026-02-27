@@ -91,21 +91,32 @@ const Renderer = {
         this.canvas.style.width = this.W + 'px';
         this.canvas.style.height = this.H + 'px';
         this.computeLayout();
+        // On first init or orientation change, fit zoom to content
+        if (!this._hasInitZoom) {
+            this._hasInitZoom = true;
+            this.zoom = this._minZoom();
+            this.panX = 0; this.panY = 0;
+            this.clampPan();
+            if (this._zoomEl) this._zoomEl.textContent = Math.round(this.zoom * 100) + '%';
+        }
     },
 
     clampPan() {
-        const cw = this.W, ch = this.H;
+        const vw = this.W, vh = this.H;
+        // Content dimensions use the same minimums as computeLayout
+        const cw = Math.max(vw, 900);
+        const ch = Math.max(vh, 600);
         const sw = cw * this.zoom, sh = ch * this.zoom;
-        // If content fits within view, center it; otherwise clamp edges
-        if (sw <= cw) {
-            this.panX = (cw - sw) / 2;
+        // If scaled content fits within viewport, center it; otherwise clamp edges
+        if (sw <= vw) {
+            this.panX = (vw - sw) / 2;
         } else {
-            this.panX = Math.min(0, Math.max(cw - sw, this.panX));
+            this.panX = Math.min(0, Math.max(vw - sw, this.panX));
         }
-        if (sh <= ch) {
-            this.panY = (ch - sh) / 2;
+        if (sh <= vh) {
+            this.panY = (vh - sh) / 2;
         } else {
-            this.panY = Math.min(0, Math.max(ch - sh, this.panY));
+            this.panY = Math.min(0, Math.max(vh - sh, this.panY));
         }
     },
 
@@ -224,10 +235,16 @@ const Renderer = {
         });
     },
 
-    /* ---- Zoom button methods ---- */
+    /* ---- Zoom helpers ---- */
+    _minZoom() {
+        // Allow zooming out enough to fit the full content width
+        const MIN_CONTENT_W = 900;
+        return Math.min(1, this.W / MIN_CONTENT_W);
+    },
+
     _applyZoom(newZoom, cx, cy) {
         const oldZ = this.zoom;
-        this.zoom = Math.max(1.0, Math.min(3, newZoom));
+        this.zoom = Math.max(this._minZoom(), Math.min(3, newZoom));
         this.panX = cx - (cx - this.panX) * (this.zoom / oldZ);
         this.panY = cy - (cy - this.panY) * (this.zoom / oldZ);
         this.clampPan();
@@ -235,16 +252,26 @@ const Renderer = {
     },
     zoomIn()    { this._applyZoom(this.zoom * 1.25, this.W / 2, this.H / 2); },
     zoomOut()   { this._applyZoom(this.zoom / 1.25, this.W / 2, this.H / 2); },
-    resetZoom() { this.zoom = 1; this.panX = 0; this.panY = 0; this._zoomEl.textContent = '100%'; },
+    resetZoom() {
+        this.zoom = this._minZoom();
+        this.panX = 0; this.panY = 0;
+        this.clampPan();
+        this._zoomEl.textContent = Math.round(this.zoom * 100) + '%';
+    },
 
     computeLayout() {
         const W = this.W, H = this.H;
         // Effective layout width accounts for sidebar inset (content shifts left)
-        const LW = W - this._sidebarInsetCurrent;
+        // Use a minimum content width so pathways never get compressed below readable size
+        const MIN_CONTENT_W = 900;
+        const rawLW = W - this._sidebarInsetCurrent;
+        const LW = Math.max(rawLW, MIN_CONTENT_W);
         this._LW = LW; // store for label drawing
+        // Use minimum content height so vertical spacing stays readable
+        const LH = Math.max(H, 600);
 
         // ── MEMBRANE ──
-        this.membraneY = H * 0.22;
+        this.membraneY = LH * 0.22;
         this.membraneH = 60;
         const memMid = this.membraneY + this.membraneH / 2;
         const mPad = LW * 0.02, mW = LW - mPad * 2;
@@ -273,7 +300,7 @@ const Renderer = {
         // ── CYTOPLASM — Orthogonal Layout ──
         // Clear below the tallest ETC complex (cxH * 0.8 / 2 extends below memMid)
         const top = this.membraneY + this.membraneH + 120;
-        const rowH = (H - top + 200) / 5;
+        const rowH = (LH - top + 200) / 5;
         const col = (i) => LW * (0.04 + i * 0.082);
         const r = [top, top + rowH, top + rowH * 2, top + rowH * 3, top + rowH * 4, top + rowH * 5];
 
@@ -372,7 +399,7 @@ const Renderer = {
 
     drawMembrane(ctx, lm, time) {
         // Extend membrane 400px past the right edge so it's visible behind the translucent sidebar
-        EnzymeStyles.drawMembrane(ctx, 0, this.membraneY, this.W + 400, this.membraneH, lm, time);
+        EnzymeStyles.drawMembrane(ctx, 0, this.membraneY, this._LW + 400, this.membraneH, lm, time);
     },
 
     drawLabels(ctx, state, lm) {

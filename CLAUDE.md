@@ -48,7 +48,7 @@ CSS loads `/shared-base.css` (shared reset, layout tokens, `.glass`, `.tool-btn`
 
 ### Membrane & ETC
 
-Membrane at `membraneY = H * 0.22`. Above = lumen, below = matrix/stroma. Proton pumps push H⁺ upward.
+Membrane at `membraneY = LH * 0.22` (where `LH = Math.max(H, 600)`). Above = lumen, below = matrix/stroma. Proton pumps push H⁺ upward.
 
 ETC complex shapes in enzymes.js each have unique silhouettes. All share signature `(ctx, cx, cy, w, h, glow, lightMode)` — renderer.js positions/sizes are independent of shape internals.
 
@@ -94,12 +94,12 @@ Naming: `--bg-*` (surfaces), `--text-*` (text), `--accent-*` (accent), `--tog-*`
 
 ### Theme
 
-Three-state toggle: **Simulation** (follows sunlight), **Light**, **Dark**. CSS `data-theme` on `<body>` (not `<html>` — unique among sibling projects). Canvas reads `simState.visualLightMode` (decoupled from sim `lightOn`). `getPalette(key, lightMode)` swaps fill/stroke.
+Three-state toggle: **Simulation** (follows sunlight), **Light**, **Dark**. CSS `data-theme` on `<body>` (not `<html>` — unique among sibling projects). Canvas reads `simState.visualLightMode` (decoupled from sim `lightOn`). `getPalette(key, lightMode)` swaps fill/stroke. Theme toggle icons are inline SVGs (sun/moon), not Unicode characters.
 
 ### Layout
 
 - **Intro** (`#intro-screen`): full overlay → `.hidden` → `.app-ready` on `<body>` triggers entrance animations
-- **Sidebar** (`#dashboard`): floating glass panel, tabbed — Controls / Stats / Reference (tab system from `shared-base.css`). `Renderer.sidebarInset` pushes canvas layout. Membrane extends `W + 400` to avoid cutoff.
+- **Sidebar** (`#dashboard`): floating glass panel, tabbed — Controls / Stats / Reference (tab system from `shared-base.css`). `Renderer.sidebarInset` pushes canvas layout. Membrane extends `LW + 400` to avoid cutoff.
 - **Glucose bar** (`#glucose-bar`): fixed bottom-center pill
 
 ### Responsive Breakpoints
@@ -135,3 +135,5 @@ Repeated per-variant CSS blocks are collapsed via custom property assignments + 
 - **No `@import` in CSS** — fonts are loaded via `<link>` in HTML. Duplicate `@import` causes FOUC.
 - **Shared CSS at domain root** — `shared-base.css` is loaded via `/shared-base.css` (absolute path). When serving locally, serve from the parent `a9lim.github.io/` directory or the shared file won't resolve.
 - **Intro card SVGs keep their attributes** — `.tool-btn svg` defaults don't apply to intro cards. Those SVGs need explicit `fill="none" stroke="currentColor"` etc.
+- **Renderer uses minimum content dimensions** — `LW = Math.max(rawLW, 900)` and `LH = Math.max(H, 600)` so pathways never compress below readable size on small screens. Zoom auto-fits to `_minZoom()` on first init.
+- **Pan clamping uses viewport vs content dimensions** — `clampPan()` compares scaled content size (`cw * zoom`) against viewport size (`this.W`), not content against itself. This allows zooming out to see full content on narrow screens.

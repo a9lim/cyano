@@ -340,11 +340,12 @@ main {
 
 .tog-icon {
   position: absolute;
-  font-size: 10px;
   top: 50%;
   transform: translateY(-50%);
   transition: opacity 0.28s ease;
   z-index: 1;
+  line-height: 0;
+  color: #fff;
 }
 
 .tog-icon-on { right: 5px; opacity: 0.25; }
