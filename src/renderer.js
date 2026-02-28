@@ -4,6 +4,11 @@
    R5P shared between PPP and Calvin, Calvin in cytoplasm
    =================================================================== */
 
+import { _TWO_PI, Anim } from './anim.js';
+import { EnzymeStyles, CFG, _F } from './enzymes.js';
+
+const _r = window._r;
+
 // Pre-computed constants for hot render paths (avoid per-frame allocations)
 const _TWO_X = new Set(['g3p', 'bpg', 'pga3', 'pga2', 'pep', 'pyruvate', 'acetylCoA', 'ethanol', 'acetaldehyde', 'aceticAcid']);
 const _KREBS_METABS = new Set(['acetylCoA', 'citrate', 'isocitrate', 'akg', 'succoa', 'succinate', 'fumarate', 'malate', 'oaa']);
@@ -1079,3 +1084,5 @@ const Renderer = {
         ctx.globalAlpha = 1;
     },
 };
+
+export default Renderer;
