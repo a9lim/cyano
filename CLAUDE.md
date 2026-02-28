@@ -4,7 +4,7 @@ Part of the **a9l.im** portfolio. See parent `site-meta/CLAUDE.md` for the share
 
 ## Overview
 
-Metabolism Simulator — interactive HTML5 Canvas visualization of cellular metabolism. Click enzyme labels to advance reactions step-by-step, tracking metabolites and bioenergetics in real time. Zero dependencies — vanilla HTML5/CSS3/JS with ES6 IIFE pattern.
+Metabolism Simulator — interactive HTML5 Canvas visualization of cellular metabolism. Click enzyme labels to advance reactions step-by-step, tracking metabolites and bioenergetics in real time. Zero dependencies — vanilla HTML5/CSS3/JS with ES6 modules.
 
 ## Running Locally
 
@@ -15,20 +15,39 @@ node -c *.js                   # syntax check (no test runner)
 
 Verify HTML ↔ JS ID contract after restructuring:
 ```bash
-diff <(grep -oP "getElementById\('\K[^']*" sim.js renderer.js | sed 's/.*://' | sort -u) \
+diff <(grep -rPoH "getElementById\('\K[^']*" src/ main.js | sed 's/.*://' | sort -u) \
      <(grep -oP 'id="[^"]*"' index.html | sed 's/id="//;s/"//' | sort -u)
 ```
 
 ## Architecture
 
-CSS loads `/shared-base.css` (shared reset, layout tokens, `.glass`, `.tool-btn`, intro screen, keyframes, tab system, ctrl-group/row) then `styles.css` (project overrides). Scripts load in order via `<script>` tags:
+CSS loads `/shared-base.css` (shared reset, layout tokens, `.glass`, `.tool-btn`, intro screen, keyframes, tab system, ctrl-group/row) then `styles.css` (project overrides). Scripts:
 
 0. **shared-tokens.js** → `_r`, `_parseHex`, `_rgb2hsl`, `_hsl2hex`, `_darken`, `_FONT`, `_PALETTE` (shared tokens + `extended` sub-object)
 0b. **colors.js** → extends `_PALETTE` with pathway colors via `_PALETTE.extended.*` references, defines `_darkFill`, `_makeBase`, `_BASE` families. Injects project-specific CSS vars (`--pw-*`, `--co-*`, `--tog-*`). Freezes all objects.
-1. **anim.js** → `Anim`, `_TWO_PI`, `_HALF_PI` — easing, fade trackers, trail ring-buffers, rotation accumulators. Must load before enzymes.js.
-2. **enzymes.js** → `EnzymeStyles`, `CFG`, `_ROLE`, `_THEME` — enzyme/particle/arrow drawing. Exports `_F` (frozen pre-computed font strings) and `_labelFont(size)` cache. Color pipeline: `_PALETTE` → `_BASE` families → `_ROLE` semantics → `_pal()` palettes. `_THEME.dark`/`light` derived from `_PALETTE` values.
-3. **renderer.js** → `Renderer` — Canvas 2D engine: layout, zoom/pan, hit detection, draw pipeline.
-4. **sim.js** → IIFE — `store` (metabolites), `simState` (toggles/flags), reaction logic, dashboard DOM sync, `requestAnimationFrame` loop.
+1. **main.js** → ES6 module entry point: imports all modules, initializes canvas/DOM/theme, runs `requestAnimationFrame` loop.
+
+```
+main.js (entry point)
+  ├── src/state.js        — simState, store, counters, resetState(), updateAnimations()
+  ├── src/anim.js         — Anim, _TWO_PI, _HALF_PI — easing, fade trackers, rotation accumulators
+  ├── src/theme.js        — updateTheme(), cycleTheme() — three-state theme toggle
+  ├── src/dashboard.js    — initDashboard(), updateDashboard(), showActiveStep(), applyYields()
+  ├── src/enzymes.js      — EnzymeStyles, CFG, _F, _ROLE, _THEME — enzyme/particle/arrow drawing
+  ├── src/renderer.js     — Renderer — Canvas 2D engine: layout, zoom/pan, hit detection, draw pipeline
+  ├── src/autoplay.js     — autoplayTick(), resetAutoplayTimers() — automated pathway cycling
+  ├── src/ui.js           — cacheDOMElements(), bindEvents() — DOM cache, event binding, intro screen
+  └── src/reactions/
+        ├── dispatch.js   — _dispatch map, _rotNudge, advanceStep() — unified reaction dispatcher
+        ├── glycolysis.js — advanceGlycolysis, runGlycolysisUpper/Lower
+        ├── krebs.js      — advanceKrebs, runKrebs
+        ├── calvin.js     — advanceCalvin, runCalvin
+        ├── ppp.js        — advancePPP, runPPP
+        ├── etc.js        — advanceETC (photo/resp), ATPSynthase, BR, NNT
+        └── fermentation.js — advancePDH, PDC, ADH, ALDH, ACS, fermentation
+```
+
+Color pipeline: `_PALETTE` → `_BASE` families → `_ROLE` semantics → `_pal()` palettes. `_THEME.dark`/`light` derived from `_PALETTE` values. `_F` is a frozen pre-computed font string cache in enzymes.js.
 
 ### Data Flow
 
@@ -53,11 +72,13 @@ Membrane at `membraneY = LH * 0.22` (where `LH = Math.max(H, 600)`). Above = lum
 ETC complex shapes in enzymes.js each have unique silhouettes. All share signature `(ctx, cx, cy, w, h, glow, lightMode)` — renderer.js positions/sizes are independent of shape internals.
 
 **Adding a New Complex:**
-1. **enzymes.js**: `draw<Name>()` shape + palette in `colors` + role in `_ROLE`
-2. **renderer.js**: Bump `numComplexes`, add position in `etcComplexes`, draw call + arrows + hitbox in `drawETCChain()`
-3. **sim.js**: Add to `_dispatch`, write `advance<Name>()`, add to autoplay ETC tick
-4. **index.html**: Update legend if needed
-5. **styles.css**: Add CSS variable if new color
+1. **src/enzymes.js**: `draw<Name>()` shape + palette in `colors` + role in `_ROLE`
+2. **src/renderer.js**: Bump `numComplexes`, add position in `etcComplexes`, draw call + arrows + hitbox in `drawETCChain()`
+3. **src/reactions/etc.js**: Write `advance<Name>()` reaction function
+4. **src/reactions/dispatch.js**: Add to `_dispatch` map
+5. **src/autoplay.js**: Add to ETC fast tick
+6. **index.html**: Update legend if needed
+7. **styles.css**: Add CSS variable if new color
 
 ## Color System
 
@@ -113,7 +134,7 @@ JS binds via `getElementById` (~40 IDs). **Only IDs must be preserved** — clas
 
 ## Key Patterns
 
-- `_dispatch` / `_rotNudge` maps in sim.js replace 20-branch if-else in `advanceStep`
+- `_dispatch` / `_rotNudge` maps in `src/reactions/dispatch.js` replace 20-branch if-else in `advanceStep`
 - Module-scope constants (`_TWO_PI`, `_KREBS_METABS` Sets, `_FONT`, `_METAB_ALPHA`, `_fadeCurve`) avoid per-frame allocation
 - `_F` frozen object (enzymes.js) — pre-computed `ctx.font` strings for all canvas text; eliminates per-frame template-literal allocation. `_labelFont(size)` caches uncommon sizes on first use.
 - `_calcEndpoints` + `_ep` reusable object shared across arrow-draw methods in renderer.js

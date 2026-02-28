@@ -42,15 +42,31 @@ No build step, no dependencies. Shared design system files (`shared-tokens.js`, 
 
 ## Architecture
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `index.html` | ~350 | Application shell, DOM controls, dashboard UI |
-| `styles.css` | ~660 | Visual styling, toggle switches, responsive layout |
-| `colors.js` | ~125 | Extends shared palette with pathway colors, `_BASE` families, CSS vars |
-| `anim.js` | ~85 | Easing functions, fade trackers, trail ring-buffers |
-| `enzymes.js` | ~775 | Drawing routines for membrane proteins, shared nodes, labels |
-| `renderer.js` | ~1055 | Canvas 2D engine — layout, zoom/pan, hit detection, draw pipeline |
-| `sim.js` | ~855 | Simulation engine — metabolite store, reaction logic, autoplay loop |
+ES6 modules loaded via `<script type="module" src="main.js">`. Non-module `colors.js` loads in `<head>` to freeze `_PALETTE` before modules run.
+
+```
+index.html              — Application shell, DOM controls, dashboard UI
+styles.css              — Visual styling, toggle switches, responsive layout
+colors.js               — Extends shared palette with pathway colors, CSS vars
+main.js                 — Entry point: init, rAF loop
+src/
+  state.js              — simState, store, counters, resetState()
+  anim.js               — Easing functions, fade trackers, rotation accumulators
+  theme.js              — Three-state theme toggle (Simulation/Light/Dark)
+  dashboard.js          — Dashboard DOM sync, stat bars, active step display
+  enzymes.js            — Drawing routines for membrane proteins, shared nodes, labels
+  renderer.js           — Canvas 2D engine: layout, zoom/pan, hit detection, draw pipeline
+  autoplay.js           — Automated pathway cycling and passive drain
+  ui.js                 — DOM cache, event binding, sidebar, intro screen
+  reactions/
+    dispatch.js         — Unified reaction dispatcher (_dispatch map, advanceStep)
+    glycolysis.js       — Glycolysis upper/lower half reactions
+    krebs.js            — Krebs cycle (8 steps)
+    calvin.js           — Calvin cycle (carbon fixation)
+    ppp.js              — Pentose phosphate pathway
+    etc.js              — ETC complexes, ATP synthase, BR, NNT
+    fermentation.js     — PDH, PDC, ADH, ALDH, ACS, fermentation
+```
 
 Uses the shared design system from [a9lim.github.io](https://github.com/a9lim/a9lim.github.io) — glass panels, tool buttons, intro screen, tab system, sidebar stats, and responsive breakpoints.
 
