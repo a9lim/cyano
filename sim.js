@@ -155,6 +155,7 @@
             // Only auto-open sidebar on desktop; on mobile, user opens manually
             if (!_isMobile()) {
                 dom.dashboard.classList.add('open');
+                Renderer.sidebarInset = _sidebarW;
             }
             setTimeout(() => { dom.introScreen.style.display = 'none'; }, 850);
         });
