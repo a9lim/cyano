@@ -20,7 +20,7 @@ updateTheme(dom.themeBtn);
 Renderer.sidebarInset = 0;
 Renderer._sidebarInsetCurrent = 0;
 Renderer._sidebarAnimTo = 0;
-Renderer.computeLayout();
+Renderer._updateLayout();
 
 // Initial dashboard state
 updateDashboard();

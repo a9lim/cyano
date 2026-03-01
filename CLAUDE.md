@@ -21,7 +21,7 @@ diff <(grep -rPoH "getElementById\('\K[^']*" src/ main.js | sed 's/.*://' | sort
 
 ## Architecture
 
-CSS loads `/shared-base.css` (shared reset, layout tokens, `.glass`, `.tool-btn`, intro screen, keyframes, tab system, ctrl-group/row) then `styles.css` (project overrides). Scripts:
+CSS loads `/shared-base.css` (shared reset, layout tokens, `.glass`, `.tool-btn`, intro screen, keyframes, sim layout components, toast notifications) then `styles.css` (project overrides + tab system, ctrl-group/row). Scripts:
 
 0. **shared-tokens.js** → `_r`, `_parseHex`, `_rgb2hsl`, `_hsl2hex`, `_darken`, `_FONT`, `_PALETTE` (shared tokens + `extended` sub-object)
 0b. **colors.js** → extends `_PALETTE` with pathway colors via `_PALETTE.extended.*` references, defines `_darkFill`, `_makeBase`, `_BASE` families. Injects project-specific CSS vars (`--pw-*`, `--co-*`, `--tog-*`). Freezes all objects.
@@ -34,7 +34,9 @@ main.js (entry point)
   ├── src/theme.js        — updateTheme(), cycleTheme() — three-state theme toggle
   ├── src/dashboard.js    — initDashboard(), updateDashboard(), showActiveStep(), applyYields()
   ├── src/enzymes.js      — EnzymeStyles, CFG, _F, _ROLE, _THEME — enzyme/particle/arrow drawing
-  ├── src/renderer.js     — Renderer — Canvas 2D engine: layout, zoom/pan, hit detection, draw pipeline
+  ├── src/renderer.js     — Renderer — Canvas 2D engine: draw pipeline, hit detection, camera/zoom (via bindZoomButtons)
+  ├── src/layout.js       — computeLayout() — membrane/ETC/metabolite positioning
+  ├── src/particles.js    — Particles — spawn/draw electrons, protons, photons with trail animations
   ├── src/autoplay.js     — autoplayTick(), resetAutoplayTimers() — automated pathway cycling
   ├── src/ui.js           — cacheDOMElements(), bindEvents() — DOM cache, event binding, intro screen
   └── src/reactions/
@@ -148,6 +150,8 @@ Repeated per-variant CSS blocks are collapsed via custom property assignments + 
 - **Metabolite cards**: `.mc-*` classes set `--mc-color`, generic `[class*="mc-"]` rules style background/bar/text.
 - **Legend dots**: `.legend-dot.*` variants set `--dot-color`, one generic rule sets `background`.
 - **Equations**: `.eq-*` variants set `--eq-color`, one generic rule colors `.eq-name` and `.eq-dot`.
+- **Tab system** (in `styles.css`, moved from shared-base.css): `.tabs-wrap`, `.tab-bar`, `.tab-btn`, `.tab-panels`, `.tab-panel` — biosim sidebar only.
+- **Control group/row** (in `styles.css`, moved from shared-base.css): `.ctrl-group`, `.ctrl-row` — biosim only.
 - **Glass panels**: `.glass` class on `header`, `#canvas-controls`, `#glucose-bar`, `#dashboard`. Dashboard overrides to `shadow-lg`. Tablet breakpoint strips glass from dashboard.
 
 ## Gotchas

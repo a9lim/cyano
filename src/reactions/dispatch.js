@@ -1,7 +1,7 @@
 // ─── Reaction dispatch & advanceStep ───
 import { _TWO_PI } from '../anim.js';
 import { simState } from '../state.js';
-import { updateDashboard } from '../dashboard.js';
+import { showActiveStep, updateDashboard } from '../dashboard.js';
 import { advanceGlycolysis, runGlycolysisUpper, runGlycolysisLower } from './glycolysis.js';
 import { advanceKrebs, runKrebsCycle } from './krebs.js';
 import { advanceCalvin, runCalvinCycle } from './calvin.js';
@@ -44,13 +44,14 @@ const _rotNudge = {
 
 export function advanceStep(pathway, stepIndex, direction) {
     const handler = _dispatch[pathway];
-    const ran = handler ? handler(stepIndex, direction) : false;
+    const result = handler ? handler(stepIndex, direction) : false;
 
-    if (ran) {
+    if (result) {
+        if (result.enzyme) showActiveStep(result.enzyme, result.reaction, result.yields);
         const nudge = _rotNudge[pathway];
         if (nudge) simState[nudge.rot].targetAngle += nudge.delta;
     }
 
     updateDashboard();
-    return ran;
+    return !!result;
 }

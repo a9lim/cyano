@@ -4,7 +4,6 @@ export const _TWO_PI = Math.PI * 2;
 export const _HALF_PI = Math.PI / 2;
 
 export const Anim = {
-  lerp(a, b, t) { return a + (b - a) * t; },
   smoothstep(t) { return t * t * (3 - 2 * t); },
   easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); },
   easeInOutSine(t) { return -(Math.cos(Math.PI * t) - 1) / 2; },

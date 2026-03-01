@@ -1,6 +1,6 @@
 // ─── Glycolysis reactions ───
 import { store, simState, counters } from '../state.js';
-import { showActiveStep } from '../dashboard.js';
+
 
 export function advanceGlycolysis(idx, direction) {
     const fwd = direction !== 'reverse';
@@ -16,96 +16,81 @@ export function advanceGlycolysis(idx, direction) {
     if (idx === 0) {
         if (fwd && store.glucose > 0 && store.atp >= 1) {
             store.glucose--; store.atp--; store.g6p++;
-            showActiveStep('HK', 'Glucose + ATP → G6P', { atpConsume: 1 });
-            return true;
+            return { enzyme: 'HK', reaction: 'Glucose + ATP → G6P', yields: { atpConsume: 1 } };
         } else if (rev && store.g6p > 0) {
             store.g6p--; store.glucose++;
-            showActiveStep('G6Pase', 'G6P → Glucose', null);
-            return true;
+            return { enzyme: 'G6Pase', reaction: 'G6P → Glucose', yields: null };
         }
     }
     else if (idx === 1) {
         if (fwd && store.g6p > 0) {
             store.g6p--; store.f6p++;
-            showActiveStep('PGI', 'G6P → F6P', null);
-            return true;
+            return { enzyme: 'PGI', reaction: 'G6P → F6P', yields: null };
         } else if (rev && store.f6p > 0) {
             store.f6p--; store.g6p++;
-            showActiveStep('PGI', 'F6P → G6P', null);
-            return true;
+            return { enzyme: 'PGI', reaction: 'F6P → G6P', yields: null };
         }
     }
     else if (idx === 2) {
         if (fwd && store.f6p > 0 && store.atp >= 1) {
             store.f6p--; store.atp--; store.f16bp++;
-            showActiveStep('PFK', 'F6P + ATP → F1,6BP', { atpConsume: 1 });
-            return true;
+            return { enzyme: 'PFK', reaction: 'F6P + ATP → F1,6BP', yields: { atpConsume: 1 } };
         } else if (rev && store.f16bp > 0) {
             store.f16bp--; store.f6p++;
-            showActiveStep('FBPase', 'F1,6BP → F6P', null);
-            return true;
+            return { enzyme: 'FBPase', reaction: 'F1,6BP → F6P', yields: null };
         }
     }
     else if (idx === 3) {
         if (fwd && store.f16bp > 0) {
             let t = Math.min(store.f16bp, 2);
             store.f16bp -= t; store.g3p += 2 * t;
-            showActiveStep('Aldolase/TPI', 'F1,6BP → 2 G3P', null);
-            return true;
+            return { enzyme: 'Aldolase/TPI', reaction: 'F1,6BP → 2 G3P', yields: null };
         } else if (rev && store.g3p >= 2) {
             let t = Math.floor(Math.min(store.g3p / 2, 2));
             store.g3p -= 2 * t; store.f16bp += t;
-            showActiveStep('Aldolase (Reverse)', '2 G3P → F1,6BP', null);
-            return true;
+            return { enzyme: 'Aldolase (Reverse)', reaction: '2 G3P → F1,6BP', yields: null };
         }
     }
     else if (idx === 5) {
         if (fwd && store.g3p >= 2 && store.nadh <= store.totalNad - 2) {
             store.g3p -= 2; store.bpg += 2; store.nadh += 2;
-            showActiveStep('GAPDH', '2 G3P + 2 NAD⁺ → 2 1,3-BPG', { nadh: 2 });
-            return true;
+            return { enzyme: 'GAPDH', reaction: '2 G3P + 2 NAD⁺ → 2 1,3-BPG', yields: { nadh: 2 } };
         } else if (rev && store.bpg >= 2 && store.nadph >= 2) {
             store.bpg -= 2; store.g3p += 2; store.nadph -= 2;
-            showActiveStep('GAPDH (Reverse)', '2 1,3-BPG + 2 NADPH → 2 G3P', { nadphConsume: 2 });
-            return true;
+            return { enzyme: 'GAPDH (Reverse)', reaction: '2 1,3-BPG + 2 NADPH → 2 G3P', yields: { nadphConsume: 2 } };
         }
     }
     else if (idx === 6) {
         if (fwd && store.bpg >= 2 && store.atp <= store.totalAtpAdp - 2) {
             store.bpg -= 2; store.pga3 += 2; store.atp += 2;
-            showActiveStep('PGK', '2 1,3-BPG + 2 ADP → 2 3-PGA + 2 ATP', { atp: 2 });
-            return true;
+            return { enzyme: 'PGK', reaction: '2 1,3-BPG + 2 ADP → 2 3-PGA + 2 ATP', yields: { atp: 2 } };
         } else if (rev && store.pga3 >= 2 && store.atp >= 2) {
             store.pga3 -= 2; store.bpg += 2; store.atp -= 2;
-            showActiveStep('PGK (Reverse)', '2 3-PGA + 2 ATP → 2 1,3-BPG', { atpConsume: 2 });
-            return true;
+            return { enzyme: 'PGK (Reverse)', reaction: '2 3-PGA + 2 ATP → 2 1,3-BPG', yields: { atpConsume: 2 } };
         }
     }
     else if (idx === 7) {
-        if (fwd && store.pga3 >= 2) { store.pga3 -= 2; store.pga2 += 2; showActiveStep('PGM', '2 3-PGA → 2 2-PGA', null); return true; }
-        else if (rev && store.pga2 >= 2) { store.pga2 -= 2; store.pga3 += 2; showActiveStep('PGM (Reverse)', '2 2-PGA → 2 3-PGA', null); return true; }
+        if (fwd && store.pga3 >= 2) { store.pga3 -= 2; store.pga2 += 2; return { enzyme: 'PGM', reaction: '2 3-PGA → 2 2-PGA', yields: null }; }
+        else if (rev && store.pga2 >= 2) { store.pga2 -= 2; store.pga3 += 2; return { enzyme: 'PGM (Reverse)', reaction: '2 2-PGA → 2 3-PGA', yields: null }; }
     }
     else if (idx === 8) {
-        if (fwd && store.pga2 >= 2) { store.pga2 -= 2; store.pep += 2; showActiveStep('Enolase', '2 2-PGA → 2 PEP', null); return true; }
-        else if (rev && store.pep >= 2) { store.pep -= 2; store.pga2 += 2; showActiveStep('Enolase (Reverse)', '2 PEP → 2 2-PGA', null); return true; }
+        if (fwd && store.pga2 >= 2) { store.pga2 -= 2; store.pep += 2; return { enzyme: 'Enolase', reaction: '2 2-PGA → 2 PEP', yields: null }; }
+        else if (rev && store.pep >= 2) { store.pep -= 2; store.pga2 += 2; return { enzyme: 'Enolase (Reverse)', reaction: '2 PEP → 2 2-PGA', yields: null }; }
     }
     else if (idx === 9) {
         if (store.pep >= 2 && store.atp <= store.totalAtpAdp - 2) {
             store.pep -= 2; store.pyruvate += 2; store.atp += 2;
             counters.glycRuns++;
-            showActiveStep('PK', '2 PEP + 2 ADP → 2 Pyruvate + 2 ATP', { atp: 2 });
-            return true;
+            return { enzyme: 'PK', reaction: '2 PEP + 2 ADP → 2 Pyruvate + 2 ATP', yields: { atp: 2 } };
         }
     }
     else if (idx === 10) {
         if (fwd && store.r5p >= 6) {
             store.r5p -= 6; store.f6p += 5;
-            showActiveStep('TKT+TAL', '6 R5P → 5 F6P (- Sugar)', null);
-            return true;
+            return { enzyme: 'TKT+TAL', reaction: '6 R5P → 5 F6P (- Sugar)', yields: null };
         } else if (rev && store.f6p >= 5) {
             store.f6p -= 5; store.r5p += 6;
-            showActiveStep('TK+SBPase', '5 F6P → 6 R5P (+ Sugar)', null);
-            return true;
+            return { enzyme: 'TK+SBPase', reaction: '5 F6P → 6 R5P (+ Sugar)', yields: null };
         }
     }
     return false;
@@ -116,8 +101,7 @@ export function runGlycolysisUpper() {
     store.glucose--;
     store.atp -= 2;
     store.g3p += 2;
-    showActiveStep('Glycolysis (Upper)', 'Glucose + 2 ATP → 2 G3P', { atpConsume: 2 });
-    return true;
+    return { enzyme: 'Glycolysis (Upper)', reaction: 'Glucose + 2 ATP → 2 G3P', yields: { atpConsume: 2 } };
 }
 
 export function runGlycolysisLower() {
@@ -127,6 +111,5 @@ export function runGlycolysisLower() {
     store.atp += 4;
     store.pyruvate += 2;
     counters.glycRuns++;
-    showActiveStep('Glycolysis (Lower)', '2 G3P → 2 Pyruvate + 4 ATP + 2 NADH', { atp: 4, nadh: 2 });
-    return true;
+    return { enzyme: 'Glycolysis (Lower)', reaction: '2 G3P → 2 Pyruvate + 4 ATP + 2 NADH', yields: { atp: 4, nadh: 2 } };
 }

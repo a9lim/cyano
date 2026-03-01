@@ -1,6 +1,6 @@
 // ─── Electron Transport Chain, ATP Synthase, BR, NNT ───
 import { store, simState } from '../state.js';
-import { showActiveStep, updateDashboard } from '../dashboard.js';
+import { updateDashboard } from '../dashboard.js';
 import Renderer from '../renderer.js';
 
 function pumpProtons(count, complexKey) {

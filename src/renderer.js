@@ -1,18 +1,18 @@
 /* ===================================================================
-   renderer.js — Integrated Metabolic Network with Zoom/Pan
+   renderer.js — Integrated Metabolic Network canvas draw pipeline
    Shared metabolite nodes, bidirectional arrows for shared enzymes,
    R5P shared between PPP and Calvin, Calvin in cytoplasm
    =================================================================== */
 
-import { _TWO_PI, Anim } from './anim.js';
 import { EnzymeStyles, CFG, _F } from './enzymes.js';
+import { computeLayout, MIN_CONTENT_W, MIN_CONTENT_H } from './layout.js';
+import Particles from './particles.js';
 
 const _r = window._r;
 
 // Pre-computed constants for hot render paths (avoid per-frame allocations)
 const _TWO_X = new Set(['g3p', 'bpg', 'pga3', 'pga2', 'pep', 'pyruvate', 'acetylCoA', 'ethanol', 'acetaldehyde', 'aceticAcid']);
 const _KREBS_METABS = new Set(['acetylCoA', 'citrate', 'isocitrate', 'akg', 'succoa', 'succinate', 'fumarate', 'malate', 'oaa']);
-const _fadeCurve = (t) => t < 0.15 ? t / 0.15 : t > 0.85 ? (1 - t) / 0.15 : 1;
 
 // Static lookup for metabolite fade alpha — replaces 17-branch if/else in getMetabAlpha
 const _fermentAlpha = (state) => state.fermentFade ? state.fermentFade.value : ((!state.oxygenAvailable && state.glycolysisEnabled) ? 1 : 0);
@@ -38,9 +38,8 @@ const _METAB_ALPHA = {
 
 const Renderer = {
     canvas: null, ctx: null, W: 0, H: 0, dpr: 1,
-    zoom: 1, panX: 0, panY: 0,
+    camera: null,
     isPanning: false, lastMX: 0, lastMY: 0,
-    electrons: [], protons: [], photons: [],
     membraneY: 0, membraneH: 0,
     sidebarInset: 0, _sidebarInsetCurrent: 0,
     _sidebarAnimStart: 0, _sidebarAnimFrom: 0, _sidebarAnimTo: 0, _sidebarAnimating: false,
@@ -65,7 +64,7 @@ const Renderer = {
     init(canvasEl) {
         this.canvas = canvasEl;
         this.ctx = canvasEl.getContext('2d');
-        this._zoomEl = document.getElementById('zoom-indicator');
+        const zoomEl = document.getElementById('zoom-indicator');
         const R = EnzymeStyles.roleColors;
         this.pathwayColors = {
             glycolysis:   R.glycolysis.stroke,
@@ -82,8 +81,33 @@ const Renderer = {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(() => this.resize(), 100);
         });
-        this.initZoomPan();
-        this.initTouch();
+
+        // Create shared camera — center-point model with biosim-specific clamping
+        const initZoom = this._minZoom();
+        const cw = Math.max(this.W, MIN_CONTENT_W), ch = Math.max(this.H, MIN_CONTENT_H);
+        this.camera = createCamera({
+            width: this.W,
+            height: this.H,
+            x: cw / 2,
+            y: ch / 2,
+            zoom: initZoom,
+            minZoom: initZoom,
+            maxZoom: 3,
+            clamp: (cam) => this._clampCamera(cam),
+        });
+        this.camera.bindWheel(this.canvas);
+        this.camera.bindZoomButtons({
+            zoomIn: document.getElementById('zoom-in-btn'),
+            zoomOut: document.getElementById('zoom-out-btn'),
+            reset: document.getElementById('zoom-reset-btn'),
+            display: zoomEl,
+            onReset: () => {
+                const cw2 = Math.max(this.W, MIN_CONTENT_W);
+                const ch2 = Math.max(this.H, MIN_CONTENT_H);
+                this.camera.reset(cw2 / 2, ch2 / 2, this._minZoom());
+            },
+        });
+        this._initInteraction();
     },
 
     resize() {
@@ -95,62 +119,64 @@ const Renderer = {
         this.canvas.height = this.H * this.dpr;
         this.canvas.style.width = this.W + 'px';
         this.canvas.style.height = this.H + 'px';
-        this.computeLayout();
-        // On first init or orientation change, fit zoom to content
-        if (!this._hasInitZoom) {
-            this._hasInitZoom = true;
-            this.zoom = this._minZoom();
-            this.panX = 0; this.panY = 0;
-            this.clampPan();
-            if (this._zoomEl) this._zoomEl.textContent = Math.round(this.zoom * 100) + '%';
+        this._updateLayout();
+        if (this.camera) {
+            const minZ = this._minZoom();
+            this.camera.minZoom = minZ;
+            this.camera.viewportW = this.W;
+            this.camera.viewportH = this.H;
+            this._clampCamera(this.camera);
         }
     },
 
-    clampPan() {
-        const vw = this.W, vh = this.H;
-        // Content dimensions use the same minimums as computeLayout
-        const cw = Math.max(vw, 900);
-        const ch = Math.max(vh, 600);
-        const sw = cw * this.zoom, sh = ch * this.zoom;
-        // If scaled content fits within viewport, center it; otherwise clamp edges
-        if (sw <= vw) {
-            this.panX = (vw - sw) / 2;
-        } else {
-            this.panX = Math.min(0, Math.max(vw - sw, this.panX));
-        }
-        if (sh <= vh) {
-            this.panY = (vh - sh) / 2;
-        } else {
-            this.panY = Math.min(0, Math.max(vh - sh, this.panY));
-        }
+    _clampCamera(cam) {
+        const vw = cam.viewportW, vh = cam.viewportH;
+        const cw = Math.max(vw, MIN_CONTENT_W), ch = Math.max(vh, MIN_CONTENT_H);
+        const sw = cw * cam.zoom, sh = ch * cam.zoom;
+        // If content fits, center it; otherwise clamp so edges stay visible
+        if (sw <= vw) cam.x = cw / 2;
+        else cam.x = clamp(cam.x, vw / (2 * cam.zoom), cw - vw / (2 * cam.zoom));
+        if (sh <= vh) cam.y = ch / 2;
+        else cam.y = clamp(cam.y, vh / (2 * cam.zoom), ch - vh / (2 * cam.zoom));
     },
 
-    initZoomPan() {
+    /** Minimum zoom: allow zooming out enough to fit the full content width */
+    _minZoom() {
+        return Math.min(1, this.W / MIN_CONTENT_W);
+    },
+
+    /** Convert screen coordinates to world coordinates via camera */
+    _screenToWorld(clientX, clientY) {
+        const rect = this.canvas.getBoundingClientRect();
+        return this.camera.screenToWorld(clientX - rect.left, clientY - rect.top);
+    },
+
+    /** Hit-test enzyme hitboxes at world coordinates, return hitbox or null */
+    _hitTestEnzyme(wx, wy) {
+        for (const hb of this.enzymeHitboxes) {
+            if (Math.abs(wx - hb.cx) < hb.w / 2 && Math.abs(wy - hb.cy) < hb.h / 2) {
+                return hb;
+            }
+        }
+        return null;
+    },
+
+    /* ---- Mouse/touch interaction: pan, click-to-react, hover ---- */
+    _initInteraction() {
         const c = this.canvas;
-        c.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const rect = c.getBoundingClientRect();
-            this._applyZoom(this.zoom * (e.deltaY > 0 ? 0.92 : 1.08), e.clientX - rect.left, e.clientY - rect.top);
-        }, { passive: false });
-        c.addEventListener('mousedown', (e) => { if (e.button === 0) { this.isPanning = true; this.lastMX = e.clientX; this.lastMY = e.clientY; } });
+
+        // Mouse pan (left-click drag) + hover cursor + click-to-react
+        c.addEventListener('mousedown', (e) => {
+            if (e.button === 0) { this.isPanning = true; this.lastMX = e.clientX; this.lastMY = e.clientY; }
+        });
         window.addEventListener('mousemove', (e) => {
             if (!this.isPanning) {
-                // Hover detection for cursor change
-                const rect = c.getBoundingClientRect();
-                const mx = (e.clientX - rect.left - this.panX) / this.zoom;
-                const my = (e.clientY - rect.top - this.panY) / this.zoom;
-                let hovering = false;
-                for (const hb of this.enzymeHitboxes) {
-                    if (Math.abs(mx - hb.cx) < hb.w / 2 && Math.abs(my - hb.cy) < hb.h / 2) {
-                        hovering = true; break;
-                    }
-                }
-                c.style.cursor = hovering ? 'pointer' : (this.isPanning ? 'grabbing' : 'grab');
+                const w = this._screenToWorld(e.clientX, e.clientY);
+                c.style.cursor = this._hitTestEnzyme(w.x, w.y) ? 'pointer' : 'grab';
                 return;
             }
-            this.panX += e.clientX - this.lastMX; this.panY += e.clientY - this.lastMY;
+            this.camera.panBy(e.clientX - this.lastMX, e.clientY - this.lastMY);
             this.lastMX = e.clientX; this.lastMY = e.clientY;
-            this.clampPan();
         });
         window.addEventListener('mouseup', () => { this.isPanning = false; });
 
@@ -158,29 +184,20 @@ const Renderer = {
         c.addEventListener('contextmenu', (e) => e.preventDefault());
         const handleClick = (e) => {
             if (!this.onEnzymeClick) return;
-            const rect = c.getBoundingClientRect();
-            const mx = (e.clientX - rect.left - this.panX) / this.zoom;
-            const my = (e.clientY - rect.top - this.panY) / this.zoom;
-            const dir = (e.button === 0) ? 'forward' : 'reverse';
-            for (const hb of this.enzymeHitboxes) {
-                if (Math.abs(mx - hb.cx) < hb.w / 2 && Math.abs(my - hb.cy) < hb.h / 2) {
-                    e.preventDefault();
-                    this.onEnzymeClick(hb.pathway, hb.stepIndex, dir);
-                    return;
-                }
+            const w = this._screenToWorld(e.clientX, e.clientY);
+            const hb = this._hitTestEnzyme(w.x, w.y);
+            if (hb) {
+                e.preventDefault();
+                this.onEnzymeClick(hb.pathway, hb.stepIndex, e.button === 0 ? 'forward' : 'reverse');
             }
         };
         c.addEventListener('click', handleClick);
         c.addEventListener('auxclick', handleClick);
-    },
 
-    /* ---- Touch support for pinch-zoom and tap ---- */
-    initTouch() {
-        const c = this.canvas;
+        // Touch: pinch-zoom, single-finger pan, tap-to-react
         let touchStartDist = 0;
         let touchStartX = 0, touchStartY = 0;
         let isTap = false;
-        const _mid = { x: 0, y: 0 };
 
         c.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
@@ -203,20 +220,18 @@ const Renderer = {
                 const dx = e.touches[0].clientX - e.touches[1].clientX;
                 const dy = e.touches[0].clientY - e.touches[1].clientY;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                _mid.x = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-                _mid.y = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
                 const rect = c.getBoundingClientRect();
-                this._applyZoom(this.zoom * (dist / touchStartDist), _mid.x - rect.left, _mid.y - rect.top);
+                this.camera.zoomBy(dist / touchStartDist, mx - rect.left, my - rect.top);
                 touchStartDist = dist;
             } else if (e.touches.length === 1) {
                 const dx = e.touches[0].clientX - touchStartX;
                 const dy = e.touches[0].clientY - touchStartY;
                 if (Math.abs(dx) > 8 || Math.abs(dy) > 8) isTap = false;
-                this.panX += e.touches[0].clientX - this.lastMX;
-                this.panY += e.touches[0].clientY - this.lastMY;
+                this.camera.panBy(e.touches[0].clientX - this.lastMX, e.touches[0].clientY - this.lastMY);
                 this.lastMX = e.touches[0].clientX;
                 this.lastMY = e.touches[0].clientY;
-                this.clampPan();
             }
         }, { passive: false });
 
@@ -224,125 +239,24 @@ const Renderer = {
             touchStartDist = 0;
             if (isTap && e.changedTouches.length === 1 && e.touches.length === 0) {
                 const touch = e.changedTouches[0];
-                const rect = c.getBoundingClientRect();
-                const mx = (touch.clientX - rect.left - this.panX) / this.zoom;
-                const my = (touch.clientY - rect.top - this.panY) / this.zoom;
-                if (this.onEnzymeClick) {
-                    for (const hb of this.enzymeHitboxes) {
-                        if (Math.abs(mx - hb.cx) < hb.w / 2 && Math.abs(my - hb.cy) < hb.h / 2) {
-                            this.onEnzymeClick(hb.pathway, hb.stepIndex, 'forward');
-                            break;
-                        }
-                    }
+                const w = this._screenToWorld(touch.clientX, touch.clientY);
+                const hb = this._hitTestEnzyme(w.x, w.y);
+                if (hb && this.onEnzymeClick) {
+                    this.onEnzymeClick(hb.pathway, hb.stepIndex, 'forward');
                 }
             }
             isTap = false;
         });
     },
 
-    /* ---- Zoom helpers ---- */
-    _minZoom() {
-        // Allow zooming out enough to fit the full content width
-        const MIN_CONTENT_W = 900;
-        return Math.min(1, this.W / MIN_CONTENT_W);
-    },
-
-    _applyZoom(newZoom, cx, cy) {
-        const oldZ = this.zoom;
-        this.zoom = Math.max(this._minZoom(), Math.min(3, newZoom));
-        this.panX = cx - (cx - this.panX) * (this.zoom / oldZ);
-        this.panY = cy - (cy - this.panY) * (this.zoom / oldZ);
-        this.clampPan();
-        this._zoomEl.textContent = Math.round(this.zoom * 100) + '%';
-    },
-    zoomIn()    { this._applyZoom(this.zoom * 1.25, this.W / 2, this.H / 2); },
-    zoomOut()   { this._applyZoom(this.zoom / 1.25, this.W / 2, this.H / 2); },
-    resetZoom() {
-        this.zoom = this._minZoom();
-        this.panX = 0; this.panY = 0;
-        this.clampPan();
-        this._zoomEl.textContent = Math.round(this.zoom * 100) + '%';
-    },
-
-    computeLayout() {
-        const W = this.W, H = this.H;
-        // Effective layout width accounts for sidebar inset (content shifts left)
-        // Use a minimum content width so pathways never get compressed below readable size
-        const MIN_CONTENT_W = 900;
-        const rawLW = W - this._sidebarInsetCurrent;
-        const LW = Math.max(rawLW, MIN_CONTENT_W);
-        this._LW = LW; // store for label drawing
-        // Use minimum content height so vertical spacing stays readable
-        const LH = Math.max(H, 600);
-
-        // ── MEMBRANE ──
-        this.membraneY = LH * 0.22;
-        this.membraneH = 60;
-        const memMid = this.membraneY + this.membraneH / 2;
-        const mPad = LW * 0.02, mW = LW - mPad * 2;
-
-        // Linearly distribute 13 complexes across the available membrane width
-        const numComplexes = 13;
-        const step = mW / (numComplexes + 1);
-        const colW = (i) => mPad + step * i;
-
-        this.etcComplexes = {
-            psii: { cx: colW(1), cy: memMid },
-            ndh1: { cx: colW(2), cy: memMid },
-            sdh: { cx: colW(3), cy: memMid + this.membraneH * 0.3 },
-            pq: { cx: colW(4), cy: memMid },
-            cytb6f: { cx: colW(5), cy: memMid },
-            pc: { cx: colW(6), cy: memMid - this.membraneH * 0.3 },
-            cytOx: { cx: colW(7), cy: memMid },
-            psi: { cx: colW(8), cy: memMid },
-            fd: { cx: colW(9), cy: memMid + this.membraneH * 0.3 },
-            fnr: { cx: colW(10), cy: memMid + this.membraneH * 0.3 },
-            atpSyn: { cx: colW(11), cy: memMid },
-            br: { cx: colW(12), cy: memMid },
-            nnt: { cx: colW(13), cy: memMid },
-        };
-
-        // ── CYTOPLASM — Orthogonal Layout ──
-        // Clear below the tallest ETC complex (cxH * 0.8 / 2 extends below memMid)
-        const top = this.membraneY + this.membraneH + 120;
-        const rowH = (LH - top + 200) / 5;
-        const col = (i) => LW * (0.04 + i * 0.082);
-        const r = [top, top + rowH, top + rowH * 2, top + rowH * 3, top + rowH * 4, top + rowH * 5];
-
-        this.metab = {
-            // Row 0
-            pgl6: { cx: col(1), cy: r[0], label: '6-PGL' },
-            pga6: { cx: col(2), cy: r[0], label: '6-PGA' },
-            r5p: { cx: col(3), cy: r[0], label: 'R5P' },
-            rubp: { cx: col(7), cy: r[0], label: 'RuBP' },
-
-            // Row 1 (Glycolysis Backbone)
-            glucose: { cx: col(0), cy: r[1], label: 'Glucose' },
-            g6p: { cx: col(1), cy: r[1], label: 'G6P' },
-            f6p: { cx: col(3), cy: r[1], label: 'F6P' },
-            f16bp: { cx: col(4), cy: r[1], label: 'F1,6BP' },
-            g3p: { cx: col(5), cy: r[1], label: 'G3P' },
-            bpg: { cx: col(6), cy: r[1], label: '1,3-BPG' },
-            pga3: { cx: col(7), cy: r[1], label: '3-PGA' },
-            pga2: { cx: col(8), cy: r[1], label: '2-PGA' },
-            pep: { cx: col(9), cy: r[1], label: 'PEP' },
-            pyruvate: { cx: col(10), cy: r[1], label: 'Pyruvate' },
-            ethanol: { cx: col(11), cy: r[0], label: 'Ethanol' },
-            acetaldehyde: { cx: col(11), cy: r[1], label: 'Acetaldehyde' },
-
-            // Row 2-4 (Krebs Cycle Orthogonal Loop under Pyruvate)
-            acetylCoA: { cx: col(10), cy: r[2], label: 'Acetyl-CoA' },
-            aceticAcid: { cx: col(11), cy: r[2], label: 'Acetic Acid' },
-            citrate: { cx: col(9), cy: r[2], label: 'Citrate' },
-            isocitrate: { cx: col(8), cy: r[2], label: 'Isocitrate' },
-            akg: { cx: col(7), cy: r[2], label: 'α-KG' },
-            succoa: { cx: col(6), cy: r[2], label: 'Suc-CoA' },
-            succinate: { cx: col(6), cy: r[3], label: 'Succinate' },
-            fumarate: { cx: col(7), cy: r[3], label: 'Fumarate' },
-            malate: { cx: col(8), cy: r[3], label: 'Malate' },
-            oaa: { cx: col(9), cy: r[3], label: 'OAA' },
-        };
-        this._metabKeys = Object.keys(this.metab);
+    _updateLayout() {
+        const layout = computeLayout(this.W, this.H, this._sidebarInsetCurrent);
+        this._LW = layout.LW;
+        this.membraneY = layout.membraneY;
+        this.membraneH = layout.membraneH;
+        this.etcComplexes = layout.etcComplexes;
+        this.metab = layout.metab;
+        this._metabKeys = layout.metabKeys;
     },
 
     /* ==== MAIN DRAW ==== */
@@ -365,38 +279,24 @@ const Renderer = {
                 this._sidebarInsetCurrent = this._sidebarAnimTo;
                 this._sidebarAnimating = false;
             } else {
-                // cubic-bezier(0.23, 1, 0.32, 1) — sampled via De Casteljau
-                const t = elapsed;
-                const p1x = 0.23, p1y = 1, p2x = 0.32, p2y = 1;
-                // Newton-Raphson to solve bezier x(s) = t for s
-                let s = t;
-                for (let i = 0; i < 8; i++) {
-                    const s2 = s * s, s3 = s2 * s;
-                    const x = 3 * p1x * s * (1 - s) * (1 - s) + 3 * p2x * s2 * (1 - s) + s3 - t;
-                    const dx = 3 * p1x * (1 - s) * (1 - s) - 6 * p1x * s * (1 - s) + 6 * p2x * s * (1 - s) - 3 * p2x * s2 + 3 * s2;
-                    if (Math.abs(dx) < 1e-6) break;
-                    s -= x / dx;
-                }
-                s = Math.max(0, Math.min(1, s));
-                const s2 = s * s, s3 = s2 * s;
-                const ease = 3 * p1y * s * (1 - s) * (1 - s) + 3 * p2y * s2 * (1 - s) + s3;
+                if (!this._sidebarEase) this._sidebarEase = cubicBezier(0.23, 1, 0.32, 1);
+                const ease = this._sidebarEase(elapsed);
                 this._sidebarInsetCurrent = this._sidebarAnimFrom + (this._sidebarAnimTo - this._sidebarAnimFrom) * ease;
             }
-            this.computeLayout();
+            this._updateLayout();
         }
 
         ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
         ctx.clearRect(0, 0, this.W, this.H);
         ctx.save();
-        ctx.translate(this.panX, this.panY);
-        ctx.scale(this.zoom, this.zoom);
+        this.camera.applyToCanvas(ctx);
 
         this.enzymeHitboxes.length = 0; // reset each frame (reuse array)
         this.drawMembrane(ctx, lm, state.time);
         this.drawETCChain(ctx, state, lm);
         this.drawCytoplasmNetwork(ctx, state, lm);
         this.drawKrebsCycle(ctx, state, lm);
-        this.drawParticles(ctx, state);
+        Particles.draw(ctx, state);
         this.drawLabels(ctx, state, lm);
 
         ctx.restore();
@@ -1002,87 +902,10 @@ const Renderer = {
         ctx.fillText(text2, startX + w1 + gap, y - 10);
     },
 
-    /* ---- PARTICLES ---- */
-    spawnElectron(fk, tk, tp) {
-        const f = this.etcComplexes[fk], t = this.etcComplexes[tk];
-        if (!f || !t) return;
-        const type = tp || 'resp';
-        const hex = EnzymeStyles.roleColors.electron.stroke;
-        this.electrons.push({
-            x: f.cx, y: f.cy, tx: t.cx, ty: t.cy,
-            progress: 0, speed: 0.025,
-            type, trail: Anim.trail(10),
-            _trailColor: _r(hex, 0.5)
-        });
-    },
-    spawnProton(cx, dir) {
-        const memMid = this.membraneY + this.membraneH / 2;
-        const sy = dir === 'up' ? memMid + 70 : memMid - 70;
-        const ey = dir === 'up' ? memMid - 70 : memMid + 70;
-        this.protons.push({ x: cx + (Math.random() - 0.5) * 5, y: sy, ty: ey, progress: 0, speed: 0.022 });
-    },
-    spawnPhoton(targetKey) {
-        const t = this.etcComplexes[targetKey];
-        if (!t) return;
-        const angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.6;
-        const dist = 120;
-        this.photons.push({
-            x: t.cx + Math.cos(angle) * dist,
-            y: t.cy + Math.sin(angle) * dist,
-            tx: t.cx, ty: t.cy,
-            progress: 0, speed: 0.04
-        });
-    },
-
-    drawParticles(ctx, state) {
-        const spd = state.speed;
-
-        // Electrons with glow trails
-        for (let i = this.electrons.length - 1; i >= 0; i--) {
-            const e = this.electrons[i];
-            e.progress += e.speed * spd;
-            if (e.progress >= 1) { this.electrons.splice(i, 1); continue; }
-            const t = e.progress;
-            const px = e.x + (e.tx - e.x) * t;
-            const py = e.y + (e.ty - e.y) * t + Math.sin(t * Math.PI * 3) * 3;
-
-            if (e.trail) {
-                e.trail.push(px, py);
-                e.trail.draw(ctx, 3, e._trailColor);
-            }
-
-            EnzymeStyles.drawElectron(ctx, px, py, 1 - Math.abs(t - 0.5) * 2, e.type, _fadeCurve(t));
-        }
-        // Protons
-        for (let i = this.protons.length - 1; i >= 0; i--) {
-            const p = this.protons[i];
-            p.progress += p.speed * spd;
-            if (p.progress >= 1) { this.protons.splice(i, 1); continue; }
-            const t = p.progress;
-            EnzymeStyles.drawProton(ctx,
-                p.x + Math.sin(t * _TWO_PI) * 2,
-                p.y + (p.ty - p.y) * t,
-                1 - Math.abs(t - 0.5) * 2,
-                _fadeCurve(t));
-        }
-        // Photons (manual alpha management avoids save/restore per particle)
-        for (let i = this.photons.length - 1; i >= 0; i--) {
-            const ph = this.photons[i];
-            ph.progress += ph.speed * spd;
-            if (ph.progress >= 1) { this.photons.splice(i, 1); continue; }
-            const t = ph.progress;
-            const fade = t < 0.3 ? t / 0.3 : (t > 0.7 ? (1 - t) / 0.3 : 1);
-            ctx.globalAlpha = fade * 0.9;
-            ctx.beginPath();
-            ctx.arc(ph.x + (ph.tx - ph.x) * t, ph.y + (ph.ty - ph.y) * t, 3, 0, _TWO_PI);
-            ctx.fillStyle = _r(EnzymeStyles.roleColors.photon.stroke, 0.9);
-            ctx.shadowColor = _r(EnzymeStyles.roleColors.photon.stroke, 0.5);
-            ctx.shadowBlur = 12;
-            ctx.fill();
-        }
-        ctx.shadowBlur = 0;
-        ctx.globalAlpha = 1;
-    },
+    /* ---- PARTICLE WRAPPERS (delegate to particles.js) ---- */
+    spawnElectron(fk, tk, tp) { Particles.spawnElectron(this.etcComplexes, fk, tk, tp); },
+    spawnProton(cx, dir) { Particles.spawnProton(this.membraneY, this.membraneH, cx, dir); },
+    spawnPhoton(targetKey) { Particles.spawnPhoton(this.etcComplexes, targetKey); },
 };
 
 export default Renderer;

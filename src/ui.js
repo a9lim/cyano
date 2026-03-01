@@ -4,6 +4,7 @@ import { updateTheme, cycleTheme } from './theme.js';
 import { initDashboard, updateDashboard } from './dashboard.js';
 import { resetAutoplayTimers } from './autoplay.js';
 import Renderer from './renderer.js';
+import Particles from './particles.js';
 
 const _SIDEBAR_W = 374; // panel-w(350) + gap(24)
 function _isMobile() { return window.innerWidth <= 900; }
@@ -75,7 +76,7 @@ export function bindEvents(dom) {
     dom.resetBtn.addEventListener('click', () => {
         resetState();
         resetAutoplayTimers();
-        Renderer.electrons = []; Renderer.protons = []; Renderer.photons = []; Renderer.metabPulse = {};
+        Particles.electrons.length = 0; Particles.protons.length = 0; Particles.photons.length = 0; Renderer.metabPulse = {};
         updateDashboard();
     });
 
@@ -111,11 +112,4 @@ export function bindEvents(dom) {
         });
     }
 
-    // Zoom controls
-    const zoomInBtn = document.getElementById('zoom-in-btn');
-    const zoomOutBtn = document.getElementById('zoom-out-btn');
-    const zoomResetBtn = document.getElementById('zoom-reset-btn');
-    if (zoomInBtn) zoomInBtn.addEventListener('click', () => Renderer.zoomIn());
-    if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => Renderer.zoomOut());
-    if (zoomResetBtn) zoomResetBtn.addEventListener('click', () => Renderer.resetZoom());
 }
