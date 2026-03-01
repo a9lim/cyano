@@ -122,3 +122,7 @@ ${genShared()}
 }`;
   document.head.appendChild(style);
 })();
+
+// Expose on window so ES6 modules can access via `window._BASE` etc.
+window._BASE = _BASE;
+window._darkFill = _darkFill;
