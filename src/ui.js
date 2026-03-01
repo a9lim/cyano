@@ -106,7 +106,7 @@ export function bindEvents(dom) {
             dom.introScreen.classList.add('hidden');
             document.body.classList.add('app-ready');
             if (!_isMobile()) {
-                dom.dashboard.classList.add('open');
+                toggleSidebar(dom);
             }
             setTimeout(() => { dom.introScreen.style.display = 'none'; }, 850);
         });
