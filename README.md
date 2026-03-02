@@ -13,11 +13,16 @@ Rather than treating pathways as isolated diagrams, the simulator uses **shared 
 ## Features
 
 - **Click-to-React** — Manually advance metabolic flux by clicking enzymatic arrows. Available reactions are highlighted based on current metabolite, ATP, and redox coenzyme levels.
-- **Biochemical Accuracy** — Reversible enzymes (Aldolase, PGI, etc.) calculate substrate/product availability dynamically. Clicking in reverse consumes the product and returns the substrate.
+- **Allosteric Regulation** — PFK, citrate synthase, isocitrate DH, PDH, and G6PDH respond to cellular energy state. High ATP inhibits glycolysis; low NADPH activates the PPP. Regulation factor (0–1.5) gates reactions with toast feedback.
+- **Enzyme Dimming** — Unavailable enzymes drawn at reduced opacity (0.4 when blocked, 0.7 when partially inhibited) based on substrate availability and regulation status.
+- **Biochemical Accuracy** — Reversible enzymes (Aldolase, PGI, etc.) calculate substrate/product availability dynamically. Clicking in reverse consumes the product and returns the substrate. Realistic initial cofactor ratios (90% ATP, 10% NADH/NADPH/FADH₂).
+- **Enzyme & Metabolite Info** — Hover enzymes or metabolites for detailed popups with name, description, pathway, equation, and regulation notes (~35 enzymes, ~26 metabolites).
 - **Orthogonal Grid Layout** — Cytoplasmic carbon architecture (Glycolysis, Calvin, PPP, Krebs) mapped to a strict column-and-row system.
 - **Unrolled Krebs Block** — The citric acid cycle integrated as a 3×3 logical circuit beneath Glycolysis.
 - **Dynamic Shared Reactions** — Enzymes shared between pathways (TKT/TAL, TK/SBP) adapt colors based on which pathways are active.
 - **Live Bioenergetic Tracking** — Global cellular pools of ATP/ADP, NADH/NAD+, NADPH/NADP+, FADH2/FAD shown as real-time percentage bars.
+- **Keyboard Shortcuts** — Space (autoplay), G (glucose), L (light), O (oxygen), 1-4 (pathway toggles), T (theme), S (sidebar); press `?` for help overlay
+- **Info Tips** — Hover `?` icons for explanations of pathways, cofactors, and environmental controls
 - **Three-State Theme Toggle** — Simulation (follows sunlight), Light, Dark.
 
 ### Pathways
@@ -56,10 +61,12 @@ src/
   dashboard.js          — Dashboard DOM sync, stat bars, active step display
   enzymes.js            — Drawing routines for membrane proteins, shared nodes, labels
   renderer.js           — Canvas 2D engine: layout, zoom/pan, hit detection, draw pipeline
-  autoplay.js           — Automated pathway cycling and passive drain
-  ui.js                 — DOM cache, event binding, sidebar, intro screen
+  autoplay.js           — Automated pathway cycling with regulation gating
+  ui.js                 — DOM cache, event binding, sidebar, intro screen, shortcuts, info tips
+  info.js               — ENZYMES (~35) and METABOLITES (~26) data for hover popups
+  regulation.js         — getRegulationFactor(), getRegulationReason() — allosteric regulation
   reactions/
-    dispatch.js         — Unified reaction dispatcher (_dispatch map, advanceStep)
+    dispatch.js         — Unified reaction dispatcher (_dispatch map, advanceStep, canReact)
     glycolysis.js       — Glycolysis upper/lower half reactions
     krebs.js            — Krebs cycle (8 steps)
     calvin.js           — Calvin cycle (carbon fixation)

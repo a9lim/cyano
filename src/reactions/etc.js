@@ -9,12 +9,11 @@ function pumpProtons(count, complexKey) {
         setTimeout(() => {
             const cx = Renderer.etcComplexes[complexKey]?.cx;
             if (cx) Renderer.spawnProton(cx, 'up');
-        }, i * 80);
+        }, i * 150);
     }
 }
 
 export function advanceETC(pathway, stepIndex) {
-    const D = 550;
     if (pathway === 'etc_resp') {
         if (!simState.oxygenAvailable || !simState.oxphosEnabled) return false;
         let src = null;
@@ -30,10 +29,11 @@ export function advanceETC(pathway, stepIndex) {
         }
         if (src) {
             store.electronsTransferred += 2;
-            Renderer.spawnElectron(src, 'pq', 'resp');
-            setTimeout(() => { Renderer.spawnElectron('pq', 'cytb6f', 'resp'); pumpProtons(4, 'cytb6f'); updateDashboard(); }, D);
-            setTimeout(() => Renderer.spawnElectron('cytb6f', 'pc', 'resp'), D * 2);
-            setTimeout(() => { Renderer.spawnElectron('pc', 'cytOx', 'resp'); pumpProtons(2, 'cytOx'); store.o2Consumed += 0.5; store.h2oProduced++; updateDashboard(); }, D * 3);
+            // Continuous chain: electron flows src → pq → cytb6f → pc → cytOx
+            Renderer.spawnElectronChain([src, 'pq', 'cytb6f', 'pc', 'cytOx'], 'resp', {
+                2: () => { pumpProtons(4, 'cytb6f'); updateDashboard(); },
+                3: () => { pumpProtons(2, 'cytOx'); store.o2Consumed += 0.5; store.h2oProduced++; updateDashboard(); },
+            });
             return true;
         }
     } else if (pathway === 'etc_photo') {
@@ -41,26 +41,24 @@ export function advanceETC(pathway, stepIndex) {
         store.h2oSplit++; store.o2Produced += 0.5; store.electronsTransferred += 2;
         pumpProtons(2, 'psii');
         Renderer.spawnPhoton('psii');
-        Renderer.spawnElectron('psii', 'pq', 'photo');
-        setTimeout(() => { Renderer.spawnElectron('pq', 'cytb6f', 'photo'); pumpProtons(4, 'cytb6f'); updateDashboard(); }, D);
-        setTimeout(() => Renderer.spawnElectron('cytb6f', 'pc', 'photo'), D * 2);
-        setTimeout(() => Renderer.spawnElectron('pc', 'psi', 'photo'), D * 3);
-        setTimeout(() => { Renderer.spawnPhoton('psi'); Renderer.spawnElectron('psi', 'fd', 'photo'); }, D * 4);
-        setTimeout(() => {
-            Renderer.spawnElectron('fd', 'fnr', 'photo');
-            if (store.nadph < store.totalNadp) store.nadph++;
-            updateDashboard();
-        }, D * 5);
+        // Continuous chain: psii → pq → cytb6f → pc → psi → fd → fnr
+        Renderer.spawnElectronChain(['psii', 'pq', 'cytb6f', 'pc', 'psi', 'fd', 'fnr'], 'photo', {
+            2: () => { pumpProtons(4, 'cytb6f'); updateDashboard(); },
+            4: () => { Renderer.spawnPhoton('psi'); },
+            5: () => {
+                if (store.nadph < store.totalNadp) store.nadph++;
+                updateDashboard();
+            },
+        });
         return true;
     } else if (pathway === 'etc_cyclic') {
         if (!simState.lightOn || !simState.cyclicLightEnabled) return false;
         store.electronsTransferred += 2;
         Renderer.spawnPhoton('psi');
-        Renderer.spawnElectron('psi', 'fd', 'cyclic');
-        setTimeout(() => Renderer.spawnElectron('fd', 'pq', 'cyclic'), D);
-        setTimeout(() => { Renderer.spawnElectron('pq', 'cytb6f', 'cyclic'); pumpProtons(4, 'cytb6f'); updateDashboard(); }, D * 2);
-        setTimeout(() => Renderer.spawnElectron('cytb6f', 'pc', 'cyclic'), D * 3);
-        setTimeout(() => Renderer.spawnElectron('pc', 'psi', 'cyclic'), D * 4);
+        // Continuous chain: psi → fd → pq → cytb6f → pc → psi
+        Renderer.spawnElectronChain(['psi', 'fd', 'pq', 'cytb6f', 'pc', 'psi'], 'cyclic', {
+            2: () => { pumpProtons(4, 'cytb6f'); updateDashboard(); },
+        });
         return true;
     }
     return false;
@@ -70,7 +68,7 @@ export function advanceATPSynthase() {
     if (store.protonGradient >= 4 && store.atp < store.totalAtpAdp) {
         store.protonGradient -= 4; store.atp++;
         const cx = Renderer.etcComplexes.atpSyn?.cx;
-        if (cx) for (let i = 0; i < 4; i++) setTimeout(() => Renderer.spawnProton(cx, 'down'), i * 200);
+        if (cx) for (let i = 0; i < 4; i++) setTimeout(() => Renderer.spawnProton(cx, 'down'), i * 350);
         return true;
     }
     return false;

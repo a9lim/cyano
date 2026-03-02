@@ -305,74 +305,15 @@ main {
 
 
 /* ═══════════════════════════════════════
-   TOGGLE SWITCHES
+   TOGGLE SWITCHES — Per-toggle colors
+   (Generic toggle styles in shared-base.css)
    ═══════════════════════════════════════ */
-.tog-wrap { position: relative; }
-.tog-wrap input { display: none; }
-
-.tog {
-  display: inline-flex;
-  align-items: center;
-  width: 42px;
-  height: 22px;
-  background: var(--tog-bg);
-  border-radius: 11px;
-  cursor: pointer;
-  position: relative;
-  border: 1px solid var(--tog-border);
-  box-shadow: var(--tog-shadow);
-  transition: all 0.28s ease;
-  overflow: hidden;
-}
-
-.tog-thumb {
-  position: absolute;
-  left: 3px;
-  top: 3px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--text-muted);
-  box-shadow: 0 1px 3px var(--tog-thumb-shadow);
-  transition: all 0.35s var(--ease-spring);
-  z-index: 2;
-}
-
-.tog-icon {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  transition: opacity 0.28s ease;
-  z-index: 1;
-  line-height: 0;
-  color: #fff;
-}
-
-.tog-icon-on { right: 5px; opacity: 0.25; }
-.tog-icon-off { left: 5px; opacity: 0.6; }
-
-/* Per-toggle color assignments */
-.tog        { --tog-color: var(--accent); --tog-shift: 20px; }
 .tog-light  { --tog-color: var(--co-atp); }
 .tog-o2     { --tog-color: var(--co-nadh); }
 .tog-glyc   { --tog-color: var(--pw-glyc); }
 .tog-ppp    { --tog-color: var(--pw-ppp); }
 .tog-calvin { --tog-color: var(--pw-calvin); }
 .tog-krebs  { --tog-color: var(--pw-krebs); }
-
-/* Generic checked state */
-.tog-wrap input:checked + .tog {
-  background: linear-gradient(135deg, var(--tog-color), color-mix(in srgb, var(--tog-color), black 25%));
-  border-color: color-mix(in srgb, var(--tog-color) 35%, transparent);
-  box-shadow: inset 0 1px 3px var(--tog-checked-inset);
-}
-.tog-wrap input:checked + .tog .tog-thumb {
-  transform: translateX(var(--tog-shift));
-  background: var(--tog-thumb-on);
-  box-shadow: 0 0 6px color-mix(in srgb, var(--tog-color) 50%, transparent);
-}
-.tog-wrap input:checked + .tog .tog-icon-on { opacity: 1; }
-.tog-wrap input:checked + .tog .tog-icon-off { opacity: 0.25; }
 
 /* Sunlight glow exception */
 .tog-wrap input:checked + .tog-light {
@@ -508,15 +449,6 @@ main {
   --tog-shadow:       inset 0 1px 3px var(--tog-inset);
 }
 
-/* Dark-mode toggle overrides (generic) */
-[data-theme="dark"] .tog-wrap input:checked + .tog {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--tog-color), black 82%), color-mix(in srgb, var(--tog-color), black 72%));
-  border-color: color-mix(in srgb, var(--tog-color) 22%, transparent);
-}
-[data-theme="dark"] .tog-wrap input:checked + .tog .tog-thumb {
-  background: var(--tog-color);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--tog-color) 50%, transparent);
-}
 /* Sunlight dark glow */
 [data-theme="dark"] .tog-wrap input:checked + .tog-light {
   border-color: color-mix(in srgb, var(--tog-color) 35%, transparent);
@@ -585,17 +517,6 @@ main {
     padding: 4px 6px;
   }
 
-  .tabs-wrap {
-    min-height: auto;
-  }
-
-  .tab-bar {
-    position: static;
-  }
-
-  .tab-panels {
-    max-height: calc(60vh - 120px);
-  }
 }
 
 
@@ -643,16 +564,9 @@ main {
 /* ═══════════════════════════════════════
    ACCESSIBILITY
    ═══════════════════════════════════════ */
-.tog-wrap input:focus-visible + .tog {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
 
 /* Larger touch targets on coarse pointers */
 @media (pointer: coarse) {
-  .tog { --tog-shift: 22px; width: 48px; height: 26px; border-radius: 13px; }
-  .tog-thumb { width: 18px; height: 18px; }
-
   .ctrl-row {
     padding: 0.4rem 0;
   }
@@ -660,71 +574,6 @@ main {
   .tab-btn {
     padding: 0.65rem 0.4rem 0.55rem;
   }
-}
-
-
-/* ═══════════════════════════════════════
-   TAB SYSTEM (moved from shared-base.css)
-   ═══════════════════════════════════════ */
-.tabs-wrap {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  animation: fadeUp 0.4s ease 0.15s both;
-}
-
-.tab-bar {
-  display: flex;
-  gap: 0;
-  border-bottom: 1px solid var(--border);
-  padding: 0 16px;
-  flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  z-index: 5;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 0.6rem 0.4rem 0.5rem;
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  font-family: var(--font-body);
-  font-weight: 500;
-  font-size: clamp(0.62rem, 0.95vw, 0.7rem);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.28s ease;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  text-align: center;
-}
-
-.tab-btn:hover {
-  color: var(--text-secondary);
-}
-
-.tab-btn.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-}
-
-.tab-panels {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.tab-panel {
-  display: none;
-  padding: 12px 16px;
-}
-
-.tab-panel.active {
-  display: block;
-  animation: fadeIn 0.2s ease both;
 }
 
 
@@ -750,4 +599,36 @@ main {
   font-size: 0.78rem;
   color: var(--text);
   font-weight: 400;
+}
+
+
+/* ───── Canvas Tooltip ───── */
+.canvas-tooltip {
+  position: fixed;
+  z-index: 1000;
+  max-width: 280px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel-solid);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  font: 0.75rem/1.45 var(--font-body);
+  color: var(--text);
+  pointer-events: none;
+}
+.canvas-tooltip strong {
+  font-size: 0.8rem;
+  color: var(--text);
+}
+.canvas-tooltip .ct-full {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+.canvas-tooltip .ct-eq {
+  font: 0.72rem var(--font-mono);
+  color: var(--accent);
+}
+.canvas-tooltip em {
+  font-size: 0.7rem;
+  color: var(--text-muted);
 }

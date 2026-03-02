@@ -20,17 +20,20 @@ _PALETTE.cyan   = _PALETTE.extended.cyan;
 _PALETTE.yellow = _PALETTE.extended.yellow;
 _PALETTE.slate  = _PALETTE.extended.slate;
 
-// Cofactor bar colors
-_PALETTE.atp   = '#cc9e30';
-_PALETTE.nadh  = '#40a2b0';
-_PALETTE.nadph = '#3a9e82';
-_PALETTE.fadh2 = '#bc6e78';
+// Cofactor bar colors (from extended palette)
+_PALETTE.atp   = _PALETTE.extended.yellow;
+_PALETTE.nadh  = _PALETTE.extended.cyan;
+_PALETTE.nadph = _PALETTE.extended.green;
+_PALETTE.fadh2 = _PALETTE.extended.rose;
 
 // Mode-independent
-_PALETTE.textOnAccent = '#FDFBF5';
+_PALETTE.textOnAccent = _PALETTE.light.elevated;
 
-// Mode-dependent extension
-_PALETTE.light.togBg = '#c8ccd4';
+// Mode-dependent extension (derived from textMuted: same hue, lower sat, higher lightness)
+{
+  const [h, s] = _rgb2hsl(..._parseHex(_PALETTE.light.textMuted));
+  _PALETTE.light.togBg = _hsl2hex(h, s * 0.5, 0.80);
+}
 
 Object.freeze(_PALETTE.extended);
 Object.freeze(_PALETTE.light);
@@ -96,28 +99,28 @@ const _BASE = {
   style.textContent = `:root {
 ${genShared()}
 
-  --bg-scrim:         #ffffff33;
-  --bg-track:         #00000014;
-  --metab-card-bg:    #00000005;
+  --bg-scrim:         ${_r(D.text, 0.2)};
+  --bg-track:         ${_r(L.text, 0.078)};
+  --metab-card-bg:    ${_r(L.text, 0.02)};
 
   --tog-bg:           ${L.togBg};
-  --tog-thumb-on:     #ffffff;
-  --tog-border:       #0000000f;
-  --tog-inset:        #00000014;
-  --track-shadow:     inset 0 1px 1px #0000000f;
+  --tog-thumb-on:     ${L.elevated};
+  --tog-border:       ${_r(L.text, 0.059)};
+  --tog-inset:        ${_r(L.text, 0.078)};
+  --track-shadow:     inset 0 1px 1px ${_r(L.text, 0.059)};
 }
 [data-theme="dark"] {
-  --bg-scrim:         #00000026;
-  --bg-track:         #ffffff0a;
+  --bg-scrim:         ${_r(L.text, 0.149)};
+  --bg-track:         ${_r(D.text, 0.039)};
   --metab-card-bg:    transparent;
 
   --tog-bg:           ${D.panelSolid};
   --tog-thumb-on:     var(--text);
-  --tog-border:       #ffffff0f;
-  --tog-inset:        #00000059;
-  --tog-thumb-shadow: #00000073;
-  --tog-checked-inset: #00000033;
-  --tog-checked-extra: #0000004d;
+  --tog-border:       ${_r(D.text, 0.059)};
+  --tog-inset:        ${_r(L.text, 0.349)};
+  --tog-thumb-shadow: ${_r(L.text, 0.451)};
+  --tog-checked-inset: ${_r(L.text, 0.2)};
+  --tog-checked-extra: ${_r(L.text, 0.302)};
   --track-shadow:     none;
 }`;
   document.head.appendChild(style);
