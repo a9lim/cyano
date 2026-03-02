@@ -4,8 +4,8 @@
 export const MIN_CONTENT_W = 900;
 export const MIN_CONTENT_H = 600;
 
-export function computeLayout(W, H, sidebarInset) {
-    const rawLW = W - sidebarInset;
+export function computeLayout(W, H, sidebarInset, zoom = 1) {
+    const rawLW = (W - sidebarInset) / zoom;
     const LW = Math.max(rawLW, MIN_CONTENT_W);
     const LH = Math.max(H, MIN_CONTENT_H);
 
@@ -74,7 +74,19 @@ export function computeLayout(W, H, sidebarInset) {
         fumarate:   { cx: col(7),  cy: r[3], label: 'Fumarate' },
         malate:     { cx: col(8),  cy: r[3], label: 'Malate' },
         oaa:        { cx: col(9),  cy: r[3], label: 'OAA' },
+
+        // Beta Oxidation (2×2 grid directly below Acetyl-CoA / Acetic Acid)
+        fattyAcid:  { cx: col(10), cy: r[3], label: 'Fatty Acid' },
+        enoylCoA:   { cx: col(11), cy: r[3], label: 'Enoyl-CoA' },
+        hydroxyCoA: { cx: col(11), cy: r[3] + rowH * 0.85, label: 'OH-CoA' },
+        ketoCoA:    { cx: col(10), cy: r[3] + rowH * 0.85, label: 'Keto-CoA' },
     };
 
-    return { LW, membraneY, membraneH, etcComplexes, metab, metabKeys: Object.keys(metab) };
+    // Actual content extent (for camera bounds — may exceed LH due to bottom pathways)
+    let contentH = LH;
+    for (const m of Object.values(metab)) {
+        contentH = Math.max(contentH, m.cy + 80);
+    }
+
+    return { LW, contentH, membraneY, membraneH, etcComplexes, metab, metabKeys: Object.keys(metab) };
 }

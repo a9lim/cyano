@@ -6,35 +6,37 @@ An interactive HTML5 Canvas simulation of cellular carbon metabolism and electro
 
 ## Overview
 
-Visualizes the interconnected nature of 8 major biochemical systems within a photosynthetic cell. Users trace the flow of carbon, electrons, and energy (ATP/NADH/NADPH) by clicking on enzymatic reactions to advance the simulation step-by-step.
+Visualizes the interconnected nature of 10 major biochemical systems within a photosynthetic cell. Users trace the flow of carbon, electrons, and energy (ATP/NADH/NADPH) by clicking on enzymatic reactions to advance the simulation step-by-step.
 
 Rather than treating pathways as isolated diagrams, the simulator uses **shared metabolite nodes** (e.g., Fructose-6-Phosphate) in an orthogonal grid layout, demonstrating how pathways like Glycolysis, the Calvin Cycle, and the Pentose Phosphate Pathway naturally intersect.
 
 ## Features
 
-- **Click-to-React** — Manually advance metabolic flux by clicking enzymatic arrows. Available reactions are highlighted based on current metabolite, ATP, and redox coenzyme levels.
-- **Allosteric Regulation** — PFK, citrate synthase, isocitrate DH, PDH, and G6PDH respond to cellular energy state. High ATP inhibits glycolysis; low NADPH activates the PPP. Regulation factor (0–1.5) gates reactions with toast feedback.
+- **Click-to-React** — Manually advance metabolic flux by clicking enzymatic arrows. Available reactions are highlighted based on current metabolite, ATP, and redox coenzyme levels. Add glucose or fatty acid substrates via on-screen buttons or keyboard shortcuts.
+- **Allosteric Regulation** — PFK, citrate synthase, isocitrate DH, PDH, G6PDH, RuBisCO, and ACAD respond to cellular energy state. High ATP inhibits glycolysis and Krebs; high NADH inhibits Krebs; high NADPH inhibits PPP while low NADPH activates it; low ATP inhibits Calvin cycle; high FADH₂ inhibits beta oxidation; low NADPH inhibits FA synthesis. Direction-aware: PFK only inhibits forward glycolysis. Regulation factor (0–1.5) gates reactions with toast feedback.
 - **Enzyme Dimming** — Unavailable enzymes drawn at reduced opacity (0.4 when blocked, 0.7 when partially inhibited) based on substrate availability and regulation status.
-- **Biochemical Accuracy** — Reversible enzymes (Aldolase, PGI, etc.) calculate substrate/product availability dynamically. Clicking in reverse consumes the product and returns the substrate. Realistic initial cofactor ratios (90% ATP, 10% NADH/NADPH/FADH₂).
+- **Biochemical Accuracy** — Reversible enzymes (Aldolase, PGI, etc.) calculate substrate/product availability dynamically. Clicking in reverse consumes the product and returns the substrate. Shared enzymes display in the color of the pathway they serve in each direction (e.g. PGI forward = glycolysis orange, PGI reverse = PPP rose). Realistic initial cofactor ratios (90% ATP, 10% NADH/NADPH/FADH₂).
 - **Enzyme & Metabolite Info** — Hover enzymes or metabolites for detailed popups with name, description, pathway, equation, and regulation notes (~35 enzymes, ~26 metabolites).
 - **Orthogonal Grid Layout** — Cytoplasmic carbon architecture (Glycolysis, Calvin, PPP, Krebs) mapped to a strict column-and-row system.
 - **Unrolled Krebs Block** — The citric acid cycle integrated as a 3×3 logical circuit beneath Glycolysis.
 - **Dynamic Shared Reactions** — Enzymes shared between pathways (TKT/TAL, TK/SBP) adapt colors based on which pathways are active.
 - **Live Bioenergetic Tracking** — Global cellular pools of ATP/ADP, NADH/NAD+, NADPH/NADP+, FADH2/FAD shown as real-time percentage bars.
-- **Keyboard Shortcuts** — Space (autoplay), G (glucose), L (light), O (oxygen), 1-4 (pathway toggles), T (theme), S (sidebar); press `?` for help overlay
+- **Keyboard Shortcuts** — Space (autoplay), G (glucose), F (fatty acid), L (light), O (oxygen), 1-5 (pathway toggles), T (theme), S (sidebar); press `?` for help overlay
 - **Info Tips** — Hover `?` icons for explanations of pathways, cofactors, and environmental controls
 - **Three-State Theme Toggle** — Simulation (follows sunlight), Light, Dark.
 
 ### Pathways
 
-1. Glycolysis
+1. Glycolysis / Gluconeogenesis (bidirectional)
 2. Pentose Phosphate Pathway (PPP)
 3. Calvin Cycle (Carbon Fixation)
 4. Krebs Cycle (Citric Acid Cycle)
-5. Linear Light-Dependent Reactions (Z-scheme)
-6. Cyclic Light-Dependent Reactions (PSI cyclic flow)
-7. Oxidative Phosphorylation (Respiratory ETC)
-8. Fermentation (Ethanol pathway when anoxic)
+5. Beta Oxidation / Fatty Acid Synthesis (bidirectional)
+6. Linear Light-Dependent Reactions (Z-scheme)
+7. Cyclic Light-Dependent Reactions (PSI cyclic flow)
+8. Oxidative Phosphorylation (Respiratory ETC)
+9. Fermentation (Ethanol pathway when anoxic)
+10. NNT (Nicotinamide Nucleotide Transhydrogenase)
 
 ## Running Locally
 
@@ -63,16 +65,17 @@ src/
   renderer.js           — Canvas 2D engine: layout, zoom/pan, hit detection, draw pipeline
   autoplay.js           — Automated pathway cycling with regulation gating
   ui.js                 — DOM cache, event binding, sidebar, intro screen, shortcuts, info tips
-  info.js               — ENZYMES (~35) and METABOLITES (~26) data for hover popups
+  info.js               — ENZYMES (~41) and METABOLITES (~26) data for hover popups
   regulation.js         — getRegulationFactor(), getRegulationReason() — allosteric regulation
   reactions/
     dispatch.js         — Unified reaction dispatcher (_dispatch map, advanceStep, canReact)
-    glycolysis.js       — Glycolysis upper/lower half reactions
+    glycolysis.js       — Glycolysis upper/lower half + gluconeogenesis (reverse)
     krebs.js            — Krebs cycle (8 steps)
     calvin.js           — Calvin cycle (carbon fixation)
     ppp.js              — Pentose phosphate pathway
     etc.js              — ETC complexes, ATP synthase, BR, NNT
     fermentation.js     — PDH, PDC, ADH, ALDH, ACS, fermentation
+    betaoxidation.js    — Beta oxidation + fatty acid synthesis (reverse)
 ```
 
 Uses the shared design system from [a9lim.github.io](https://github.com/a9lim/a9lim.github.io) — glass panels, tool buttons, intro screen, tab system, sidebar stats, and responsive breakpoints.
