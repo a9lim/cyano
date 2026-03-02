@@ -29,12 +29,6 @@ _PALETTE.fadh2 = _PALETTE.extended.rose;
 // Mode-independent
 _PALETTE.textOnAccent = _PALETTE.light.elevated;
 
-// Mode-dependent extension (derived from textMuted: same hue, lower sat, higher lightness)
-{
-  const [h, s] = _rgb2hsl(..._parseHex(_PALETTE.light.textMuted));
-  _PALETTE.light.togBg = _hsl2hex(h, s * 0.5, 0.80);
-}
-
 Object.freeze(_PALETTE.extended);
 Object.freeze(_PALETTE.light);
 Object.freeze(_PALETTE.dark);
@@ -103,9 +97,6 @@ ${genShared()}
   --bg-track:         ${_r(L.text, 0.078)};
   --metab-card-bg:    ${_r(L.text, 0.02)};
 
-  --tog-bg:           ${L.togBg};
-  --tog-thumb-on:     ${L.elevated};
-  --tog-border:       ${_r(L.text, 0.059)};
   --tog-inset:        ${_r(L.text, 0.078)};
   --track-shadow:     inset 0 1px 1px ${_r(L.text, 0.059)};
 }
@@ -114,12 +105,7 @@ ${genShared()}
   --bg-track:         ${_r(D.text, 0.039)};
   --metab-card-bg:    transparent;
 
-  --tog-bg:           ${D.panelSolid};
-  --tog-thumb-on:     var(--text);
-  --tog-border:       ${_r(D.text, 0.059)};
   --tog-inset:        ${_r(L.text, 0.349)};
-  --tog-thumb-shadow: ${_r(L.text, 0.451)};
-  --tog-checked-inset: ${_r(L.text, 0.2)};
   --tog-checked-extra: ${_r(L.text, 0.302)};
   --track-shadow:     none;
 }`;
