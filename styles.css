@@ -116,20 +116,23 @@ main {
 #canvas-controls button:active { transform: scale(0.88); }
 
 /* ═══════════════════════════════════════
-   FLOATING GLUCOSE BAR
+   FLOATING SUBSTRATE BAR
    ═══════════════════════════════════════ */
-.glucose-pill {
+.substrate-pill-group {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: var(--radius-pill);
+}
+
+.substrate-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
   border: none;
   background: transparent;
   font-family: var(--font-body);
   font-weight: 600;
   font-size: clamp(0.72rem, 1vw, 0.82rem);
-  color: var(--pw-calvin);
   cursor: pointer;
   transition: color 0.2s, background 0.2s;
   white-space: nowrap;
@@ -137,15 +140,22 @@ main {
   -webkit-appearance: none;
 }
 
-.glucose-pill:hover {
-  background: color-mix(in srgb, var(--pw-calvin) 10%, transparent);
+.substrate-pill-left  { border-radius: var(--radius-pill) 0 0 var(--radius-pill); color: var(--pw-calvin); }
+.substrate-pill-right { border-radius: 0 var(--radius-pill) var(--radius-pill) 0; color: var(--pw-betaox); }
+
+.substrate-pill:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+.substrate-pill:active { transform: scale(0.96); }
+
+.substrate-pill svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
 }
 
-.glucose-pill:active { transform: scale(0.96); }
-
-.glucose-pill svg {
-  width: 14px;
-  height: 14px;
+.substrate-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
   flex-shrink: 0;
 }
 
@@ -191,7 +201,7 @@ main {
 .step-yield {
   font-family: var(--font-mono);
   font-size: clamp(0.64rem, 0.95vw, 0.72rem);
-  color: var(--pw-calvin);
+  color: var(--accent);
   margin-top: 0.08rem;
 }
 
@@ -228,6 +238,7 @@ main {
 .cv-calvin { color: var(--pw-calvin); }
 .cv-glyc { color: var(--pw-glyc); }
 .cv-ppp { color: var(--pw-ppp); }
+.cv-betaox { color: var(--pw-betaox); }
 
 
 /* ═══════════════════════════════════════
@@ -314,6 +325,7 @@ main {
 .tog-ppp    { --tog-color: var(--pw-ppp); }
 .tog-calvin { --tog-color: var(--pw-calvin); }
 .tog-krebs  { --tog-color: var(--pw-krebs); }
+.tog-betaox { --tog-color: var(--pw-betaox); }
 
 /* Sunlight glow exception */
 .tog-wrap input:checked + .tog-light {
@@ -384,6 +396,7 @@ main {
 .eq-light      { --eq-color: var(--pw-calvin); }
 .eq-cyclic     { --eq-color: var(--pw-cyclic); }
 .eq-ferment    { --eq-color: var(--pw-ferment); }
+.eq-betaox     { --eq-color: var(--pw-betaox); }
 .equation[class*="eq-"] .eq-name,
 .equation[class*="eq-"] .eq-dot { color: var(--eq-color); }
 
@@ -431,6 +444,7 @@ main {
 .legend-dot.ppp-dot        { --dot-color: var(--pw-ppp); }
 .legend-dot.cyclic-dot     { --dot-color: var(--pw-cyclic); }
 .legend-dot.ferment-dot    { --dot-color: var(--pw-ferment); }
+.legend-dot.betaox-dot     { --dot-color: var(--pw-betaox); }
 .legend-dot.electron       { --dot-color: var(--pw-electron); }
 .legend-dot.proton         { --dot-color: var(--pw-proton); }
 .legend-dot.photon         { --dot-color: var(--pw-photon); }

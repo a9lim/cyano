@@ -18,9 +18,11 @@ export function cacheDOMElements() {
         pppToggle: document.getElementById('ppp-toggle'),
         calvinToggle: document.getElementById('calvin-toggle'),
         krebsToggle: document.getElementById('krebs-toggle'),
+        betaoxToggle: document.getElementById('betaox-toggle'),
         autoplayToggle: document.getElementById('autoplay-toggle'),
         resetBtn: document.getElementById('reset-btn'),
         addGlucoseBtn: document.getElementById('add-glucose-btn'),
+        addFattyAcidBtn: document.getElementById('add-fatty-acid-btn'),
         themeBtn: document.getElementById('theme-btn'),
         menuBtn: document.getElementById('menu-btn'),
         closeStats: document.getElementById('close-stats'),
@@ -42,6 +44,7 @@ export function cacheDOMElements() {
         krebsYield: document.getElementById('krebs-yield'), krebsTurn: document.getElementById('krebs-turn'),
         calvinTurn: document.getElementById('calvin-turn'), glycolysisRun: document.getElementById('glycolysis-run'),
         pppRun: document.getElementById('ppp-run'),
+        betaoxRun: document.getElementById('betaox-run'),
     };
 }
 
@@ -70,6 +73,7 @@ export function bindEvents(dom) {
     dom.pppToggle.addEventListener('change', () => simState.pppEnabled = dom.pppToggle.checked);
     dom.calvinToggle.addEventListener('change', () => simState.calvinEnabled = dom.calvinToggle.checked);
     dom.krebsToggle.addEventListener('change', () => simState.krebsEnabled = dom.krebsToggle.checked);
+    if (dom.betaoxToggle) dom.betaoxToggle.addEventListener('change', () => simState.betaoxEnabled = dom.betaoxToggle.checked);
     if (dom.autoplayToggle) dom.autoplayToggle.addEventListener('change', () => simState.autoPlay = dom.autoplayToggle.checked);
 
     // Reset
@@ -80,8 +84,9 @@ export function bindEvents(dom) {
         updateDashboard();
     });
 
-    // Add glucose
+    // Add substrates
     if (dom.addGlucoseBtn) dom.addGlucoseBtn.addEventListener('click', () => { store.glucose++; updateDashboard(); });
+    if (dom.addFattyAcidBtn) dom.addFattyAcidBtn.addEventListener('click', () => { store.fattyAcid++; updateDashboard(); });
 
     // Theme toggle
     if (dom.themeBtn) dom.themeBtn.addEventListener('click', () => cycleTheme(dom.themeBtn));
@@ -123,6 +128,7 @@ export function bindEvents(dom) {
             if (dom.autoplayToggle) toggleCheck(dom.autoplayToggle, v => simState.autoPlay = v);
         }},
         { key: 'G', label: 'Add glucose', group: 'Simulation', action: () => { store.glucose++; updateDashboard(); } },
+        { key: 'F', label: 'Add fatty acid', group: 'Simulation', action: () => { store.fattyAcid++; updateDashboard(); } },
         { key: 'L', label: 'Toggle light', group: 'Environment', action: () => {
             toggleCheck(dom.lightToggle, v => { simState.lightOn = v; updateTheme(dom.themeBtn); });
         }},
@@ -140,6 +146,9 @@ export function bindEvents(dom) {
         }},
         { key: '4', label: 'Toggle Krebs', group: 'Pathways', action: () => {
             toggleCheck(dom.krebsToggle, v => simState.krebsEnabled = v);
+        }},
+        { key: '5', label: 'Toggle beta oxidation', group: 'Pathways', action: () => {
+            if (dom.betaoxToggle) toggleCheck(dom.betaoxToggle, v => simState.betaoxEnabled = v);
         }},
         { key: 'T', label: 'Toggle theme', group: 'View', action: () => cycleTheme(dom.themeBtn) },
         { key: 'S', label: 'Toggle sidebar', group: 'View', action: () => toggleSidebar(dom) },
@@ -159,6 +168,7 @@ export function bindEvents(dom) {
         oxygen: { title: 'Ambient O\u2082', body: 'Enables aerobic respiration (Krebs cycle + ETC). When off, fermentation regenerates NAD\u207A from NADH to sustain glycolysis.' },
         autoplay: { title: 'Auto-Play', body: 'Automatically advances reactions in priority order: ATP synthase \u2192 ETC \u2192 metabolic pathways. Includes passive ATP/NADPH drain to mimic cellular maintenance.' },
         protons: { title: 'Proton Gradient', body: 'H\u207A ions pumped across the membrane by ETC complexes. Drives ATP synthase (4 H\u207A \u2192 1 ATP). Higher gradient = faster ATP production.' },
+        betaox: { title: 'Beta Oxidation', body: 'Breaks down fatty acids (palmitoyl-CoA) into acetyl-CoA units, producing FADH\u2082 and NADH per round. 7 rounds yield 8 acetyl-CoA.<br>Net: Palmitoyl-CoA \u2192 8 Acetyl-CoA + 7 FADH\u2082 + 7 NADH' },
     };
 
     if (typeof createInfoTip === 'function') {

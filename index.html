@@ -187,6 +187,13 @@
                   <label for="krebs-toggle" class="tog tog-krebs"><span class="tog-thumb"></span></label>
                 </div>
               </div>
+              <div class="ctrl-row">
+                <label for="betaox-toggle">Beta Oxidation <button class="info-trigger" data-info="betaox" aria-label="Beta oxidation info">?</button></label>
+                <div class="tog-wrap">
+                  <input type="checkbox" id="betaox-toggle" checked>
+                  <label for="betaox-toggle" class="tog tog-betaox"><span class="tog-thumb"></span></label>
+                </div>
+              </div>
             </div>
 
             <div class="ctrl-group">
@@ -236,6 +243,7 @@
                 <span class="counter"><span class="counter-lbl">Calvin</span><span id="calvin-turn" class="counter-val cv-calvin">0</span></span>
                 <span class="counter"><span class="counter-lbl">Glyc</span><span id="glycolysis-run" class="counter-val cv-glyc">0</span></span>
                 <span class="counter"><span class="counter-lbl">PPP</span><span id="ppp-run" class="counter-val cv-ppp">0</span></span>
+                <span class="counter"><span class="counter-lbl">β-Ox</span><span id="betaox-run" class="counter-val cv-betaox">0</span></span>
               </div>
             </div>
 
@@ -299,6 +307,8 @@
               <div class="equation eq-light"><span class="eq-dot"></span><span class="eq-name">Linear Light Reactions</span><span class="eq-formula">H&#x2082;O &#x2192; &#xBD;O&#x2082; + NADPH (&#x2248;1.5 ATP)</span></div>
               <div class="equation eq-cyclic"><span class="eq-dot"></span><span class="eq-name">Cyclic Light Reactions</span><span class="eq-formula">(4 H&#x207A; &#x2248; 1 ATP)</span></div>
               <div class="equation eq-ferment"><span class="eq-dot"></span><span class="eq-name">Fermentation</span><span class="eq-formula">2 Pyr + 2 NADH &#x2192; 2 EtOH + 2 CO&#x2082;</span></div>
+              <div class="equation eq-betaox"><span class="eq-dot"></span><span class="eq-name">Beta Oxidation &#xD7;7</span><span class="eq-formula">Palmitoyl-CoA &#x2192; 8 AcCoA + 7 FADH&#x2082; + 7 NADH</span></div>
+              <div class="equation eq-betaox"><span class="eq-dot"></span><span class="eq-name">FA Synthesis &#xD7;7</span><span class="eq-formula">8 AcCoA + 14 NADPH + 14 ATP &#x2192; Palmitoyl-CoA</span></div>
             </div>
 
             <div class="ref-group">
@@ -311,6 +321,7 @@
                 <div class="legend-item"><span class="legend-dot ppp-dot"></span>PPP / ATP Synthase</div>
                 <div class="legend-item"><span class="legend-dot cyclic-dot"></span>Cyclic / BR</div>
                 <div class="legend-item"><span class="legend-dot ferment-dot"></span>Fermentation / NNT</div>
+                <div class="legend-item"><span class="legend-dot betaox-dot"></span>Beta Oxidation / FA Synthesis</div>
                 <span class="legend-sub">Particles</span>
                 <div class="legend-item"><span class="legend-dot electron"></span>Electron (e&#x207B;)</div>
                 <div class="legend-item"><span class="legend-dot proton"></span>Proton (H&#x207A;)</div>
@@ -323,14 +334,23 @@
 
     </aside>
 
-    <!-- ─── Floating Glucose Bar (bottom) ─── -->
+    <!-- ─── Floating Substrate Bar (bottom) ─── -->
     <div id="glucose-bar" class="sim-bar glass">
-      <button id="add-glucose-btn" class="glucose-pill" title="Add glucose to the system">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-          <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-        Glucose
-      </button>
+      <div class="substrate-pill-group">
+        <button id="add-glucose-btn" class="substrate-pill substrate-pill-left" title="Add glucose to the system (G)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Glucose
+        </button>
+        <span class="substrate-divider"></span>
+        <button id="add-fatty-acid-btn" class="substrate-pill substrate-pill-right" title="Add fatty acid to the system (F)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Fatty Acid
+        </button>
+      </div>
     </div>
   </main>
 

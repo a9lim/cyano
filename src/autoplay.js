@@ -48,7 +48,7 @@ export function autoplayTick(dt) {
             () => advanceStep('run_krebs'),
             () => advanceStep('pdh'),
             () => { if (!simState.lightOn) advanceStep('run_glycolysis_lower'); },
-            () => advanceStep('run_glycolysis_upper'),
+            () => advanceStep('run_glycolysis_upper', null, simState.lightOn ? 'reverse' : undefined),
             () => advanceStep('run_calvin'),
             () => advanceStep('run_ppp'),
             () => {
@@ -59,6 +59,14 @@ export function autoplayTick(dt) {
                 } else {
                     advanceStep('fermentation');
                     advanceStep('adh', null, 'reverse');
+                }
+            },
+            () => advanceStep('run_betaox', null, simState.lightOn ? 'reverse' : undefined),
+            () => {
+                // Gluconeogenesis: run reverse glycolysis when glucose is low and pyruvate is available
+                if (store.glucose < 2 && store.pyruvate >= 2) {
+                    advanceStep('run_glycolysis_lower', null, 'reverse');
+                    advanceStep('run_glycolysis_upper', null, 'reverse');
                 }
             },
         ];

@@ -78,10 +78,13 @@ export function advanceGlycolysis(idx, direction) {
         else if (rev && store.pep >= 2) { store.pep -= 2; store.pga2 += 2; return { enzyme: 'Enolase (Reverse)', reaction: '2 PEP → 2 2-PGA', yields: null }; }
     }
     else if (idx === 9) {
-        if (store.pep >= 2 && store.atp <= store.totalAtpAdp - 2) {
+        if (fwd && store.pep >= 2 && store.atp <= store.totalAtpAdp - 2) {
             store.pep -= 2; store.pyruvate += 2; store.atp += 2;
             counters.glycRuns++;
             return { enzyme: 'PK', reaction: '2 PEP + 2 ADP → 2 Pyruvate + 2 ATP', yields: { atp: 2 } };
+        } else if (rev && store.pyruvate >= 2 && store.atp >= 2) {
+            store.pyruvate -= 2; store.atp -= 2; store.pep += 2;
+            return { enzyme: 'PC+PEPCK', reaction: '2 Pyruvate + 2 ATP → 2 PEP', yields: { atpConsume: 2 } };
         }
     }
     else if (idx === 10) {
@@ -112,4 +115,19 @@ export function runGlycolysisLower() {
     store.pyruvate += 2;
     counters.glycRuns++;
     return { enzyme: 'Glycolysis (Lower)', reaction: '2 G3P → 2 Pyruvate + 4 ATP + 2 NADH', yields: { atp: 4, nadh: 2 } };
+}
+
+export function runGlycolysisLowerReverse() {
+    if (!simState.glycolysisEnabled || store.pyruvate < 2 || store.atp < 2) return false;
+    store.pyruvate -= 2;
+    store.atp -= 2;
+    store.pep += 2;
+    return { enzyme: 'Gluconeogenesis (PC+PEPCK)', reaction: '2 Pyruvate + 2 ATP → 2 PEP', yields: { atpConsume: 2 } };
+}
+
+export function runGlycolysisUpperReverse() {
+    if (!simState.glycolysisEnabled || store.g3p < 2) return false;
+    store.g3p -= 2;
+    store.glucose++;
+    return { enzyme: 'Gluconeogenesis (Upper)', reaction: '2 G3P → Glucose', yields: null };
 }

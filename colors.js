@@ -22,7 +22,7 @@ _PALETTE.slate  = _PALETTE.extended.slate;
 
 // Cofactor bar colors (from extended palette)
 _PALETTE.atp   = _PALETTE.extended.yellow;
-_PALETTE.nadh  = _PALETTE.extended.cyan;
+_PALETTE.nadh  = _PALETTE.extended.blue;
 _PALETTE.nadph = _PALETTE.extended.green;
 _PALETTE.fadh2 = _PALETTE.extended.rose;
 
@@ -82,6 +82,7 @@ const _BASE = {
     ['pw-electron',    'cyan'],
     ['pw-proton',      'red'],
     ['pw-photon',      'yellow'],
+    ['pw-betaox',      'yellow'],
   ];
 
   const genShared = () => shared.map(([name, key, a]) =>

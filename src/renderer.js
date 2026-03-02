@@ -17,10 +17,13 @@ const _r = window._r;
 // Map enzyme hitbox labels → ENZYMES info key
 const _enzymeInfoKey = {
     'HK/G6Pase': 'HK', 'PGI': 'PGI', 'PFK/FBPase': 'PFK', 'ALDO': 'ALDO',
-    'GAPDH': 'GAPDH', 'PGK': 'PGK', 'PGM': 'PGM', 'ENO': 'ENO', 'PK': 'PK',
+    'GAPDH': 'GAPDH', 'PGK': 'PGK', 'PGM': 'PGM', 'ENO': 'ENO', 'PK/PC+PEPCK': 'PK',
     'TKT+TAL/TK+SBP': 'TKT', 'PDH': 'PDH', 'PDC': 'PDC', 'ADH': 'ADH',
     'ALDH': 'ALDH', 'ACS': 'ACS', 'RuBisCO': 'RuBisCO', 'PRK': 'PRK',
+    'ACAD/ACC+ER': 'ACAD', 'ECH/DH': 'ECH', 'HACD/KR': 'HACD', 'Thiolase/KAS': 'ACAT',
     'G6PDH': 'G6PDH', '6PGL': '6PGL', '6PGDH': '6PGDH',
+    'KREBS×2': 'run_krebs', 'CALVIN×6': 'run_calvin', 'PPP×6': 'run_ppp',
+    'β-OX×7': 'run_betaox', 'Glc⇌G3P': 'run_glyc_upper', 'G3P⇌Pyr': 'run_glyc_lower',
     'CS': 'CS', 'ACO': 'ACO', 'IDH': 'IDH', 'KGDH': 'KGDH',
     'SCS': 'SCS', 'SDH': 'SDH', 'FUM': 'FUM', 'MDH': 'MDH',
 };
@@ -32,7 +35,7 @@ const _etcInfoKey = {
 
 // Pre-computed constants for hot render paths (avoid per-frame allocations)
 const _TWO_X = new Set(['g3p', 'bpg', 'pga3', 'pga2', 'pep', 'pyruvate', 'acetylCoA', 'ethanol', 'acetaldehyde', 'aceticAcid']);
-const _KREBS_METABS = new Set(['acetylCoA', 'citrate', 'isocitrate', 'akg', 'succoa', 'succinate', 'fumarate', 'malate', 'oaa']);
+const _KREBS_METABS = new Set(['citrate', 'isocitrate', 'akg', 'succoa', 'succinate', 'fumarate', 'malate', 'oaa']);
 
 // Static lookup for metabolite fade alpha — replaces 17-branch if/else in getMetabAlpha
 const _fermentAlpha = (state) => state.fermentFade ? state.fermentFade.value : ((!state.oxygenAvailable && state.glycolysisEnabled) ? 1 : 0);
@@ -46,14 +49,19 @@ const _METAB_ALPHA = {
     pga3:         (g, c) => Math.max(g, c),
     pga2:         (g) => g,
     pep:          (g) => g,
-    pyruvate:     (g, c, p, k) => Math.max(g, k),
-    ethanol:      (g, c, p, k, s) => Math.max(_fermentAlpha(s), k),
-    acetaldehyde: (g, c, p, k, s) => Math.max(_fermentAlpha(s), k),
-    aceticAcid:   (g, c, p, k) => k,
+    pyruvate:     (g) => g,
+    acetylCoA:    (g, c, p, k, s) => Math.max(k, s.betaoxFade ? s.betaoxFade.value : (s.betaoxEnabled ? 1 : 0)),
+    ethanol:      (g, c, p, k, s) => Math.max(_fermentAlpha(s), g),
+    acetaldehyde: (g, c, p, k, s) => Math.max(_fermentAlpha(s), g),
+    aceticAcid:   (g) => g,
     pgl6:         (g, c, p) => p,
     pga6:         (g, c, p) => p,
     r5p:          (g, c, p) => Math.max(p, c),
     rubp:         (g, c) => c,
+    fattyAcid:    (g, c, p, k, s) => s.betaoxFade ? s.betaoxFade.value : (s.betaoxEnabled ? 1 : 0),
+    enoylCoA:     (g, c, p, k, s) => s.betaoxFade ? s.betaoxFade.value : (s.betaoxEnabled ? 1 : 0),
+    hydroxyCoA:   (g, c, p, k, s) => s.betaoxFade ? s.betaoxFade.value : (s.betaoxEnabled ? 1 : 0),
+    ketoCoA:      (g, c, p, k, s) => s.betaoxFade ? s.betaoxFade.value : (s.betaoxEnabled ? 1 : 0),
 };
 
 const Renderer = {
@@ -98,6 +106,7 @@ const Renderer = {
 
             fermentation: R.fermentation.stroke,
             shared:       R.shared.stroke,
+            betaox:       R.betaox.stroke,
         };
         this.resize();
         let resizeTimer;
@@ -108,12 +117,13 @@ const Renderer = {
 
         // Create shared camera — center-point model with biosim-specific clamping
         const initZoom = this._minZoom();
-        const cw = Math.max(this.W, MIN_CONTENT_W), ch = Math.max(this.H, MIN_CONTENT_H);
+        const cw = this._LW || MIN_CONTENT_W;
+        const ch = this._contentH || MIN_CONTENT_H;
         this.camera = createCamera({
             width: this.W,
             height: this.H,
-            x: cw / 2,
-            y: ch / 2,
+            x: this.W / (2 * initZoom),
+            y: this.H / (2 * initZoom),
             zoom: initZoom,
             minZoom: initZoom,
             maxZoom: 3,
@@ -126,9 +136,9 @@ const Renderer = {
             reset: document.getElementById('zoom-reset-btn'),
             display: zoomEl,
             onReset: () => {
-                const cw2 = Math.max(this.W, MIN_CONTENT_W);
-                const ch2 = Math.max(this.H, MIN_CONTENT_H);
-                this.camera.reset(cw2 / 2, ch2 / 2, this._minZoom());
+                this._updateLayout();
+                const mz = this._minZoom();
+                this.camera.reset(this.W / (2 * mz), this.H / (2 * mz), mz);
             },
         });
         this._initInteraction();
@@ -155,18 +165,21 @@ const Renderer = {
 
     _clampCamera(cam) {
         const vw = cam.viewportW, vh = cam.viewportH;
-        const cw = Math.max(vw, MIN_CONTENT_W), ch = Math.max(vh, MIN_CONTENT_H);
+        const cw = this._LW || Math.max(vw, MIN_CONTENT_W);
+        const ch = this._contentH || Math.max(vh, MIN_CONTENT_H);
         const sw = cw * cam.zoom, sh = ch * cam.zoom;
-        // If content fits, center it; otherwise clamp so edges stay visible
-        if (sw <= vw) cam.x = cw / 2;
+        // Left/top-align when content fits; otherwise clamp so edges stay visible
+        if (sw <= vw) cam.x = vw / (2 * cam.zoom);
         else cam.x = clamp(cam.x, vw / (2 * cam.zoom), cw - vw / (2 * cam.zoom));
-        if (sh <= vh) cam.y = ch / 2;
+        if (sh <= vh) cam.y = vh / (2 * cam.zoom);
         else cam.y = clamp(cam.y, vh / (2 * cam.zoom), ch - vh / (2 * cam.zoom));
     },
 
-    /** Minimum zoom: allow zooming out enough to fit the full content width */
+    /** Minimum zoom: allow zooming out enough to fit full content width & height */
     _minZoom() {
-        return Math.min(1, this.W / MIN_CONTENT_W);
+        const cw = this._LW || MIN_CONTENT_W;
+        const ch = this._contentH || MIN_CONTENT_H;
+        return Math.min(1, this.W / cw, this.H / ch);
     },
 
     /** Convert screen coordinates to world coordinates via camera */
@@ -350,8 +363,16 @@ const Renderer = {
     },
 
     _updateLayout() {
-        const layout = computeLayout(this.W, this.H, this._sidebarInsetCurrent);
+        // First pass: get contentH (depends on H, not W)
+        const pre = computeLayout(this.W, this.H, this._sidebarInsetCurrent);
+        // If vertical constraint forces zoom < 1, widen layout so content
+        // fills the viewport edge-to-edge at that zoom level
+        const vz = Math.min(1, this.H / pre.contentH);
+        const layout = vz < 1
+            ? computeLayout(this.W, this.H, this._sidebarInsetCurrent, vz)
+            : pre;
         this._LW = layout.LW;
+        this._contentH = layout.contentH;
         this.membraneY = layout.membraneY;
         this.membraneH = layout.membraneH;
         this.etcComplexes = layout.etcComplexes;
@@ -397,6 +418,7 @@ const Renderer = {
         this.drawETCChain(ctx, state, lm);
         this.drawCytoplasmNetwork(ctx, state, lm);
         this.drawKrebsCycle(ctx, state, lm);
+        this.drawBetaOxCycle(ctx, state, lm);
         Particles.draw(ctx, state);
         this.drawLabels(ctx, state, lm);
 
@@ -604,24 +626,34 @@ const Renderer = {
         }
     },
 
-    /** Horizontal labeled run-arrow with arrowhead and hitbox (used for glycolysis upper/lower) */
-    _drawRunArrow(ctx, fromX, toX, y, color, alpha, lineW, headLen, label, pathway) {
+    /** Horizontal labeled run-arrow with arrowhead and hitbox (used for glycolysis upper/lower).
+     *  When bidir is true, draws an arrowhead on the start end too (pointing left). */
+    _drawRunArrow(ctx, fromX, toX, y, color, alpha, lineW, headLen, label, pathway, bidir) {
         const midX = (fromX + toX) / 2;
         const halfW = (toX - fromX) / 2 - 16;
         const x1 = midX - halfW, x2 = midX + halfW;
         ctx.beginPath();
-        ctx.moveTo(x1, y); ctx.lineTo(midX - 38, y);
+        ctx.moveTo(bidir ? x1 + headLen : x1, y); ctx.lineTo(midX - 38, y);
         ctx.moveTo(midX + 38, y); ctx.lineTo(x2 - headLen, y);
         ctx.strokeStyle = color; ctx.lineWidth = lineW; ctx.globalAlpha = alpha; ctx.stroke();
+        // Forward arrowhead (right)
         ctx.beginPath();
         ctx.moveTo(x2, y);
         ctx.lineTo(x2 - headLen, y - headLen * 0.5);
         ctx.lineTo(x2 - headLen, y + headLen * 0.5);
         ctx.fillStyle = color; ctx.fill();
+        // Reverse arrowhead (left)
+        if (bidir) {
+            ctx.beginPath();
+            ctx.moveTo(x1, y);
+            ctx.lineTo(x1 + headLen, y - headLen * 0.5);
+            ctx.lineTo(x1 + headLen, y + headLen * 0.5);
+            ctx.fill();
+        }
         ctx.font = _F.mono700_12;
         ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText(label, midX, y);
-        this.enzymeHitboxes.push({ cx: midX, cy: y, w: halfW * 2, h: 30, pathway, stepIndex: 0 });
+        this.enzymeHitboxes.push({ cx: midX, cy: y, w: halfW * 2, h: 30, pathway, stepIndex: 0, enzyme: label });
     },
 
     drawSmallProtonArrow(ctx, x, y, label, dir = 'up') {
@@ -664,6 +696,7 @@ const Renderer = {
         const cA = state.calvinFade ? state.calvinFade.value : ((state.calvinEnabled && state.lightOn) ? 1 : 0);
         const pA = state.pppFade ? state.pppFade.value : (state.pppEnabled ? 1 : 0);
         const kA = state.krebsFade ? state.krebsFade.value : ((state.krebsEnabled && state.oxygenAvailable) ? 1 : 0);
+        const betaoxAlpha = state.betaoxFade ? state.betaoxFade.value : (state.betaoxEnabled ? 1 : 0);
         const gcA = Math.max(gA, cA);  // shared glycolysis ↔ Calvin
         const gpA = Math.max(gA, pA);  // shared glycolysis ↔ PPP
         const pcA = Math.max(pA, cA);  // shared PPP ↔ Calvin
@@ -707,7 +740,7 @@ const Renderer = {
             this.drawBidirArrow(ctx, m.pga3, m.pga2, 'PGM', gC, gC, gS === 7, 'glycolysis', 7);
             this.drawBidirArrow(ctx, m.pga2, m.pep, 'ENO', gC, gC, gS === 8, 'glycolysis', 8);
 
-            this.drawEnzymeArrow(ctx, m.pep, m.pyruvate, 'PK', gC, gS === 9, 'glycolysis', 9);
+            this.drawBidirArrow(ctx, m.pep, m.pyruvate, 'PK/PC+PEPCK', gC, gC, gS === 9, 'glycolysis', 9);
             this.drawFloatLabel(ctx, (m.pep.cx + m.pyruvate.cx) / 2, (m.pep.cy + m.pyruvate.cy) / 2 + 24, '+ATP', gC);
 
             // Yield badges
@@ -719,8 +752,8 @@ const Renderer = {
             const glw = CFG.cycleStrokeWidth; // match cycle target thickness
             const gAhL = CFG.cycleTipLen;      // arrowhead length matching cycles
 
-            this._drawRunArrow(ctx, m.glucose.cx, splitX, runY, gC, gA, glw, gAhL, 'Glc→G3P', 'run_glycolysis_upper');
-            this._drawRunArrow(ctx, splitX, m.pyruvate.cx, runY, gC, gA, glw, gAhL, 'G3P→Pyr', 'run_glycolysis_lower');
+            this._drawRunArrow(ctx, m.glucose.cx, splitX, runY, gC, gA, glw, gAhL, 'Glc⇌G3P', 'run_glycolysis_upper', true);
+            this._drawRunArrow(ctx, splitX, m.pyruvate.cx, runY, gC, gA, glw, gAhL, 'G3P⇌Pyr', 'run_glycolysis_lower', true);
 
             ctx.restore();
         }
@@ -756,15 +789,19 @@ const Renderer = {
         }
 
         // ══════════════════════════════════════════════════
-        // PYRUVATE → ACETYL-CoA (fades with Krebs / O₂)
+        // PYRUVATE → ACETYL-CoA (visible when Krebs or Beta-ox active)
         // ══════════════════════════════════════════════════
-        if (kA > 0.01) {
-            ctx.save(); ctx.globalAlpha = kA;
-            this.drawEnzymeArrow(ctx, m.pyruvate, m.acetylCoA, 'PDH', gC, false, 'pdh', 0);
-            this.drawFloatLabel(ctx, m.pyruvate.cx - 30, (m.pyruvate.cy + m.acetylCoA.cy) / 2 - 2, '+NADH', gC);
-            this.drawFloatLabel(ctx, m.pyruvate.cx - 30, (m.pyruvate.cy + m.acetylCoA.cy) / 2 + 10, '+CO₂', gC);
-            ctx.restore();
+        {
+            const pdhA = Math.max(kA, betaoxAlpha);
+            if (pdhA > 0.01) {
+                ctx.save(); ctx.globalAlpha = pdhA;
+                this.drawEnzymeArrow(ctx, m.pyruvate, m.acetylCoA, 'PDH', gC, false, 'pdh', 0);
+                this.drawFloatLabel(ctx, m.pyruvate.cx - 30, (m.pyruvate.cy + m.acetylCoA.cy) / 2 - 2, '+NADH', gC);
+                this.drawFloatLabel(ctx, m.pyruvate.cx - 30, (m.pyruvate.cy + m.acetylCoA.cy) / 2 + 10, '+CO₂', gC);
+                ctx.restore();
+            }
         }
+
         // PYRUVATE → ACETALDEHYDE (PDC, anaerobic fermentation)
         {
             const fmA = state.fermentFade ? state.fermentFade.value : ((!state.oxygenAvailable && state.glycolysisEnabled) ? 1 : 0);
@@ -788,13 +825,16 @@ const Renderer = {
             }
         }
         // ACETALDEHYDE → ACETIC ACID (ALDH, aerobic) and ACETIC ACID → ACETYL-COA (ACS)
-        if (kA > 0.01) {
-            ctx.save(); ctx.globalAlpha = kA;
-            this.drawEnzymeArrow(ctx, m.acetaldehyde, m.aceticAcid, 'ALDH', gC, false, 'aldh', 0);
-            this.drawFloatLabel(ctx, m.acetaldehyde.cx - 42, (m.acetaldehyde.cy + m.aceticAcid.cy) / 2 + 4, '+NADH', gC);
-            this.drawEnzymeArrow(ctx, m.aceticAcid, m.acetylCoA, 'ACS', gC, false, 'acs', 0);
-            this.drawFloatLabel(ctx, (m.aceticAcid.cx + m.acetylCoA.cx) / 2, (m.aceticAcid.cy + m.acetylCoA.cy) / 2 + 24, '-ATP', gC);
-            ctx.restore();
+        {
+            const acsA = Math.max(kA, betaoxAlpha);
+            if (acsA > 0.01) {
+                ctx.save(); ctx.globalAlpha = acsA;
+                this.drawEnzymeArrow(ctx, m.acetaldehyde, m.aceticAcid, 'ALDH', gC, false, 'aldh', 0);
+                this.drawFloatLabel(ctx, m.acetaldehyde.cx - 42, (m.acetaldehyde.cy + m.aceticAcid.cy) / 2 + 4, '+NADH', gC);
+                this.drawEnzymeArrow(ctx, m.aceticAcid, m.acetylCoA, 'ACS', gC, false, 'acs', 0);
+                this.drawFloatLabel(ctx, (m.aceticAcid.cx + m.acetylCoA.cx) / 2, (m.aceticAcid.cy + m.acetylCoA.cy) / 2 + 24, '-2 ATP', gC);
+                ctx.restore();
+            }
         }
 
         // ══════════════════════════════════════════════════
@@ -813,7 +853,7 @@ const Renderer = {
             const ccx = (m.r5p.cx + m.rubp.cx) / 2;
             const ccy = (m.r5p.cy + m.f6p.cy) / 2;
             EnzymeStyles.drawCycleTarget(ctx, ccx, ccy, cC, 'CALVIN×6', 1, state.calvinRot ? state.calvinRot.angle : 0);
-            this.enzymeHitboxes.push({ cx: ccx, cy: ccy, w: 50, h: 50, pathway: 'run_calvin', stepIndex: 0 });
+            this.enzymeHitboxes.push({ cx: ccx, cy: ccy, w: 50, h: 50, pathway: 'run_calvin', stepIndex: 0, enzyme: 'CALVIN×6' });
             ctx.restore();
         }
 
@@ -835,7 +875,7 @@ const Renderer = {
             const cx = (m.g6p.cx + m.r5p.cx) / 2;
             const cy = (m.g6p.cy + m.pga6.cy) / 2;
             EnzymeStyles.drawCycleTarget(ctx, cx, cy, pC, 'PPP×6', 1, state.pppRot ? state.pppRot.angle : 0);
-            this.enzymeHitboxes.push({ cx, cy, w: 50, h: 50, pathway: 'run_ppp', stepIndex: 0 });
+            this.enzymeHitboxes.push({ cx, cy, w: 50, h: 50, pathway: 'run_ppp', stepIndex: 0, enzyme: 'PPP×6' });
             ctx.restore();
         }
 
@@ -1001,7 +1041,46 @@ const Renderer = {
         const centerKx = (m.succoa.cx + m.oaa.cx) / 2;
         const centerKy = (m.akg.cy + m.succinate.cy) / 2;
         EnzymeStyles.drawCycleTarget(ctx, centerKx, centerKy, kC, 'KREBS×2', -1, state.krebsRot ? state.krebsRot.angle : 0);
-        this.enzymeHitboxes.push({ cx: centerKx, cy: centerKy, w: 50, h: 50, pathway: 'run_krebs', stepIndex: 0 });
+        this.enzymeHitboxes.push({ cx: centerKx, cy: centerKy, w: 50, h: 50, pathway: 'run_krebs', stepIndex: 0, enzyme: 'KREBS×2' });
+
+        ctx.restore();
+    },
+
+    /* ---- BETA OXIDATION CYCLE (2×2 clockwise) ---- */
+    drawBetaOxCycle(ctx, state, lm) {
+        const m = this.metab;
+        const bC = this.pathwayColors.betaox;
+        const bA = state.betaoxFade ? state.betaoxFade.value : (state.betaoxEnabled ? 1 : 0);
+
+        if (bA < 0.01) return;
+        ctx.save();
+        ctx.globalAlpha = bA;
+
+        ctx.font = _F.body400_8;
+        ctx.fillStyle = EnzymeStyles.t(lm).sectionLabelAlt; ctx.textAlign = 'center';
+
+        // Step 0: ACAD/ACC+ER — Fatty Acid ⇌ Enoyl-CoA
+        this.drawBidirArrow(ctx, m.fattyAcid, m.enoylCoA, 'ACAD/ACC+ER', bC, bC, false, 'betaox', 0);
+        this.drawFloatLabel(ctx, (m.fattyAcid.cx + m.enoylCoA.cx) / 2, m.fattyAcid.cy - 14, '+FADH₂/−NADPH,ATP', bC);
+
+        // Step 1: ECH/DH — Enoyl-CoA ⇌ OH-CoA
+        this.drawBidirArrow(ctx, m.enoylCoA, m.hydroxyCoA, 'ECH/DH', bC, bC, false, 'betaox', 1);
+
+        // Step 2: HACD/KR — OH-CoA ⇌ Keto-CoA
+        this.drawBidirArrow(ctx, m.hydroxyCoA, m.ketoCoA, 'HACD/KR', bC, bC, false, 'betaox', 2);
+        this.drawFloatLabel(ctx, (m.hydroxyCoA.cx + m.ketoCoA.cx) / 2, m.hydroxyCoA.cy + 24, '+NADH/−NADPH', bC);
+
+        // Step 3: Thiolase/KAS — Keto-CoA ⇌ Fatty Acid
+        this.drawBidirArrow(ctx, m.ketoCoA, m.fattyAcid, 'Thiolase/KAS', bC, bC, false, 'betaox', 3);
+
+        // Connecting arrow: Fatty Acid ⇌ Acetyl-CoA (product/substrate flow)
+        this.drawBidirArrow(ctx, m.fattyAcid, m.acetylCoA, '', bC, bC, false, undefined, undefined);
+
+        // Beta Oxidation cycle interaction target (center of 2×2 grid)
+        const centerX = (m.fattyAcid.cx + m.enoylCoA.cx) / 2;
+        const centerY = (m.fattyAcid.cy + m.ketoCoA.cy) / 2;
+        EnzymeStyles.drawCycleTarget(ctx, centerX, centerY, bC, 'β-OX×7', 1, state.betaoxRot ? state.betaoxRot.angle : 0, true);
+        this.enzymeHitboxes.push({ cx: centerX, cy: centerY, w: 50, h: 50, pathway: 'run_betaox', stepIndex: 0, enzyme: 'β-OX×7' });
 
         ctx.restore();
     },
