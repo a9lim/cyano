@@ -1,7 +1,8 @@
 // ─── Reaction dispatch & advanceStep ───
 import { _TWO_PI } from '../anim.js';
-import { simState } from '../state.js';
+import { simState, store } from '../state.js';
 import { showActiveStep, updateDashboard } from '../dashboard.js';
+import { getRegulationFactor, getRegulationReason } from '../regulation.js';
 import { advanceGlycolysis, runGlycolysisUpper, runGlycolysisLower } from './glycolysis.js';
 import { advanceKrebs, runKrebsCycle } from './krebs.js';
 import { advanceCalvin, runCalvinCycle } from './calvin.js';
@@ -44,7 +45,27 @@ const _rotNudge = {
 
 export function advanceStep(pathway, stepIndex, direction) {
     const handler = _dispatch[pathway];
-    const result = handler ? handler(stepIndex, direction) : false;
+    if (!handler) { updateDashboard(); return false; }
+
+    // Check allosteric regulation
+    const regFactor = getRegulationFactor(pathway, stepIndex, store);
+    if (regFactor <= 0) {
+        // Fully inhibited — show toast on manual clicks only (not autoplay)
+        if (!simState.autoPlay) {
+            const reason = getRegulationReason(pathway, stepIndex, store);
+            if (reason && typeof showToast === 'function') showToast(reason);
+        }
+        updateDashboard();
+        return false;
+    }
+
+    // Partial inhibition in autoplay: probabilistic gate
+    if (regFactor < 1 && simState.autoPlay && Math.random() > regFactor) {
+        updateDashboard();
+        return false;
+    }
+
+    const result = handler(stepIndex, direction);
 
     if (result) {
         if (result.enzyme) showActiveStep(result.enzyme, result.reaction, result.yields);
@@ -54,4 +75,12 @@ export function advanceStep(pathway, stepIndex, direction) {
 
     updateDashboard();
     return !!result;
+}
+
+/**
+ * Dry-run check: can this reaction fire (substrates available + regulation)?
+ */
+export function canReact(pathway, stepIndex) {
+    const regFactor = getRegulationFactor(pathway, stepIndex, store);
+    return regFactor > 0;
 }

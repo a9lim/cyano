@@ -38,7 +38,9 @@ main.js (entry point)
   ├── src/layout.js       — computeLayout() — membrane/ETC/metabolite positioning
   ├── src/particles.js    — Particles — spawn/draw electrons, protons, photons with trail animations
   ├── src/autoplay.js     — autoplayTick(), resetAutoplayTimers() — automated pathway cycling
-  ├── src/ui.js           — cacheDOMElements(), bindEvents() — DOM cache, event binding, intro screen
+  ├── src/ui.js           — cacheDOMElements(), bindEvents() — DOM cache, event binding, intro screen, shortcuts, info tips
+  ├── src/info.js         — ENZYMES, METABOLITES — enzyme/metabolite data for info popups
+  ├── src/regulation.js   — getRegulationFactor(), getRegulationReason() — allosteric regulation
   └── src/reactions/
         ├── dispatch.js   — _dispatch map, _rotNudge, advanceStep() — unified reaction dispatcher
         ├── glycolysis.js — advanceGlycolysis, runGlycolysisUpper/Lower
@@ -53,8 +55,8 @@ Color pipeline: `_PALETTE` → `_BASE` families → `_ROLE` semantics → `_pal(
 
 ### Data Flow
 
-- **Click-to-react**: Canvas click → `Renderer.enzymeHitboxes` → `advanceStep()` → validate substrates → mutate `store` → spawn particles → `updateDashboard()`
-- **Auto-play**: 400ms tick, priority order: ATP Synthase → ETC → PDH → Krebs → Glycolysis → Fermentation → Calvin → PPP → BR
+- **Click-to-react**: Canvas click → `Renderer.enzymeHitboxes` → `advanceStep()` → regulation check → validate substrates → mutate `store` → spawn particles → `updateDashboard()`
+- **Auto-play**: 400ms tick, priority order: ATP Synthase → ETC → PDH → Krebs → Glycolysis → Fermentation → Calvin → PPP → BR. Regulation factor gates autoplay reactions probabilistically.
 - **Shared nodes**: `_METAB_ALPHA` table in renderer.js maps metabolites (G3P, F6P, R5P…) to owning-pathway fade alpha
 
 ### Draw Pipeline
@@ -63,9 +65,32 @@ Color pipeline: `_PALETTE` → `_BASE` families → `_ROLE` semantics → `_pal(
 
 ### State Model
 
-- `store` — closed-system pools. ATP+ADP, NAD⁺+NADH, NADP⁺+NADPH, FAD+FADH₂ conserved.
+- `store` — closed-system pools. ATP+ADP, NAD⁺+NADH, NADP⁺+NADPH, FAD+FADH₂ conserved. Realistic initial ratios: 36 ATP (90% of 40 pool), 4 NADH (10%), 4 NADPH (10%), 2 FADH₂ (10%), 3 glucose, 6 G6P, 2 OAA, 6 RuBP.
 - `simState` — pathway enables, environment flags (`lightOn`, `oxygenAvailable`), counters.
 - Bidirectional enzymes check both directions.
+
+### Allosteric Regulation
+
+`src/regulation.js` provides `getRegulationFactor(pathway, stepIndex, store)` returning 0–1.5:
+
+| Enzyme | Condition | Factor |
+|--------|-----------|--------|
+| PFK (glycolysis step 2) | ATP/total > 0.8 | 0 (blocked) |
+| PFK | ATP/total > 0.6 | 0.5 (partial) |
+| Citrate synthase (krebs step 0) | ATP/total > 0.85 | 0.3 |
+| Isocitrate DH (krebs step 2) | NADH/total > 0.75 | 0 |
+| PDH | NADH > 0.7 AND acetylCoA > 4 | 0 |
+| G6PDH (PPP step 0) | NADPH/total < 0.2 | 1.5 (activated) |
+
+`dispatch.js` checks regulation before firing: factor 0 blocks with toast message; factor < 1 in autoplay uses probabilistic gating. `canReact(pathway, stepIndex)` export allows dry-run checks for enzyme dimming.
+
+### Enzyme/Metabolite Info
+
+`src/info.js` exports `ENZYMES` (~35 entries) and `METABOLITES` (~26 entries) with name, description, pathway, equation, and regulation notes.
+
+### Enzyme Dimming
+
+Renderer uses `_regAlpha(pathway, stepIndex)` to dim enzyme arrows: 0.4 alpha when blocked (regulation factor 0), 0.7 when partially inhibited (factor < 1), 1.0 when fully available.
 
 ### Membrane & ETC
 
@@ -142,6 +167,11 @@ JS binds via `getElementById` (~40 IDs). **Only IDs must be preserved** — clas
 - `_calcEndpoints` + `_ep` reusable object shared across arrow-draw methods in renderer.js
 - `_drawRunArrow()` — shared helper for glycolysis run arrows (hitbox + label + arrowhead)
 - ATP Synthase and NNT always visible (no fade alpha); glow when `protonGradient > 0`. Other ETC complexes fade with `rA`/`phA`.
+
+### Keyboard Shortcuts & Info Tips
+
+- **Shortcuts** via `initShortcuts()` from `shared-shortcuts.js`: Space (autoplay), G (glucose), L (light), O (oxygen), 1-4 (pathway toggles: glycolysis/PPP/Calvin/Krebs), T (theme), S (sidebar).
+- **Info tips** via `createInfoTip()` from `shared-info.js`: `?` buttons next to each pathway toggle (glycolysis, PPP, Calvin, Krebs), Sunlight, Ambient O₂, Auto-Play, and Proton Motive Force. Data defined inline in `ui.js`.
 
 ### CSS Parameterization
 

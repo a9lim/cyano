@@ -21,14 +21,14 @@ export const simState = {
 };
 
 export const store = {
-    // Core energy
-    atp: 5, nadh: 0, nadph: 0, fadh2: 0,
+    // Core energy (realistic resting ratios)
+    atp: 36, nadh: 4, nadph: 4, fadh2: 2,
     totalAtpAdp: 40, totalNad: 40, totalNadp: 40, totalFad: 20,
     // Active tracking
     protonGradient: 0, protonsPumped: 0, o2Produced: 0, o2Consumed: 0, h2oSplit: 0, h2oProduced: 0, electronsTransferred: 0, co2Fixed: 0, co2Produced: 0,
 
     // Glycolysis / Gluconeogenesis
-    glucose: 1, g6p: 6, f6p: 0, f16bp: 0, g3p: 0, bpg: 0, pga3: 0, pga2: 0, pep: 0, pyruvate: 0, ethanol: 0, acetaldehyde: 0, aceticAcid: 0,
+    glucose: 3, g6p: 6, f6p: 0, f16bp: 0, g3p: 0, bpg: 0, pga3: 0, pga2: 0, pep: 0, pyruvate: 0, ethanol: 0, acetaldehyde: 0, aceticAcid: 0,
     // PPP
     pgl6: 0, pga6: 0, xu5p: 0, s7p: 0, r5p: 0,
     // Calvin
@@ -42,7 +42,8 @@ export const counters = { krebsTurns: 0, calvinTurns: 0, glycRuns: 0, pppRuns: 0
 
 export function resetState() {
     Object.keys(store).forEach(k => store[k] = 0);
-    store.atp = 5; store.glucose = 1; store.g6p = 6; store.oaa = 2; store.rubp = 6;
+    store.atp = 36; store.nadh = 4; store.nadph = 4; store.fadh2 = 2;
+    store.glucose = 3; store.g6p = 6; store.oaa = 2; store.rubp = 6;
     store.totalAtpAdp = 40; store.totalNad = 40; store.totalNadp = 40; store.totalFad = 20;
     counters.krebsTurns = 0; counters.calvinTurns = 0; counters.glycRuns = 0; counters.pppRuns = 0;
     simState.time = 0; simState.fermenting = false;

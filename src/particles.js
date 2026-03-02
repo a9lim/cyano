@@ -10,6 +10,7 @@ const Particles = {
     protons: [],
     photons: [],
 
+    /** Spawn a single-hop electron (legacy — still works) */
     spawnElectron(etcComplexes, fk, tk, tp) {
         const f = etcComplexes[fk], t = etcComplexes[tk];
         if (!f || !t) return;
@@ -17,9 +18,38 @@ const Particles = {
         const hex = EnzymeStyles.roleColors.electron.stroke;
         this.electrons.push({
             x: f.cx, y: f.cy, tx: t.cx, ty: t.cy,
-            progress: 0, speed: 0.025,
-            type, trail: Anim.trail(10),
+            progress: 0, speed: 0.012,
+            type, trail: Anim.trail(16),
             _trailColor: _r(hex, 0.5)
+        });
+    },
+
+    /**
+     * Spawn a multi-hop electron that flows continuously through waypoints.
+     * @param {Object} etcComplexes — position map
+     * @param {string[]} keys — complex keys in order, e.g. ['ndh1','pq','cytb6f','pc','cytOx']
+     * @param {string} type — 'resp' | 'photo' | 'cyclic'
+     * @param {Object} [callbacks] — { segmentIndex: fn } fired when electron enters that segment
+     */
+    spawnElectronChain(etcComplexes, keys, type, callbacks) {
+        const pts = [];
+        for (const k of keys) {
+            const c = etcComplexes[k];
+            if (!c) return;
+            pts.push({ x: c.cx, y: c.cy });
+        }
+        if (pts.length < 2) return;
+        const hex = EnzymeStyles.roleColors.electron.stroke;
+        const numSegs = pts.length - 1;
+        this.electrons.push({
+            waypoints: pts,
+            progress: 0,
+            speed: 0.012 / numSegs,
+            type: type || 'resp',
+            trail: Anim.trail(16),
+            _trailColor: _r(hex, 0.5),
+            _callbacks: callbacks || {},
+            _firedSegs: new Set(),
         });
     },
 
@@ -27,7 +57,7 @@ const Particles = {
         const memMid = membraneY + membraneH / 2;
         const sy = dir === 'up' ? memMid + 70 : memMid - 70;
         const ey = dir === 'up' ? memMid - 70 : memMid + 70;
-        this.protons.push({ x: cx + (Math.random() - 0.5) * 5, y: sy, ty: ey, progress: 0, speed: 0.022 });
+        this.protons.push({ x: cx + (Math.random() - 0.5) * 5, y: sy, ty: ey, progress: 0, speed: 0.011 });
     },
 
     spawnPhoton(etcComplexes, targetKey) {
@@ -39,7 +69,7 @@ const Particles = {
             x: t.cx + Math.cos(angle) * dist,
             y: t.cy + Math.sin(angle) * dist,
             tx: t.cx, ty: t.cy,
-            progress: 0, speed: 0.04
+            progress: 0, speed: 0.02
         });
     },
 
@@ -52,8 +82,34 @@ const Particles = {
             e.progress += e.speed * spd;
             if (e.progress >= 1) { this.electrons.splice(i, 1); continue; }
             const t = e.progress;
-            const px = e.x + (e.tx - e.x) * t;
-            const py = e.y + (e.ty - e.y) * t + Math.sin(t * Math.PI * 3) * 3;
+            let px, py;
+
+            if (e.waypoints) {
+                // Multi-hop chain: interpolate through waypoints
+                const numSegs = e.waypoints.length - 1;
+                const segProgress = t * numSegs;
+                const seg = Math.min(Math.floor(segProgress), numSegs - 1);
+                const localT = segProgress - seg;
+
+                // Fire callbacks when entering a new segment
+                if (e._callbacks) {
+                    for (let s = 0; s <= seg; s++) {
+                        if (e._callbacks[s] && !e._firedSegs.has(s)) {
+                            e._firedSegs.add(s);
+                            e._callbacks[s]();
+                        }
+                    }
+                }
+
+                const from = e.waypoints[seg];
+                const to = e.waypoints[seg + 1];
+                px = from.x + (to.x - from.x) * localT;
+                py = from.y + (to.y - from.y) * localT + Math.sin(t * Math.PI * 3) * 3;
+            } else {
+                // Single-hop (legacy)
+                px = e.x + (e.tx - e.x) * t;
+                py = e.y + (e.ty - e.y) * t + Math.sin(t * Math.PI * 3) * 3;
+            }
 
             if (e.trail) {
                 e.trail.push(px, py);

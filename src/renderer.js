@@ -7,8 +7,28 @@
 import { EnzymeStyles, CFG, _F } from './enzymes.js';
 import { computeLayout, MIN_CONTENT_W, MIN_CONTENT_H } from './layout.js';
 import Particles from './particles.js';
+import { canReact } from './reactions/dispatch.js';
+import { getRegulationFactor } from './regulation.js';
+import { store } from './state.js';
+import { ENZYMES, METABOLITES } from './info.js';
 
 const _r = window._r;
+
+// Map enzyme hitbox labels → ENZYMES info key
+const _enzymeInfoKey = {
+    'HK/G6Pase': 'HK', 'PGI': 'PGI', 'PFK/FBPase': 'PFK', 'ALDO': 'ALDO',
+    'GAPDH': 'GAPDH', 'PGK': 'PGK', 'PGM': 'PGM', 'ENO': 'ENO', 'PK': 'PK',
+    'TKT+TAL/TK+SBP': 'TKT', 'PDH': 'PDH', 'PDC': 'PDC', 'ADH': 'ADH',
+    'ALDH': 'ALDH', 'ACS': 'ACS', 'RuBisCO': 'RuBisCO', 'PRK': 'PRK',
+    'G6PDH': 'G6PDH', '6PGL': '6PGL', '6PGDH': '6PGDH',
+    'CS': 'CS', 'ACO': 'ACO', 'IDH': 'IDH', 'KGDH': 'KGDH',
+    'SCS': 'SCS', 'SDH': 'SDH', 'FUM': 'FUM', 'MDH': 'MDH',
+};
+// Map ETC pathway hitboxes → ENZYMES info key
+const _etcInfoKey = {
+    'etc_resp:0': 'NDH1', 'etc_resp:1': 'SDH', 'etc_photo:0': 'PSII',
+    'etc_cyclic:0': 'PSI', 'atp_syn:0': 'ATPSyn', 'br:0': 'BR', 'nnt:0': 'NNT',
+};
 
 // Pre-computed constants for hot render paths (avoid per-frame allocations)
 const _TWO_X = new Set(['g3p', 'bpg', 'pga3', 'pga2', 'pep', 'pyruvate', 'acetylCoA', 'ethanol', 'acetaldehyde', 'aceticAcid']);
@@ -44,9 +64,13 @@ const Renderer = {
     sidebarInset: 0, _sidebarInsetCurrent: 0,
     _sidebarAnimStart: 0, _sidebarAnimFrom: 0, _sidebarAnimTo: 0, _sidebarAnimating: false,
     etcComplexes: {}, metab: {},
-    enzymeHitboxes: [],  // [{cx, cy, w, h, pathway, stepIndex}]
+    enzymeHitboxes: [],  // [{cx, cy, w, h, pathway, stepIndex, enzyme}]
+    metabHitboxes: [],   // [{cx, cy, w, h, key}]
     metabPulse: {},      // { key: { startTime, prevCount } } for scale pulse on count change
     onEnzymeClick: null, // callback set by sim.js
+    hoveredEnzyme: null, // hitbox when mouse hovers an enzyme
+    hoveredMetab: null,  // hitbox when mouse hovers a metabolite
+    _tooltipEl: null,    // DOM tooltip element
 
     pathwayColors: null, // initialized in init() from EnzymeStyles.roleColors
 
@@ -161,6 +185,64 @@ const Renderer = {
         return null;
     },
 
+    /** Hit-test metabolite nodes at world coordinates */
+    _hitTestMetab(wx, wy) {
+        for (const hb of this.metabHitboxes) {
+            if (Math.abs(wx - hb.cx) < hb.w / 2 && Math.abs(wy - hb.cy) < hb.h / 2) {
+                return hb;
+            }
+        }
+        return null;
+    },
+
+    /** Look up info data for an enzyme hitbox */
+    _getEnzymeInfo(hb) {
+        // Try label-based lookup first
+        if (hb.enzyme) {
+            const key = _enzymeInfoKey[hb.enzyme];
+            if (key && ENZYMES[key]) return ENZYMES[key];
+            // Direct key lookup (for _info pathway items like PQ, Cytb6f, etc.)
+            if (ENZYMES[hb.enzyme]) return ENZYMES[hb.enzyme];
+        }
+        // Fall back to pathway:stepIndex for ETC complexes
+        const etcKey = `${hb.pathway}:${hb.stepIndex}`;
+        const k2 = _etcInfoKey[etcKey];
+        if (k2 && ENZYMES[k2]) return ENZYMES[k2];
+        return null;
+    },
+
+    /** Show or hide the canvas tooltip */
+    _showTooltip(screenX, screenY, info, isMetab) {
+        if (!this._tooltipEl) {
+            this._tooltipEl = document.getElementById('canvas-tooltip');
+            if (!this._tooltipEl) return;
+        }
+        const el = this._tooltipEl;
+        let html = `<strong>${info.name}</strong>`;
+        if (info.full) html += `<br><span class="ct-full">${info.full}</span>`;
+        if (info.eq) html += `<br><span class="ct-eq">${info.eq}</span>`;
+        html += `<br>${info.desc}`;
+        if (info.regulation) html += `<br><em>${info.regulation}</em>`;
+        el.innerHTML = html;
+        el.hidden = false;
+
+        // Position near cursor, clamped to viewport
+        const pad = 12;
+        let x = screenX + pad, y = screenY + pad;
+        const rect = el.getBoundingClientRect();
+        const vw = window.innerWidth, vh = window.innerHeight;
+        if (x + rect.width > vw - pad) x = screenX - rect.width - pad;
+        if (y + rect.height > vh - pad) y = screenY - rect.height - pad;
+        if (x < pad) x = pad;
+        if (y < pad) y = pad;
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+    },
+
+    _hideTooltip() {
+        if (this._tooltipEl) this._tooltipEl.hidden = true;
+    },
+
     /* ---- Mouse/touch interaction: pan, click-to-react, hover ---- */
     _initInteraction() {
         const c = this.canvas;
@@ -172,13 +254,31 @@ const Renderer = {
         window.addEventListener('mousemove', (e) => {
             if (!this.isPanning) {
                 const w = this._screenToWorld(e.clientX, e.clientY);
-                c.style.cursor = this._hitTestEnzyme(w.x, w.y) ? 'pointer' : 'grab';
+                const enzymeHit = this._hitTestEnzyme(w.x, w.y);
+                const metabHit = !enzymeHit ? this._hitTestMetab(w.x, w.y) : null;
+                this.hoveredEnzyme = enzymeHit;
+                this.hoveredMetab = metabHit;
+                c.style.cursor = enzymeHit ? 'pointer' : metabHit ? 'help' : 'grab';
+
+                if (enzymeHit) {
+                    const info = this._getEnzymeInfo(enzymeHit);
+                    if (info) this._showTooltip(e.clientX, e.clientY, info, false);
+                    else this._hideTooltip();
+                } else if (metabHit) {
+                    const info = METABOLITES[metabHit.key];
+                    if (info) this._showTooltip(e.clientX, e.clientY, info, true);
+                    else this._hideTooltip();
+                } else {
+                    this._hideTooltip();
+                }
                 return;
             }
+            this._hideTooltip();
             this.camera.panBy(e.clientX - this.lastMX, e.clientY - this.lastMY);
             this.lastMX = e.clientX; this.lastMY = e.clientY;
         });
         window.addEventListener('mouseup', () => { this.isPanning = false; });
+        c.addEventListener('mouseleave', () => { this._hideTooltip(); this.hoveredEnzyme = null; this.hoveredMetab = null; });
 
         // Click-to-react: left=forward, middle/right=reverse
         c.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -292,6 +392,7 @@ const Renderer = {
         this.camera.applyToCanvas(ctx);
 
         this.enzymeHitboxes.length = 0; // reset each frame (reuse array)
+        this.metabHitboxes.length = 0;
         this.drawMembrane(ctx, lm, state.time);
         this.drawETCChain(ctx, state, lm);
         this.drawCytoplasmNetwork(ctx, state, lm);
@@ -488,6 +589,19 @@ const Renderer = {
         this.enzymeHitboxes.push({ cx: c.atpSyn.cx, cy: c.atpSyn.cy, w: cxW + 10, h: cxH + 10, pathway: 'atp_syn', stepIndex: 0 });
         this.enzymeHitboxes.push({ cx: c.br.cx, cy: c.br.cy, w: cxW + 10, h: cxH + 10, pathway: 'br', stepIndex: 0 });
         this.enzymeHitboxes.push({ cx: c.psi.cx, cy: c.psi.cy, w: cxW + 10, h: cxH + 10, pathway: 'etc_cyclic', stepIndex: 0 });
+        // Non-clickable ETC complexes (tooltip-only)
+        if (shA > 0.1) {
+            this.enzymeHitboxes.push({ cx: c.pq.cx, cy: c.pq.cy, w: 56, h: 30, pathway: '_info', stepIndex: 0, enzyme: 'PQ' });
+            this.enzymeHitboxes.push({ cx: c.cytb6f.cx, cy: c.cytb6f.cy, w: cxW + 10, h: cxH + 10, pathway: '_info', stepIndex: 0, enzyme: 'Cytb6f' });
+            this.enzymeHitboxes.push({ cx: c.pc.cx, cy: c.pc.cy, w: sR * 2 + 10, h: sR * 2 + 10, pathway: '_info', stepIndex: 0, enzyme: 'PC' });
+        }
+        if (rA > 0.1) {
+            this.enzymeHitboxes.push({ cx: c.cytOx.cx, cy: c.cytOx.cy, w: cxW + 10, h: cxH + 10, pathway: '_info', stepIndex: 0, enzyme: 'CytOx' });
+        }
+        if (phA > 0.1) {
+            this.enzymeHitboxes.push({ cx: c.fd.cx, cy: c.fd.cy, w: sR * 2 + 10, h: sR * 2 + 10, pathway: '_info', stepIndex: 0, enzyme: 'Fd' });
+            this.enzymeHitboxes.push({ cx: c.fnr.cx, cy: c.fnr.cy, w: 56, h: 30, pathway: '_info', stepIndex: 0, enzyme: 'FNR' });
+        }
     },
 
     /** Horizontal labeled run-arrow with arrowhead and hitbox (used for glycolysis upper/lower) */
@@ -756,6 +870,7 @@ const Renderer = {
                 }
                 EnzymeStyles.drawMetaboliteNode(ctx, m[key].cx, m[key].cy, m[key].label, this.isMetabActive(key, state), lm, _TWO_X.has(key), count);
                 ctx.restore();
+                this.metabHitboxes.push({ cx: m[key].cx, cy: m[key].cy, w: 56, h: 28, key });
             }
         }
     },
@@ -793,15 +908,25 @@ const Renderer = {
     _tagAndHitbox(ctx, tagX, tagY, enzyme, color, active, pathway, stepIndex, color2) {
         EnzymeStyles.drawEnzymeTag(ctx, tagX, tagY, enzyme, color, active, this._currentLightMode || false, color2);
         if (pathway !== undefined) {
-            this.enzymeHitboxes.push({ cx: tagX, cy: tagY, w: 40, h: 14, pathway, stepIndex });
+            this.enzymeHitboxes.push({ cx: tagX, cy: tagY, w: 40, h: 14, pathway, stepIndex, enzyme });
         }
+    },
+
+    /** Get regulation-based alpha multiplier for an enzyme */
+    _regAlpha(pathway, stepIndex) {
+        if (pathway === undefined) return 1;
+        const factor = getRegulationFactor(pathway, stepIndex, store);
+        if (factor <= 0) return 0.4;
+        if (factor < 1) return 0.7;
+        return 1;
     },
 
     /** Single unidirectional enzyme arrow — stores hitbox */
     drawEnzymeArrow(ctx, from, to, enzyme, color, active, pathway, stepIndex) {
         if (!this._calcEndpoints(from, to)) return;
         const { x1, y1, x2, y2 } = this._ep;
-        EnzymeStyles.drawArrow(ctx, x1, y1, x2, y2, color, ctx.globalAlpha);
+        const alpha = ctx.globalAlpha * this._regAlpha(pathway, stepIndex);
+        EnzymeStyles.drawArrow(ctx, x1, y1, x2, y2, color, alpha);
         if (enzyme) this._tagAndHitbox(ctx, (x1 + x2) / 2, (y1 + y2) / 2 - 6, enzyme, color, active, pathway, stepIndex);
     },
 
@@ -810,7 +935,8 @@ const Renderer = {
         if (!this._calcEndpoints(from, to)) return;
         const { x1, y1, x2, y2, nx, ny } = this._ep;
         const d = dir || 1;
-        EnzymeStyles.drawCurvedArrow(ctx, x1, y1, x2, y2, color, ctx.globalAlpha, d);
+        const alpha = ctx.globalAlpha * this._regAlpha(pathway, stepIndex);
+        EnzymeStyles.drawCurvedArrow(ctx, x1, y1, x2, y2, color, alpha, d);
         if (enzyme) {
             const o = off || 0;
             this._tagAndHitbox(ctx, (x1 + x2) / 2 + o * d * (-ny), (y1 + y2) / 2 - 6 + o * d * nx, enzyme, color, active, pathway, stepIndex);
@@ -821,7 +947,8 @@ const Renderer = {
     drawBidirArrow(ctx, nodeA, nodeB, enzyme, colorA, colorB, active, pathway, stepIndex) {
         if (!this._calcEndpoints(nodeA, nodeB)) return;
         const { x1, y1, x2, y2 } = this._ep;
-        EnzymeStyles.drawBidirectionalArrow(ctx, x1, y1, x2, y2, colorA, colorB, ctx.globalAlpha);
+        const alpha = ctx.globalAlpha * this._regAlpha(pathway, stepIndex);
+        EnzymeStyles.drawBidirectionalArrow(ctx, x1, y1, x2, y2, colorA, colorB, alpha);
         const mx = (x1 + x2) / 2, my = (y1 + y2) / 2 - 6;
         if (enzyme) this._tagAndHitbox(ctx, mx, my, enzyme, colorA, active, pathway, stepIndex, colorB);
     },
@@ -904,6 +1031,7 @@ const Renderer = {
 
     /* ---- PARTICLE WRAPPERS (delegate to particles.js) ---- */
     spawnElectron(fk, tk, tp) { Particles.spawnElectron(this.etcComplexes, fk, tk, tp); },
+    spawnElectronChain(keys, type, callbacks) { Particles.spawnElectronChain(this.etcComplexes, keys, type, callbacks); },
     spawnProton(cx, dir) { Particles.spawnProton(this.membraneY, this.membraneH, cx, dir); },
     spawnPhoton(targetKey) { Particles.spawnPhoton(this.etcComplexes, targetKey); },
 };
