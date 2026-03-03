@@ -18,11 +18,10 @@ export const ORGANISMS = {
     obligateAnaerobe: {
         name: 'Obligate Anaerobe',
         desc: 'Fermentation only — no oxidative phosphorylation',
-        pathways: { glycolysis: true, ppp: false, calvin: false, krebs: false, betaox: false },
+        pathways: { glycolysis: true, ppp: true, calvin: false, krebs: false, betaox: false },
         environment: { light: false, oxygen: false },
         initialRatios: { atp: 0.5, nadh: 0.5, nadph: 0.1, fadh2: 0.1 },
         lockedReason: {
-            ppp: 'Simplified anaerobe model',
             calvin: 'No photosynthetic machinery',
             krebs: 'O\u2082 required for oxidative metabolism',
             betaox: 'O\u2082 required for \u03B2-oxidation',
@@ -44,11 +43,10 @@ export const ORGANISMS = {
     archaeon: {
         name: 'Archaeon',
         desc: 'Uses bacteriorhodopsin for light-driven proton pumping',
-        pathways: { glycolysis: true, ppp: false, calvin: false, krebs: true, betaox: true },
+        pathways: { glycolysis: true, ppp: true, calvin: false, krebs: true, betaox: true },
         environment: { light: true, oxygen: false },
         initialRatios: { atp: 0.7, nadh: 0.2, nadph: 0.1, fadh2: 0.1 },
         lockedReason: {
-            ppp: 'Simplified archaeal model',
             calvin: 'No photosynthetic carbon fixation',
         },
     },
