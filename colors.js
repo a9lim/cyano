@@ -83,6 +83,7 @@ const _BASE = {
     ['pw-proton',      'red'],
     ['pw-photon',      'yellow'],
     ['pw-betaox',      'yellow'],
+    ['pw-ros',         'red'],
   ];
 
   const genShared = () => shared.map(([name, key, a]) =>

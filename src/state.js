@@ -1,5 +1,6 @@
 // ─── Simulation State ───
 import { Anim } from './anim.js';
+import { createHistory } from './sparkline.js';
 
 export const simState = {
     time: 0, speed: 1, lightOn: true, oxygenAvailable: true, fermenting: false,
@@ -7,6 +8,9 @@ export const simState = {
     betaoxEnabled: true,
     oxphosEnabled: true, linearLightEnabled: true, cyclicLightEnabled: true,
     autoPlay: false,
+    uncouplingEnabled: false,
+    activeOrganism: 'cyanobacterium',
+    lockedPathways: {},
     store: null,
     // Animation state
     calvinRot: Anim.rotAccum(),
@@ -29,6 +33,8 @@ export const store = {
     totalAtpAdp: 40, totalNad: 40, totalNadp: 40, totalFad: 20,
     // Active tracking
     protonGradient: 0, protonsPumped: 0, o2Produced: 0, o2Consumed: 0, h2oSplit: 0, h2oProduced: 0, electronsTransferred: 0, co2Fixed: 0, co2Produced: 0,
+    atpSubstrate: 0, atpOxidative: 0, protonsLeaked: 0,
+    rosProduced: 0, rosScavenged: 0, cellHealth: 100,
 
     // Glycolysis / Gluconeogenesis
     glucose: 3, g6p: 6, f6p: 0, f16bp: 0, g3p: 0, bpg: 0, pga3: 0, pga2: 0, pep: 0, pyruvate: 0, ethanol: 0, acetaldehyde: 0, aceticAcid: 0,
@@ -45,13 +51,22 @@ simState.store = store;
 
 export const counters = { krebsTurns: 0, calvinTurns: 0, glycRuns: 0, pppRuns: 0, betaoxRuns: 0 };
 
+export const histories = {
+    atp: createHistory(),
+    nadh: createHistory(),
+    nadph: createHistory(),
+    fadh2: createHistory(),
+    gradient: createHistory(),
+};
+
 export function resetState() {
     Object.keys(store).forEach(k => store[k] = 0);
-    store.atp = 36; store.nadh = 4; store.nadph = 4; store.fadh2 = 2;
+    store.atp = 36; store.nadh = 4; store.nadph = 4; store.fadh2 = 2; store.cellHealth = 100;
     store.glucose = 3; store.g6p = 6; store.oaa = 2; store.rubp = 6; store.fattyAcid = 4;
     store.totalAtpAdp = 40; store.totalNad = 40; store.totalNadp = 40; store.totalFad = 20;
     counters.krebsTurns = 0; counters.calvinTurns = 0; counters.glycRuns = 0; counters.pppRuns = 0; counters.betaoxRuns = 0;
     simState.time = 0; simState.fermenting = false;
+    Object.values(histories).forEach(h => { h.head = 0; h.count = 0; h.data.fill(0); });
 }
 
 export function updateAnimations(dt) {

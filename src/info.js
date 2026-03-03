@@ -65,6 +65,11 @@ export const ENZYMES = {
     PC:     { name: 'Plastocyanin', pathway: 'ETC (shared)', eq: 'PC(ox) + e\u207B \u2192 PC(red)', desc: 'Small copper protein. Shuttles electrons from Cyt b6f to PSI or Cyt c oxidase.' },
     Fd:     { name: 'Ferredoxin', pathway: 'Light reactions', eq: 'Fd(ox) + e\u207B \u2192 Fd(red)', desc: 'Iron-sulfur protein. Carries electrons from PSI to FNR or back to PQ in cyclic flow.' },
 
+    // Antioxidant enzymes
+    SOD:    { name: 'Superoxide Dismutase', pathway: 'Antioxidant', eq: '2 O\u2082\u207B + 2 H\u207A \u2192 O\u2082 + H\u2082O\u2082', desc: 'Scavenges superoxide radicals. Major first-line antioxidant defense.' },
+    Catalase: { name: 'Catalase', pathway: 'Antioxidant', eq: '2 H\u2082O\u2082 \u2192 2 H\u2082O + O\u2082', desc: 'Decomposes hydrogen peroxide. Found in peroxisomes.' },
+    GPx:    { name: 'Glutathione Peroxidase', pathway: 'Antioxidant', eq: 'H\u2082O\u2082 + NADPH \u2192 2 H\u2082O + NADP\u207A', desc: 'Reduces peroxides using NADPH-regenerated glutathione. Links PPP to antioxidant defense.' },
+
     // Batch cycle targets
     run_krebs:    { name: 'Krebs Cycle \u00D72', pathway: 'Krebs Cycle', eq: '2 Acetyl-CoA \u2192 4 CO\u2082 + 6 NADH + 2 FADH\u2082 + 2 ATP', desc: 'Runs two full turns of the citric acid cycle, fully oxidizing two acetyl-CoA from one glucose.' },
     run_calvin:   { name: 'Calvin Cycle \u00D76', pathway: 'Calvin Cycle', eq: '6 CO\u2082 + 18 ATP + 12 NADPH \u2192 2 G3P', desc: 'Six turns fix 6 CO\u2082 into two G3P using light-generated ATP and NADPH.' },

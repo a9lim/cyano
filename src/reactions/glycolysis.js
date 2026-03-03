@@ -62,7 +62,7 @@ export function advanceGlycolysis(idx, direction) {
     }
     else if (idx === 6) {
         if (fwd && store.bpg >= 2 && store.atp <= store.totalAtpAdp - 2) {
-            store.bpg -= 2; store.pga3 += 2; store.atp += 2;
+            store.bpg -= 2; store.pga3 += 2; store.atp += 2; store.atpSubstrate += 2;
             return { enzyme: 'PGK', reaction: '2 1,3-BPG + 2 ADP → 2 3-PGA + 2 ATP', yields: { atp: 2 } };
         } else if (rev && store.pga3 >= 2 && store.atp >= 2) {
             store.pga3 -= 2; store.bpg += 2; store.atp -= 2;
@@ -79,7 +79,7 @@ export function advanceGlycolysis(idx, direction) {
     }
     else if (idx === 9) {
         if (fwd && store.pep >= 2 && store.atp <= store.totalAtpAdp - 2) {
-            store.pep -= 2; store.pyruvate += 2; store.atp += 2;
+            store.pep -= 2; store.pyruvate += 2; store.atp += 2; store.atpSubstrate += 2;
             counters.glycRuns++;
             return { enzyme: 'PK', reaction: '2 PEP + 2 ADP → 2 Pyruvate + 2 ATP', yields: { atp: 2 } };
         } else if (rev && store.pyruvate >= 2 && store.atp >= 2) {
@@ -111,7 +111,7 @@ export function runGlycolysisLower() {
     if (!simState.glycolysisEnabled || store.g3p < 2 || store.totalNad - store.nadh < 2 || store.totalAtpAdp - store.atp < 4) return false;
     store.g3p -= 2;
     store.nadh += 2;
-    store.atp += 4;
+    store.atp += 4; store.atpSubstrate += 4;
     store.pyruvate += 2;
     counters.glycRuns++;
     return { enzyme: 'Glycolysis (Lower)', reaction: '2 G3P → 2 Pyruvate + 4 ATP + 2 NADH', yields: { atp: 4, nadh: 2 } };

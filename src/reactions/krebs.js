@@ -34,7 +34,7 @@ export function advanceKrebs(idx, direction) {
     else if (idx === 4) {
         if (fwd && store.succoa > 0 && store.atp < store.totalAtpAdp) {
             let t = Math.min(store.succoa, store.totalAtpAdp - store.atp, 2);
-            store.succoa -= t; store.succinate += t; store.atp += t;
+            store.succoa -= t; store.succinate += t; store.atp += t; store.atpSubstrate += t;
             return { enzyme: 'SCS', reaction: 'Succinyl-CoA → Succinate + ATP', yields: { atp: t } };
         } else if (rev && store.succinate > 0 && store.atp > 0) {
             let t = Math.min(store.succinate, store.atp, 2);
@@ -76,7 +76,7 @@ export function runKrebsCycle() {
     store.acetylCoA -= 2;
     store.nadh += 6;
     store.fadh2 = Math.min(store.fadh2 + 2, store.totalFad);
-    store.atp += 2;
+    store.atp += 2; store.atpSubstrate += 2;
     store.co2Produced += 4;
     counters.krebsTurns += 2;
     return { enzyme: 'Krebs Cycle (×2)', reaction: '2 AcCoA → 4 CO₂ + 6 NADH + 2 FADH₂ + 2 ATP', yields: { nadh: 6, fadh2: 2, atp: 2 } };

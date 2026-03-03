@@ -326,6 +326,7 @@ main {
 .tog-calvin { --tog-color: var(--pw-calvin); }
 .tog-krebs  { --tog-color: var(--pw-krebs); }
 .tog-betaox { --tog-color: var(--pw-betaox); }
+.tog-uncoupling { --tog-color: var(--pw-ferment); }
 
 /* Sunlight glow exception */
 .tog-wrap input:checked + .tog-light {
@@ -615,6 +616,10 @@ main {
   font-weight: 400;
 }
 
+.organism-select { width: 100%; padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-panel); color: var(--text); font-family: var(--font-body); font-size: 0.82rem; }
+.organism-desc { font-size: 0.75rem; color: var(--text-muted); margin: 4px 0 0; }
+.ctrl-row.locked { opacity: 0.4; pointer-events: none; }
+
 
 /* ───── Canvas Tooltip ───── */
 .canvas-tooltip {
@@ -646,3 +651,9 @@ main {
   font-size: 0.7rem;
   color: var(--text-muted);
 }
+
+
+/* ═══════════════════════════════════════
+   SPARKLINE TIME SERIES
+   ═══════════════════════════════════════ */
+.sparkline { display: block; width: 100%; height: 36px; margin-top: 4px; border-radius: 4px; background: var(--bg-elevated); }
