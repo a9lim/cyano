@@ -29,9 +29,15 @@ export function advanceETC(pathway, stepIndex) {
         }
         if (src) {
             store.electronsTransferred += 2;
+            // 2% chance of electron leak → superoxide at Complex I
+            if (src === 'ndh1' && Math.random() < 0.02) { store.rosProduced++; }
             // Continuous chain: electron flows src → pq → cytb6f → pc → cytOx
             Renderer.spawnElectronChain([src, 'pq', 'cytb6f', 'pc', 'cytOx'], 'resp', {
-                2: () => { pumpProtons(4, 'cytb6f'); updateDashboard(); },
+                2: () => {
+                    pumpProtons(4, 'cytb6f'); updateDashboard();
+                    // 2% chance of electron leak at Q-cycle
+                    if (Math.random() < 0.02) { store.rosProduced++; }
+                },
                 3: () => { pumpProtons(2, 'cytOx'); store.o2Consumed += 0.5; store.h2oProduced++; updateDashboard(); },
             });
             return true;
@@ -43,7 +49,10 @@ export function advanceETC(pathway, stepIndex) {
         Renderer.spawnPhoton('psii');
         // Continuous chain: psii → pq → cytb6f → pc → psi → fd → fnr
         Renderer.spawnElectronChain(['psii', 'pq', 'cytb6f', 'pc', 'psi', 'fd', 'fnr'], 'photo', {
-            2: () => { pumpProtons(4, 'cytb6f'); updateDashboard(); },
+            2: () => {
+                pumpProtons(4, 'cytb6f'); updateDashboard();
+                if (Math.random() < 0.02) { store.rosProduced++; }
+            },
             4: () => { Renderer.spawnPhoton('psi'); },
             5: () => {
                 if (store.nadph < store.totalNadp) store.nadph++;
@@ -66,7 +75,7 @@ export function advanceETC(pathway, stepIndex) {
 
 export function advanceATPSynthase() {
     if (store.protonGradient >= 4 && store.atp < store.totalAtpAdp) {
-        store.protonGradient -= 4; store.atp++;
+        store.protonGradient -= 4; store.atp++; store.atpOxidative++;
         const cx = Renderer.etcComplexes.atpSyn?.cx;
         if (cx) for (let i = 0; i < 4; i++) setTimeout(() => Renderer.spawnProton(cx, 'down'), i * 350);
         return true;

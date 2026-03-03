@@ -158,6 +158,19 @@
           <!-- ── Controls ── -->
           <div class="tab-panel active" id="tab-controls" role="tabpanel">
             <div class="ctrl-group">
+              <div class="group-label">Organism</div>
+              <select id="organism-select" class="organism-select">
+                <option value="cyanobacterium">Cyanobacterium</option>
+                <option value="animalCell">Animal Cell</option>
+                <option value="obligateAnaerobe">Obligate Anaerobe</option>
+                <option value="plantChloroplast">Plant Chloroplast</option>
+                <option value="archaeon">Archaeon</option>
+                <option value="custom">Custom</option>
+              </select>
+              <p class="organism-desc" id="organism-desc">Photosynthetic prokaryote &#x2014; all pathways available</p>
+            </div>
+
+            <div class="ctrl-group">
               <div class="group-label">Pathways</div>
               <div class="ctrl-row">
                 <label for="glyc-toggle">Glycolysis <button class="info-trigger" data-info="glycolysis" aria-label="Glycolysis info">?</button></label>
@@ -223,6 +236,13 @@
                   <label for="autoplay-toggle" class="tog tog-auto"><span class="tog-thumb"></span></label>
                 </div>
               </div>
+              <div class="ctrl-row">
+                <label for="uncoupling-toggle">Uncoupling <button class="info-trigger" data-info="uncoupling">?</button></label>
+                <div class="tog-wrap">
+                  <input type="checkbox" id="uncoupling-toggle" role="switch">
+                  <label for="uncoupling-toggle" class="tog tog-uncoupling"><span class="tog-thumb"></span></label>
+                </div>
+              </div>
             </div>
 
             <p class="panel-hint">Click enzyme labels on the canvas to advance reactions step by step.</p>
@@ -257,6 +277,7 @@
                     <span class="metab-pct" id="atp-ratio">0%</span>
                   </div>
                   <div class="metab-track"><div class="metab-fill" id="atp-bar"></div></div>
+                  <canvas class="sparkline" id="spark-atp" width="160" height="36"></canvas>
                 </div>
                 <div class="metab-card mc-nadh">
                   <div class="metab-head">
@@ -264,6 +285,7 @@
                     <span class="metab-pct" id="nadh-ratio">0%</span>
                   </div>
                   <div class="metab-track"><div class="metab-fill" id="nadh-bar"></div></div>
+                  <canvas class="sparkline" id="spark-nadh" width="160" height="36"></canvas>
                 </div>
                 <div class="metab-card mc-nadph">
                   <div class="metab-head">
@@ -271,6 +293,7 @@
                     <span class="metab-pct" id="nadph-ratio">0%</span>
                   </div>
                   <div class="metab-track"><div class="metab-fill" id="nadph-bar"></div></div>
+                  <canvas class="sparkline" id="spark-nadph" width="160" height="36"></canvas>
                 </div>
                 <div class="metab-card mc-fadh2">
                   <div class="metab-head">
@@ -278,6 +301,7 @@
                     <span class="metab-pct" id="fadh2-ratio">0%</span>
                   </div>
                   <div class="metab-track"><div class="metab-fill" id="fadh2-bar"></div></div>
+                  <canvas class="sparkline" id="spark-fadh2" width="160" height="36"></canvas>
                 </div>
               </div>
             </div>
@@ -285,6 +309,35 @@
             <div class="stat-group">
               <div class="group-label">Proton Motive Force <button class="info-trigger" data-info="protons" aria-label="Proton gradient info">?</button></div>
               <div class="stat-row"><span class="stat-label">H&#x207A; Gradient (&#x0394;pH)</span><span class="stat-value" id="proton-gradient">0</span></div>
+              <div class="stat-row">
+                <span>Protons Leaked</span>
+                <span class="stat-value" id="protons-leaked">0</span>
+              </div>
+              <canvas class="sparkline" id="spark-gradient" width="160" height="36"></canvas>
+            </div>
+            <div class="stat-group">
+              <div class="group-label">Oxidative Stress <button class="info-trigger" data-info="oxStress" aria-label="Oxidative stress info">?</button></div>
+              <div class="mc"><div class="mc-bar-track"><div class="mc-bar-fill" id="health-bar" style="background:var(--palette-green)"></div></div><span class="mc-ratio" id="health-ratio">100%</span></div>
+              <div class="stat-row"><span>ROS Produced</span><span class="stat-value" id="ros-produced">0</span></div>
+              <div class="stat-row"><span>ROS Scavenged</span><span class="stat-value" id="ros-scavenged">0</span></div>
+              <div class="stat-row"><span>Active ROS</span><span class="stat-value" id="active-ros">0</span></div>
+            </div>
+            <div class="stat-group">
+              <div class="group-label">ATP Source</div>
+              <div class="stat-row">
+                <span>Substrate-Level</span>
+                <span class="stat-value" id="atp-substrate">0</span>
+              </div>
+              <div class="stat-row">
+                <span>Oxidative</span>
+                <span class="stat-value" id="atp-oxidative">0</span>
+              </div>
+              <div class="stat-row" style="margin-top:4px">
+                <div id="atp-source-bar" style="display:flex;height:6px;border-radius:3px;overflow:hidden;width:100%">
+                  <div id="atp-source-sub" style="background:var(--pw-glyc);height:100%;transition:width .3s"></div>
+                  <div id="atp-source-ox" style="background:var(--pw-krebs);height:100%;transition:width .3s"></div>
+                </div>
+              </div>
             </div>
             <div class="stat-group">
               <div class="group-label">Net Exchange</div>

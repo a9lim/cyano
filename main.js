@@ -1,9 +1,10 @@
 // ─── Biosim entry point ───
-import { simState, store, updateAnimations } from './src/state.js';
+import { simState, store, histories, updateAnimations } from './src/state.js';
 import { updateTheme } from './src/theme.js';
 import { showActiveStep, updateDashboard } from './src/dashboard.js';
+import { pushSample } from './src/sparkline.js';
 import { advanceStep } from './src/reactions/dispatch.js';
-import { autoplayTick } from './src/autoplay.js';
+import { autoplayTick, protonLeakTick } from './src/autoplay.js';
 import { cacheDOMElements, bindEvents } from './src/ui.js';
 import Renderer from './src/renderer.js';
 
@@ -28,6 +29,7 @@ showActiveStep('Ready', 'Click a highlighted molecule to start', null);
 
 // ── Render Loop ──
 let lastTime = performance.now();
+let sparkTimer = 0;
 
 function mainLoop(now) {
     const dt = Math.min((now - lastTime) / 1000, 0.1);
@@ -37,6 +39,16 @@ function mainLoop(now) {
 
     updateAnimations(dt);
     autoplayTick(dt);
+    protonLeakTick(dt);
+    sparkTimer += dt;
+    if (sparkTimer > 0.2) { // 5Hz sampling
+        sparkTimer = 0;
+        pushSample(histories.atp, store.atp / store.totalAtpAdp);
+        pushSample(histories.nadh, store.nadh / store.totalNad);
+        pushSample(histories.nadph, store.nadph / store.totalNadp);
+        pushSample(histories.fadh2, store.fadh2 / store.totalFad);
+        pushSample(histories.gradient, Math.min(1, store.protonGradient / 40));
+    }
     Renderer.draw(simState);
     requestAnimationFrame(mainLoop);
 }

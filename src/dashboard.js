@@ -1,7 +1,18 @@
 // ─── Dashboard UI sync ───
-import { store, counters } from './state.js';
+import { store, counters, histories } from './state.js';
+import { drawSparkline } from './sparkline.js';
+
+const _PAL = window._PALETTE;
 
 let _dom;
+const _sparkCtx = {};
+function _getSparkCtx(id) {
+    if (!_sparkCtx[id]) {
+        const c = document.getElementById(id);
+        if (c) _sparkCtx[id] = c.getContext('2d');
+    }
+    return _sparkCtx[id];
+}
 
 export function initDashboard(dom) { _dom = dom; }
 
@@ -13,6 +24,7 @@ const _pwColor = {
     pdh: '--pw-ferment', pdc: '--pw-ferment', adh: '--pw-ferment',
     aldh: '--pw-ferment', acs: '--pw-ferment', fermentation: '--pw-ferment',
     betaox: '--pw-betaox', run_betaox: '--pw-betaox',
+    ros: '--pw-ros', sod: '--pw-ros', catalase: '--pw-ros', gpx: '--pw-ros', run_ros_scavenge: '--pw-ros',
 };
 
 export function showActiveStep(enzyme, reaction, yields, pathway) {
@@ -57,6 +69,7 @@ export function updateDashboard() {
     updateBar(_dom.fadh2Bar, _dom.fadh2Ratio, store.fadh2, store.totalFad);
 
     animateStatEl(_dom.protonGradient, '' + store.protonGradient);
+    if (_dom.protonsLeaked) _dom.protonsLeaked.textContent = store.protonsLeaked;
     animateStatEl(_dom.co2Net, '' + (store.co2Produced - store.co2Fixed));
     animateStatEl(_dom.o2Net, (store.o2Produced - store.o2Consumed).toFixed(1));
     animateStatEl(_dom.h2oNet, '' + (store.h2oProduced - store.h2oSplit));
@@ -67,4 +80,36 @@ export function updateDashboard() {
     _dom.glycolysisRun.textContent = counters.glycRuns;
     if (_dom.pppRun) _dom.pppRun.textContent = counters.pppRuns;
     if (_dom.betaoxRun) _dom.betaoxRun.textContent = counters.betaoxRuns;
+
+    if (_dom.atpSubstrate) _dom.atpSubstrate.textContent = store.atpSubstrate;
+    if (_dom.atpOxidative) _dom.atpOxidative.textContent = store.atpOxidative;
+    const totalAtpProduced = store.atpSubstrate + store.atpOxidative;
+    if (totalAtpProduced > 0 && _dom.atpSourceSub && _dom.atpSourceOx) {
+        _dom.atpSourceSub.style.width = (store.atpSubstrate / totalAtpProduced * 100) + '%';
+        _dom.atpSourceOx.style.width = (store.atpOxidative / totalAtpProduced * 100) + '%';
+    }
+
+    // ROS / oxidative stress
+    const activeROS = store.rosProduced - store.rosScavenged;
+    if (_dom.rosProduced) _dom.rosProduced.textContent = store.rosProduced;
+    if (_dom.rosScavenged) _dom.rosScavenged.textContent = store.rosScavenged;
+    if (_dom.activeROS) _dom.activeROS.textContent = activeROS;
+    if (_dom.healthBar) {
+        _dom.healthBar.style.width = store.cellHealth + '%';
+        _dom.healthBar.style.background = store.cellHealth > 50 ? 'var(--palette-green)' : store.cellHealth > 20 ? 'var(--palette-orange)' : 'var(--palette-red)';
+    }
+    if (_dom.healthRatio) _dom.healthRatio.textContent = Math.round(store.cellHealth) + '%';
+
+    // Sparklines
+    const sparkW = 160, sparkH = 36;
+    const atpCtx = _getSparkCtx('spark-atp');
+    if (atpCtx) drawSparkline(atpCtx, histories.atp, sparkW, sparkH, _PAL.atp);
+    const nadhCtx = _getSparkCtx('spark-nadh');
+    if (nadhCtx) drawSparkline(nadhCtx, histories.nadh, sparkW, sparkH, _PAL.nadh);
+    const nadphCtx = _getSparkCtx('spark-nadph');
+    if (nadphCtx) drawSparkline(nadphCtx, histories.nadph, sparkW, sparkH, _PAL.nadph);
+    const fadh2Ctx = _getSparkCtx('spark-fadh2');
+    if (fadh2Ctx) drawSparkline(fadh2Ctx, histories.fadh2, sparkW, sparkH, _PAL.fadh2);
+    const gradCtx = _getSparkCtx('spark-gradient');
+    if (gradCtx) drawSparkline(gradCtx, histories.gradient, sparkW, sparkH, _PAL.extended.red);
 }

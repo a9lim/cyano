@@ -7,12 +7,14 @@ let etcTimer = 0;
 let metabolicTimer = 0;
 let autoPlayStepIndex = 0;
 let passiveDrainTimer = 0;
+let leakTimer = 0;
 
 export function resetAutoplayTimers() {
     etcTimer = 0;
     metabolicTimer = 0;
     autoPlayStepIndex = 0;
     passiveDrainTimer = 0;
+    leakTimer = 0;
 }
 
 export function autoplayTick(dt) {
@@ -72,5 +74,39 @@ export function autoplayTick(dt) {
         ];
         metabolicSteps[autoPlayStepIndex % metabolicSteps.length]();
         autoPlayStepIndex++;
+    }
+}
+
+export function protonLeakTick(dt) {
+    leakTimer += dt;
+    if (leakTimer > 0.5) {
+        leakTimer = 0;
+        const leakRate = simState.uncouplingEnabled ? 0.10 : 0.02;
+        const leaked = Math.floor(store.protonGradient * leakRate);
+        if (leaked > 0) {
+            store.protonGradient = Math.max(0, store.protonGradient - leaked);
+            store.protonsLeaked += leaked;
+        }
+
+        // ROS damage & auto-scavenging
+        const activeROS = store.rosProduced - store.rosScavenged;
+        if (activeROS > 0) {
+            store.cellHealth = Math.max(0, store.cellHealth - activeROS * 0.3);
+            // Auto-scavenge: SOD + catalase (free)
+            const freeScavenge = Math.min(activeROS, 2);
+            store.rosScavenged += freeScavenge;
+            // GPx uses NADPH
+            const remaining = store.rosProduced - store.rosScavenged;
+            if (remaining > 0 && store.nadph > 0) {
+                const gpx = Math.min(remaining, store.nadph, 1);
+                store.rosScavenged += gpx;
+                store.nadph -= gpx;
+            }
+            if (store.cellHealth < 20 && typeof showToast === 'function') {
+                showToast('Cell health critical \u2014 ROS damage!');
+            }
+        } else if (store.cellHealth < 100) {
+            store.cellHealth = Math.min(100, store.cellHealth + 0.5);
+        }
     }
 }

@@ -5,6 +5,7 @@ import { initDashboard, updateDashboard } from './dashboard.js';
 import { resetAutoplayTimers } from './autoplay.js';
 import Renderer from './renderer.js';
 import Particles from './particles.js';
+import { ORGANISMS } from './organisms.js';
 
 const _SIDEBAR_W = 374; // panel-w(350) + gap(24)
 function _isMobile() { return window.innerWidth <= 900; }
@@ -20,6 +21,8 @@ export function cacheDOMElements() {
         krebsToggle: document.getElementById('krebs-toggle'),
         betaoxToggle: document.getElementById('betaox-toggle'),
         autoplayToggle: document.getElementById('autoplay-toggle'),
+        uncouplingToggle: document.getElementById('uncoupling-toggle'),
+        protonsLeaked: document.getElementById('protons-leaked'),
         resetBtn: document.getElementById('reset-btn'),
         addGlucoseBtn: document.getElementById('add-glucose-btn'),
         addFattyAcidBtn: document.getElementById('add-fatty-acid-btn'),
@@ -45,6 +48,18 @@ export function cacheDOMElements() {
         calvinTurn: document.getElementById('calvin-turn'), glycolysisRun: document.getElementById('glycolysis-run'),
         pppRun: document.getElementById('ppp-run'),
         betaoxRun: document.getElementById('betaox-run'),
+        atpSubstrate: document.getElementById('atp-substrate'),
+        atpOxidative: document.getElementById('atp-oxidative'),
+        atpSourceSub: document.getElementById('atp-source-sub'),
+        atpSourceOx: document.getElementById('atp-source-ox'),
+        organismSelect: document.getElementById('organism-select'),
+        organismDesc: document.getElementById('organism-desc'),
+        // ROS / oxidative stress
+        rosProduced: document.getElementById('ros-produced'),
+        rosScavenged: document.getElementById('ros-scavenged'),
+        activeROS: document.getElementById('active-ros'),
+        healthBar: document.getElementById('health-bar'),
+        healthRatio: document.getElementById('health-ratio'),
     };
 }
 
@@ -75,6 +90,66 @@ export function bindEvents(dom) {
     dom.krebsToggle.addEventListener('change', () => simState.krebsEnabled = dom.krebsToggle.checked);
     if (dom.betaoxToggle) dom.betaoxToggle.addEventListener('change', () => simState.betaoxEnabled = dom.betaoxToggle.checked);
     if (dom.autoplayToggle) dom.autoplayToggle.addEventListener('change', () => simState.autoPlay = dom.autoplayToggle.checked);
+    dom.uncouplingToggle?.addEventListener('change', e => { simState.uncouplingEnabled = e.target.checked; });
+
+    // Organism preset selector
+    dom.organismSelect?.addEventListener('change', e => {
+        const key = e.target.value;
+        if (key === 'custom') {
+            simState.lockedPathways = {};
+            // Unlock all toggles
+            const pathwayMap = {
+                glycolysis: dom.glycToggle,
+                ppp: dom.pppToggle,
+                calvin: dom.calvinToggle,
+                krebs: dom.krebsToggle,
+                betaox: dom.betaoxToggle,
+            };
+            for (const [pw, toggle] of Object.entries(pathwayMap)) {
+                toggle.disabled = false;
+                toggle.closest('.ctrl-row')?.classList.remove('locked');
+            }
+            dom.organismDesc.textContent = 'Manual control of all pathways';
+            return;
+        }
+        const org = ORGANISMS[key];
+        if (!org) return;
+
+        simState.activeOrganism = key;
+        simState.lockedPathways = org.lockedReason || {};
+
+        // Apply pathway enables
+        const pathwayMap = {
+            glycolysis: dom.glycToggle,
+            ppp: dom.pppToggle,
+            calvin: dom.calvinToggle,
+            krebs: dom.krebsToggle,
+            betaox: dom.betaoxToggle,
+        };
+        for (const [pw, toggle] of Object.entries(pathwayMap)) {
+            const enabled = org.pathways[pw];
+            toggle.checked = enabled;
+            toggle.dispatchEvent(new Event('change'));
+            toggle.disabled = !enabled && !!org.lockedReason?.[pw];
+            toggle.closest('.ctrl-row')?.classList.toggle('locked', !!org.lockedReason?.[pw]);
+        }
+
+        // Apply environment
+        dom.lightToggle.checked = org.environment.light;
+        dom.lightToggle.dispatchEvent(new Event('change'));
+        dom.oxygenToggle.checked = org.environment.oxygen;
+        dom.oxygenToggle.dispatchEvent(new Event('change'));
+
+        // Reset metabolite pools with organism-specific ratios
+        resetState();
+        store.atp = Math.round(store.totalAtpAdp * org.initialRatios.atp);
+        store.nadh = Math.round(store.totalNad * org.initialRatios.nadh);
+        store.nadph = Math.round(store.totalNadp * org.initialRatios.nadph);
+        store.fadh2 = Math.round(store.totalFad * org.initialRatios.fadh2);
+
+        // Update description
+        dom.organismDesc.textContent = org.desc;
+    });
 
     // Reset
     dom.resetBtn.addEventListener('click', () => {
@@ -169,6 +244,8 @@ export function bindEvents(dom) {
         autoplay: { title: 'Auto-Play', body: 'Automatically advances reactions in priority order: ATP synthase \u2192 ETC \u2192 metabolic pathways. Includes passive ATP/NADPH drain to mimic cellular maintenance.' },
         protons: { title: 'Proton Gradient', body: 'H\u207A ions pumped across the membrane by ETC complexes. Drives ATP synthase (4 H\u207A \u2192 1 ATP). Higher gradient = faster ATP production.' },
         betaox: { title: 'Beta Oxidation', body: 'Breaks down fatty acids (palmitoyl-CoA) into acetyl-CoA units, producing FADH\u2082 and NADH per round. 7 rounds yield 8 acetyl-CoA.<br>Net: Palmitoyl-CoA \u2192 8 Acetyl-CoA + 7 FADH\u2082 + 7 NADH' },
+        uncoupling: { title: 'Uncoupling Proteins', body: 'Uncoupling proteins create a passive proton leak across the membrane, dissipating the gradient as heat instead of making ATP. Found in brown fat for thermogenesis. Base leak rate: 2%/tick. With uncoupling: 10%/tick.' },
+        oxStress: { title: 'Oxidative Stress', body: 'Reactive oxygen species (ROS) from 2% electron leak at Complex I and the Q-cycle. SOD and catalase scavenge for free; GPx consumes NADPH. PPP provides the NADPH needed for antioxidant defense.' },
     };
 
     if (typeof createInfoTip === 'function') {

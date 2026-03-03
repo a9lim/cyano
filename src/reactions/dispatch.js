@@ -10,6 +10,7 @@ import { advancePPP, runPPPCycle } from './ppp.js';
 import { advanceETC, advanceATPSynthase, advanceBacteriorhodopsin, advanceNNT } from './etc.js';
 import { advancePDH, advancePDC, advanceADH, advanceALDH, advanceFermentation, advanceACS } from './fermentation.js';
 import { advanceBetaOx, runBetaOxCycle, runBetaOxReverse } from './betaoxidation.js';
+import { advanceSOD, advanceCatalase, advanceGPx, runROSScavenging } from './ros.js';
 
 const _dispatch = {
     glycolysis:             (i, d) => advanceGlycolysis(i, d),
@@ -35,7 +36,13 @@ const _dispatch = {
     nnt:                    ()     => advanceNNT(),
     betaox:                 (i, d) => advanceBetaOx(i, d),
     run_betaox:             (_i, d) => d === 'reverse' ? runBetaOxReverse() : runBetaOxCycle(),
+    sod:                    ()     => advanceSOD(),
+    catalase:               ()     => advanceCatalase(),
+    gpx:                    ()     => advanceGPx(),
+    run_ros_scavenge:       ()     => runROSScavenging(),
 };
+
+const _rosColor = '--pw-ros';
 
 // Shared enzymes whose reverse direction serves a different pathway
 const _reverseColorPathway = {
