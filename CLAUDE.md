@@ -62,7 +62,7 @@ Color pipeline: `_PALETTE` → `_BASE` families → `_ROLE` semantics → `_pal(
 
 ### Draw Pipeline
 
-`Renderer.draw(state)`: membrane → ETC complexes (13) → cytoplasm network → Krebs cycle → particles → labels
+`Renderer.draw(state)`: membrane → ETC complexes (14, including UCP) → cytoplasm network → Krebs cycle → particles → labels
 
 ### State Model
 
@@ -99,7 +99,7 @@ Per-step (`glycolysis`, `krebs`, `ppp`, `calvin`, `betaox`) and batch (`run_kreb
 
 ### Enzyme/Metabolite Info
 
-`src/info.js` exports `ENZYMES` (~41 entries including batch cycle targets like `run_krebs`, `run_betaox`) and `METABOLITES` (~26 entries) with name, description, pathway, equation, and regulation notes. Cycle target and run arrow hitboxes map to info entries via `_enzymeInfoKey` in renderer.js.
+`src/info.js` exports `ENZYMES` (~42 entries including batch cycle targets like `run_krebs`, `run_betaox`, and UCP) and `METABOLITES` (~26 entries) with name, description, pathway, equation, and regulation notes. Cycle target and run arrow hitboxes map to info entries via `_enzymeInfoKey` in renderer.js.
 
 ### Enzyme Dimming
 
@@ -130,13 +130,15 @@ ETC complex shapes in enzymes.js each have unique silhouettes. All share signatu
 |---------|-------------|---------|
 | Glycolysis / Shared | `extended.orange` | `--pw-glyc` |
 | Calvin / Photosynthetic | `extended.green` | `--pw-calvin` |
-| PPP / ATP Synthase | `extended.rose` | `--pw-ppp` |
+| PPP | `extended.rose` | `--pw-ppp` |
 | Krebs / Respiratory ETC | `extended.blue` | `--pw-krebs` |
 | Cyclic / BR | `extended.purple` | `--pw-cyclic` |
-| Fermentation / NNT | `extended.brown` | `--pw-ferment` |
+| Fermentation | `extended.brown` | `--pw-ferment` |
 | Electrons | `extended.cyan` | `--pw-electron` |
 | Protons | `extended.red` | `--pw-proton` |
 | Photons | `extended.yellow` | `--pw-photon` |
+| ATP Synthase / NNT | `extended.orange` | — |
+| UCP (Uncoupling Protein) | `extended.red` | — |
 | Neutral / Slate | `extended.slate` | — |
 
 Biosim-specific cofactor bar colors: `atp` (`extended.yellow`), `nadh` (`extended.blue`), `nadph` (`extended.green`), `fadh2` (`extended.rose`). Also `textOnAccent`, `light.togBg`.
@@ -180,7 +182,7 @@ JS binds via `getElementById` (~40 IDs). **Only IDs must be preserved** — clas
 - `_calcEndpoints` + `_ep` reusable object shared across arrow-draw methods in renderer.js
 - `_drawRunArrow()` — shared helper for batch run arrows (hitbox + label + arrowhead); `bidir` param adds reverse arrowhead for gluconeogenesis/FA synthesis
 - `drawCycleTarget()` in enzymes.js — circular arrow for batch reactions (Krebs, Calvin, PPP, beta-ox); `bidir` param adds arrowheads at both ends; rotation reverses when direction is `'reverse'`
-- ATP Synthase and NNT always visible (no fade alpha); glow when `protonGradient > 0`. Other ETC complexes fade with `rA`/`phA`.
+- ATP Synthase, NNT, and UCP always visible (no fade alpha); ATP Synthase and NNT glow when `protonGradient > 0`; UCP glows when `uncouplingEnabled` and `protonGradient > 0`, spawning visual proton particles downward. Other ETC complexes fade with `rA`/`phA`.
 
 ### Keyboard Shortcuts & Info Tips
 
