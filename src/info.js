@@ -60,6 +60,7 @@ export const ENZYMES = {
     ATPSyn: { name: 'ATP Synthase', pathway: 'Chemiosmosis', eq: '4H\u207A + ADP + Pi \u2192 ATP', desc: 'Molecular turbine driven by the proton gradient.' },
     NNT:    { name: 'Nicotinamide Nucleotide Transhydrogenase', pathway: 'Membrane', eq: 'NADH + NADP\u207A + H\u207A \u2192 NAD\u207A + NADPH', desc: 'Converts NADH to NADPH using the proton gradient.' },
     BR:     { name: 'Bacteriorhodopsin', pathway: 'Light-driven', eq: 'light \u2192 H\u207A pumped', desc: 'Light-driven proton pump found in archaea.' },
+    UCP:    { name: 'Uncoupling Protein', pathway: 'Membrane', eq: 'H\u207A gradient \u2192 heat', desc: 'Dissipates the proton gradient as heat instead of driving ATP synthesis. Active when uncoupling is enabled.' },
     FNR:    { name: 'Ferredoxin-NADP\u207A Reductase', pathway: 'Light reactions', eq: 'Fd(red) + NADP\u207A \u2192 NADPH', desc: 'Final step of linear electron flow. Produces NADPH.' },
     PQ:     { name: 'Plastoquinone', pathway: 'ETC (shared)', eq: 'PQ + 2e\u207B + 2H\u207A \u2192 PQH\u2082', desc: 'Mobile lipid-soluble electron carrier in the membrane. Shuttles electrons to Cyt b6f.' },
     PC:     { name: 'Plastocyanin', pathway: 'ETC (shared)', eq: 'PC(ox) + e\u207B \u2192 PC(red)', desc: 'Small copper protein. Shuttles electrons from Cyt b6f to PSI or Cyt c oxidase.' },

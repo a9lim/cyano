@@ -16,7 +16,7 @@ export function computeLayout(W, H, sidebarInset, zoom = 1) {
     const mPad = LW * 0.02, mW = LW - mPad * 2;
 
     // Linearly distribute 13 complexes across the available membrane width
-    const numComplexes = 13;
+    const numComplexes = 14;
     const step = mW / (numComplexes + 1);
     const colW = (i) => mPad + step * i;
 
@@ -34,6 +34,7 @@ export function computeLayout(W, H, sidebarInset, zoom = 1) {
         atpSyn: { cx: colW(11), cy: memMid },
         br:     { cx: colW(12), cy: memMid },
         nnt:    { cx: colW(13), cy: memMid },
+        ucp:    { cx: colW(14), cy: memMid },
     };
 
     // ── CYTOPLASM — Orthogonal Layout ──

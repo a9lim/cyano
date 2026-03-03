@@ -30,7 +30,7 @@ const _enzymeInfoKey = {
 // Map ETC pathway hitboxes → ENZYMES info key
 const _etcInfoKey = {
     'etc_resp:0': 'NDH1', 'etc_resp:1': 'SDH', 'etc_photo:0': 'PSII',
-    'etc_cyclic:0': 'PSI', 'atp_syn:0': 'ATPSyn', 'br:0': 'BR', 'nnt:0': 'NNT',
+    'etc_cyclic:0': 'PSI', 'atp_syn:0': 'ATPSyn', 'br:0': 'BR', 'nnt:0': 'NNT', 'ucp:0': 'UCP',
 };
 
 // Pre-computed constants for hot render paths (avoid per-frame allocations)
@@ -601,6 +601,24 @@ const Renderer = {
             ctx.fillText('-NADH', c.nnt.cx, nntBotY + 59);
         }
 
+        // UCP — uncoupling protein, visible when uncoupling enabled, glows when gradient + uncoupling
+        {
+            const ucpAlpha = state.uncouplingEnabled ? 1 : 0.3;
+            const ucpGlow = (state.uncouplingEnabled && state.protonGradient > 0) ? pulse : 0;
+            ctx.save();
+            ctx.globalAlpha = ucpAlpha;
+            EnzymeStyles.drawUCP(ctx, c.ucp.cx, c.ucp.cy, cxW - 4, cxH * 0.6, ucpGlow, lm);
+            if (state.uncouplingEnabled && state.protonGradient > 0) {
+                const ucpBotY = c.ucp.cy + cxH * 0.6 / 2;
+                this.drawSmallProtonArrow(ctx, c.ucp.cx, ucpBotY + 3, 'H⁺', 'down');
+                ctx.font = _F.mono500_10;
+                ctx.fillStyle = EnzymeStyles.roleColors.uncoupling.stroke;
+                ctx.textAlign = 'center';
+                ctx.fillText('heat', c.ucp.cx, ucpBotY + 47);
+            }
+            ctx.restore();
+        }
+
         // ETC hitboxes for click-to-react
         if (rA > 0.1) {
             this.enzymeHitboxes.push({ cx: c.ndh1.cx, cy: c.ndh1.cy, w: cxW + 10, h: cxH + 10, pathway: 'etc_resp', stepIndex: 0 });
@@ -610,6 +628,7 @@ const Renderer = {
         this.enzymeHitboxes.push({ cx: c.psii.cx, cy: c.psii.cy, w: cxW + 10, h: cxH + 10, pathway: 'etc_photo', stepIndex: 0 });
         this.enzymeHitboxes.push({ cx: c.atpSyn.cx, cy: c.atpSyn.cy, w: cxW + 10, h: cxH + 10, pathway: 'atp_syn', stepIndex: 0 });
         this.enzymeHitboxes.push({ cx: c.br.cx, cy: c.br.cy, w: cxW + 10, h: cxH + 10, pathway: 'br', stepIndex: 0 });
+        this.enzymeHitboxes.push({ cx: c.ucp.cx, cy: c.ucp.cy, w: cxW + 10, h: cxH + 10, pathway: 'ucp', stepIndex: 0 });
         this.enzymeHitboxes.push({ cx: c.psi.cx, cy: c.psi.cy, w: cxW + 10, h: cxH + 10, pathway: 'etc_cyclic', stepIndex: 0 });
         // Non-clickable ETC complexes (tooltip-only)
         if (shA > 0.1) {

@@ -2,6 +2,8 @@
 import { simState, store } from './state.js';
 import { updateDashboard } from './dashboard.js';
 import { advanceStep } from './reactions/dispatch.js';
+import Particles from './particles.js';
+import Renderer from './renderer.js';
 
 let etcTimer = 0;
 let metabolicTimer = 0;
@@ -85,6 +87,15 @@ export function protonLeakTick(dt) {
         if (leaked > 0) {
             store.protonGradient = Math.max(0, store.protonGradient - leaked);
             store.protonsLeaked += leaked;
+            // Visual: spawn downward protons through UCP when uncoupling active
+            if (simState.uncouplingEnabled && Renderer.etcComplexes.ucp) {
+                const count = Math.min(leaked, 3);
+                for (let i = 0; i < count; i++) {
+                    setTimeout(() => {
+                        Particles.spawnProton(Renderer.membraneY, Renderer.membraneH, Renderer.etcComplexes.ucp.cx, 'down');
+                    }, i * 120);
+                }
+            }
         }
 
         // ROS damage & auto-scavenging

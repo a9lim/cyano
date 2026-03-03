@@ -64,6 +64,7 @@ export const _ROLE = {
   cyclic: _BASE.purple,
   bacteriorhodopsin: _BASE.purple,
   nnt: _BASE.brown,
+  uncoupling: _BASE.red,
   electron: _BASE.cyan,
   proton: _BASE.red,
   photon: _BASE.yellow,
@@ -429,6 +430,27 @@ export const EnzymeStyles = {
     }
     ctx.restore();
     this.drawLabel(ctx, 'NNT', cx, cy, p.stroke, 11);
+  },
+
+  drawUCP(ctx, cx, cy, w, h, glow, lightMode) {
+    const p = this.getPalette('uncoupling', lightMode, glow);
+    const chanW = w * 0.5, chanH = h * 0.85;
+    const r = 4;
+    // Simple barrel channel shape
+    this.roundedRect(ctx, cx - chanW / 2, cy - chanH / 2, chanW, chanH, r);
+    this.applyStyle(ctx, p, glow);
+    // Internal channel lines (pore opening)
+    ctx.save();
+    ctx.globalAlpha *= 0.2;
+    ctx.strokeStyle = p.stroke; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - chanW * 0.15, cy - chanH * 0.35);
+    ctx.lineTo(cx - chanW * 0.15, cy + chanH * 0.35);
+    ctx.moveTo(cx + chanW * 0.15, cy - chanH * 0.35);
+    ctx.lineTo(cx + chanW * 0.15, cy + chanH * 0.35);
+    ctx.stroke();
+    ctx.restore();
+    this.drawLabel(ctx, 'UCP', cx, cy, p.stroke, 10);
   },
 
   /* ==== Shared Metabolite Node ==== */
