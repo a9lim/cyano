@@ -1,4 +1,6 @@
-// ─── Krebs cycle reactions ───
+// Krebs (TCA) cycle — 8 steps oxidizing acetyl-CoA to CO2,
+// generating 3 NADH + 1 FADH2 + 1 ATP per turn.
+// Requires aerobic conditions (O2 available).
 import { store, simState, counters } from '../state.js';
 
 
@@ -7,6 +9,7 @@ export function advanceKrebs(idx, direction) {
     const fwd = direction !== 'reverse';
     const rev = direction !== 'forward';
 
+    // Step 0: Citrate Synthase — condenses acetyl-CoA + OAA → citrate
     if (idx === 0) {
         if (fwd && store.acetylCoA > 0 && store.oaa > 0) {
             let t = Math.min(store.acetylCoA, store.oaa, 2);
@@ -14,9 +17,11 @@ export function advanceKrebs(idx, direction) {
             return { enzyme: 'Citrate Synthase', reaction: 'Acetyl-CoA + OAA → Citrate', yields: null };
         }
     }
+    // Step 1: Aconitase — isomerization (citrate → isocitrate)
     else if (idx === 1) {
         if (store.citrate > 0) { let t = Math.min(store.citrate, 2); store.citrate -= t; store.isocitrate += t; return { enzyme: 'Aconitase', reaction: 'Citrate → Isocitrate', yields: null }; }
     }
+    // Step 2: Isocitrate DH — oxidative decarboxylation, produces NADH + CO2
     else if (idx === 2) {
         if (store.isocitrate > 0 && store.nadh < store.totalNad) {
             let t = Math.min(store.isocitrate, store.totalNad - store.nadh, 2);
@@ -24,6 +29,7 @@ export function advanceKrebs(idx, direction) {
             return { enzyme: 'Isocitrate DH', reaction: 'Isocitrate → α-KG + CO₂ + NADH', yields: { nadh: t } };
         }
     }
+    // Step 3: α-Ketoglutarate DH — second decarboxylation, produces NADH + CO2
     else if (idx === 3) {
         if (store.akg > 0 && store.nadh < store.totalNad) {
             let t = Math.min(store.akg, store.totalNad - store.nadh, 2);
@@ -31,6 +37,7 @@ export function advanceKrebs(idx, direction) {
             return { enzyme: 'α-KGDH', reaction: 'α-KG → Succinyl-CoA + CO₂ + NADH', yields: { nadh: t } };
         }
     }
+    // Step 4: Succinyl-CoA Synthetase — substrate-level phosphorylation (GTP≈ATP)
     else if (idx === 4) {
         if (fwd && store.succoa > 0 && store.atp < store.totalAtpAdp) {
             let t = Math.min(store.succoa, store.totalAtpAdp - store.atp, 2);
@@ -42,6 +49,7 @@ export function advanceKrebs(idx, direction) {
             return { enzyme: 'SCS (Reverse)', reaction: 'Succinate + ATP → Succinyl-CoA', yields: { atpConsume: t } };
         }
     }
+    // Step 5: Succinate DH (Complex II) — FAD-linked oxidation, feeds electrons directly to ETC
     else if (idx === 5) {
         if (fwd && store.succinate > 0 && store.fadh2 < store.totalFad) {
             let t = Math.min(store.succinate, store.totalFad - store.fadh2, 2);
@@ -53,9 +61,11 @@ export function advanceKrebs(idx, direction) {
             return { enzyme: 'SDH (Reverse)', reaction: 'Fumarate + FADH₂ → Succinate', yields: null };
         }
     }
+    // Step 6: Fumarase — hydration (fumarate → malate)
     else if (idx === 6) {
         if (store.fumarate > 0) { let t = Math.min(store.fumarate, 2); store.fumarate -= t; store.malate += t; return { enzyme: 'Fumarase', reaction: 'Fumarate → Malate', yields: null }; }
     }
+    // Step 7: Malate DH — completes the cycle, regenerates OAA + NADH
     else if (idx === 7) {
         if (fwd && store.malate > 0 && store.nadh < store.totalNad) {
             let t = Math.min(store.malate, store.totalNad - store.nadh, 2);
@@ -71,6 +81,7 @@ export function advanceKrebs(idx, direction) {
     return false;
 }
 
+/** Batch: two complete Krebs turns (2 AcCoA → 4 CO2 + 6 NADH + 2 FADH2 + 2 ATP) */
 export function runKrebsCycle() {
     if (!simState.oxygenAvailable || !simState.krebsEnabled || store.acetylCoA < 2 || store.oaa < 2 || store.totalNad - store.nadh < 6 || store.totalAtpAdp - store.atp < 2 || store.totalFad - store.fadh2 < 2) return false;
     store.acetylCoA -= 2;

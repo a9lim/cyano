@@ -1,4 +1,5 @@
-// ─── Biosim entry point ───
+// Entry point — wires canvas, DOM, theme, and the render loop.
+// Sparkline sampling at 5 Hz feeds 60-second ring buffers for dashboard gauges.
 import { simState, store, histories, updateAnimations } from './src/state.js';
 import { updateTheme } from './src/theme.js';
 import { showActiveStep, updateDashboard } from './src/dashboard.js';
@@ -13,17 +14,15 @@ const dom = cacheDOMElements();
 Renderer.init(dom.canvas);
 bindEvents(dom);
 
-// Wire click-to-react
+// Canvas click → advanceStep (set by dispatch.js signature)
 Renderer.onEnzymeClick = advanceStep;
 
-// Initialize theme and sidebar inset
 updateTheme(dom.themeBtn);
 Renderer.sidebarInset = 0;
 Renderer._sidebarInsetCurrent = 0;
 Renderer._sidebarAnimTo = 0;
 Renderer._updateLayout();
 
-// Initial dashboard state
 updateDashboard();
 showActiveStep('Ready', 'Click a highlighted molecule to start', null);
 
@@ -41,7 +40,7 @@ function mainLoop(now) {
     autoplayTick(dt);
     protonLeakTick(dt);
     sparkTimer += dt;
-    if (sparkTimer > 0.2) { // 5Hz sampling
+    if (sparkTimer > 0.2) {
         sparkTimer = 0;
         pushSample(histories.atp, store.atp / store.totalAtpAdp);
         pushSample(histories.nadh, store.nadh / store.totalNad);

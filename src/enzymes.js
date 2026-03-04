@@ -1,14 +1,16 @@
-// ─── Enzyme & complex drawing functions (ES6 module) ───
+// Enzyme and ETC complex drawing — shapes, palettes, arrows, and particle visuals.
+// Color pipeline: _PALETTE -> _BASE families -> _ROLE semantics -> _pal() palettes -> _THEME modes.
 import { _TWO_PI } from './anim.js';
 
-// Window globals from shared-tokens.js + colors.js (loaded in <head> before modules)
 const _FONT = window._FONT;
 const _PALETTE = window._PALETTE;
 const _r = window._r;
 const _BASE = window._BASE;
 const _darkFill = window._darkFill;
 
-// ---------- Pre-computed Font Strings ----------
+// ── Pre-computed Font Strings ──
+// Frozen cache eliminates per-frame template-literal allocation for ctx.font.
+// _labelFont() handles uncommon sizes on first use.
 export const _F = Object.freeze({
   mono500_9:    `500 9px ${_FONT.mono}`,
   mono500_10:   `500 10px ${_FONT.mono}`,
@@ -27,11 +29,12 @@ export const _F = Object.freeze({
 });
 
 const _labelFonts = {};
+/** Returns cached font string for uncommon label sizes. */
 export function _labelFont(size) {
   return _labelFonts[size] || (_labelFonts[size] = `700 ${size}px ${_FONT.mono}`);
 }
 
-// ---------- Drawing Constants ----------
+// ── Drawing Constants ──
 export const CFG = {
   arrowHeadLen: 8,
   arrowHeadAngle: 0.35,
@@ -50,7 +53,8 @@ export const CFG = {
   trailMaxLen: 10,
 };
 
-// ---------- Semantic Role → Base Family ----------
+// ── Semantic Role -> Base Color Family ──
+// Maps logical roles to _BASE color families from colors.js.
 export const _ROLE = {
   glycolysis: _BASE.orange,
   calvin: _BASE.green,
@@ -73,11 +77,14 @@ export const _ROLE = {
   nightIndicator: _BASE.slate,
 };
 
+/** Build a palette tuple from a base family. glowA controls glow alpha. */
 function _pal(b, fill, glowA) {
   return { fill, stroke: b.stroke, glow: _r(b.stroke, glowA), strokeLight: b.strokeLight };
 }
 
-// ---------- Theme Colors ----------
+// ── Theme Colors ──
+// Mode-dependent canvas colors derived from _PALETTE.
+// EnzymeStyles.t(lightMode) returns the active set.
 export const _THEME = {
   protonText: _PALETTE.dark.text,
 
@@ -127,8 +134,11 @@ export const _THEME = {
 export const EnzymeStyles = {
   roleColors: _ROLE,
   theme: _THEME,
+  /** Shorthand: returns dark or light theme color set. */
   t(lm) { return lm ? _THEME.light : _THEME.dark; },
 
+  // ── Per-role palettes ──
+  // "Active" variants use darkened fill for highlighted-state contrast.
   colors: {
     respiratory:        _pal(_ROLE.respiratory,       _BASE.blue.fill, 0.35),
     photosynthetic:     _pal(_ROLE.photosynthetic,    _BASE.green.fill, 0.35),
@@ -151,6 +161,10 @@ export const EnzymeStyles = {
     betaoxActive:       _pal(_ROLE.betaox,            _darkFill(_BASE.yellow, 14), 0.5),
   },
 
+  /**
+   * Get mode-aware palette. In light mode, swaps fill to light surface
+   * and uses strokeLight for better contrast against light backgrounds.
+   */
   getPalette(key, lightMode, glowIntensity = 0) {
     const p = this.colors[key];
     if (!lightMode) return p;
@@ -161,7 +175,10 @@ export const EnzymeStyles = {
     };
   },
 
-  /* ---- Generic shape helpers ---- */
+  /* ═══════════════════════════════════════
+     Generic Shape Helpers
+     ═══════════════════════════════════════ */
+
   roundedRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -194,7 +211,7 @@ export const EnzymeStyles = {
     ctx.closePath();
   },
 
-  /* ---- Style + glow ---- */
+  /** Fill + stroke with optional glow shadow. Resets shadowBlur after. */
   applyStyle(ctx, palette, glowAmount) {
     if (glowAmount > 0) {
       ctx.shadowColor = palette.glow;
@@ -216,6 +233,7 @@ export const EnzymeStyles = {
     ctx.fillText(text, cx, cy);
   },
 
+  /** Chromophore dot inside PSII/PSI/BR — colored by role. */
   _drawChromophore(ctx, cx, cy, role, lightMode) {
     ctx.beginPath();
     ctx.arc(cx, cy, 6, 0, _TWO_PI);
@@ -223,8 +241,13 @@ export const EnzymeStyles = {
     ctx.fill();
   },
 
-  /* ==== ETC Complex Drawers ==== */
+  /* ═══════════════════════════════════════
+     ETC Complex Shapes
+     All share signature (ctx, cx, cy, w, h, glow, lightMode).
+     Renderer positions/sizes are independent of shape internals.
+     ═══════════════════════════════════════ */
 
+  /** NDH-1 / Complex I — T-shaped: narrow neck (lumen), wide base (matrix). */
   drawNDH1(ctx, cx, cy, w, h, glow, lightMode) {
     const p = this.getPalette('respiratory', lightMode, glow);
     const top = cy - h / 2, bot = cy + h / 2;
@@ -250,6 +273,7 @@ export const EnzymeStyles = {
     this.drawLabel(ctx, 'NDH-1', cx, headTop + headH / 2, p.stroke, 10);
   },
 
+  /** SDH / Complex II — tapered trapezoid. Anchors into matrix (offset in layout). */
   drawSDH(ctx, cx, cy, size, glow, lightMode) {
     const p = this.getPalette('respiratory', lightMode, glow);
     const s = size * 1.3, topW = s * 0.65, botW = s, hh = s / 2, r = 4;
@@ -266,6 +290,7 @@ export const EnzymeStyles = {
     this.drawLabel(ctx, 'CII', cx, cy + 8, p.stroke, 8);
   },
 
+  /** PSII — ellipse with dashed D1/D2 divider and P680 chromophore. */
   drawPSII(ctx, cx, cy, w, h, glow, lightMode) {
     const p = this.getPalette('photosynthetic', lightMode, glow);
     ctx.beginPath();
@@ -283,6 +308,7 @@ export const EnzymeStyles = {
     this.drawLabel(ctx, 'P680', cx, cy + 16, p.stroke, 9);
   },
 
+  /** PSI — ellipse with P700 chromophore. */
   drawPSI(ctx, cx, cy, w, h, glow, lightMode) {
     const p = this.getPalette('photosynthetic', lightMode, glow);
     ctx.beginPath();
@@ -293,6 +319,7 @@ export const EnzymeStyles = {
     this.drawLabel(ctx, 'P700', cx, cy + 16, p.stroke, 9);
   },
 
+  /** Cyt b6f — hourglass shape (bezier pinch). Shared between respiratory and photosynthetic chains. */
   drawCytB6f(ctx, cx, cy, w, h, glow, lightMode) {
     const p = this.getPalette('shared', lightMode, glow);
     const hw = w / 2, hh = h / 2, pinch = w * 0.3;
@@ -308,6 +335,7 @@ export const EnzymeStyles = {
     this.drawLabel(ctx, 'b6f', cx, cy + 8, p.stroke, 10);
   },
 
+  /** Cyt c Oxidase — inverted trapezoid (narrow top, wide bottom). */
   drawCytOx(ctx, cx, cy, w, h, glow, lightMode) {
     const p = this.getPalette('respiratory', lightMode, glow);
     const topW = w * 0.7, hh = h / 2, r = 5;
@@ -324,6 +352,7 @@ export const EnzymeStyles = {
     this.drawLabel(ctx, 'Ox', cx, cy + 8, p.stroke, 10);
   },
 
+  /** Plastocyanin — circle. Mobile electron carrier. */
   drawPC(ctx, cx, cy, radius, glow, lightMode) {
     const p = this.getPalette('shared', lightMode, glow);
     ctx.beginPath();
@@ -332,6 +361,7 @@ export const EnzymeStyles = {
     this.drawLabel(ctx, 'PC', cx, cy, p.stroke, 10);
   },
 
+  /** Ferredoxin — diamond. Mobile electron carrier below membrane. */
   drawFd(ctx, cx, cy, radius, glow, lightMode) {
     const p = this.getPalette('photosynthetic', lightMode, glow);
     const s = radius * 1.8;
@@ -340,6 +370,7 @@ export const EnzymeStyles = {
     this.drawLabel(ctx, 'Fd', cx, cy, p.stroke, 10);
   },
 
+  /** FNR — ellipse. Reduces NADP+ using electrons from Fd. */
   drawFNR(ctx, cx, cy, w, h, glow, lightMode) {
     const p = this.getPalette('photosynthetic', lightMode, glow);
     ctx.beginPath();
@@ -348,6 +379,7 @@ export const EnzymeStyles = {
     this.drawLabel(ctx, 'FNR', cx, cy, p.stroke, 10);
   },
 
+  /** Plastoquinone — diamond. Mobile carrier in the lipid bilayer. */
   drawPQ(ctx, cx, cy, w, h, glow, lightMode) {
     const p = this.getPalette('shared', lightMode, glow);
     this.diamond(ctx, cx, cy, w * 0.85, h);
@@ -355,6 +387,7 @@ export const EnzymeStyles = {
     this.drawLabel(ctx, 'PQ', cx, cy, p.stroke, 10);
   },
 
+  /** ATP Synthase — Fo channel (rectangle) + stalk + F1 head (arc). */
   drawATPSynthase(ctx, cx, cy, w, h, glow, lightMode) {
     const p = this.getPalette('atpSynthase', lightMode, glow);
     const top = cy - h / 2;
@@ -364,6 +397,7 @@ export const EnzymeStyles = {
     const f1CY = cy + h / 2 - f1R - 1;
     const foBot = top + foH;
     const r = 5;
+    // Arc join angle so stalk meets F1 head tangentially
     const joinA = Math.asin(Math.min(halfStalk / f1R, 1));
     const arcStart = -Math.PI / 2 + joinA;
     const arcEnd = -Math.PI / 2 - joinA;
@@ -380,6 +414,7 @@ export const EnzymeStyles = {
     ctx.quadraticCurveTo(cx - foW / 2, top, cx - foW / 2 + r, top);
     ctx.closePath();
     this.applyStyle(ctx, p, glow);
+    // Fo/F1 divider line
     ctx.save();
     ctx.beginPath();
     ctx.moveTo(cx - foW / 2 + 3, foBot);
@@ -392,11 +427,13 @@ export const EnzymeStyles = {
     this.drawLabel(ctx, 'Syn', cx, f1CY + 9, p.stroke, 9);
   },
 
+  /** Bacteriorhodopsin — rounded rect with 7 transmembrane helix lines and retinal chromophore. */
   drawBR(ctx, cx, cy, w, h, glow, lightMode) {
     const p = this.getPalette('bacteriorhodopsin', lightMode, glow);
     const r = w * 0.35;
     this.roundedRect(ctx, cx - w / 2, cy - h / 2, w, h, r);
     this.applyStyle(ctx, p, glow);
+    // 7 vertical lines representing the 7 transmembrane alpha-helices
     ctx.save();
     ctx.globalAlpha *= 0.15;
     ctx.strokeStyle = p.stroke; ctx.lineWidth = 1;
@@ -413,6 +450,7 @@ export const EnzymeStyles = {
     this.drawLabel(ctx, 'BR', cx, cy - 14, p.stroke, 12);
   },
 
+  /** NNT (transhydrogenase) — rounded rect with 2 internal partition lines. */
   drawNNT(ctx, cx, cy, w, h, glow, lightMode) {
     const p = this.getPalette('nnt', lightMode, glow);
     const r = w * 0.25;
@@ -433,14 +471,13 @@ export const EnzymeStyles = {
     this.drawLabel(ctx, 'NNT', cx, cy, p.stroke, 11);
   },
 
+  /** UCP — narrow barrel channel with internal pore lines. */
   drawUCP(ctx, cx, cy, w, h, glow, lightMode) {
     const p = this.getPalette('uncoupling', lightMode, glow);
     const chanW = w * 0.5, chanH = h * 0.85;
     const r = 4;
-    // Simple barrel channel shape
     this.roundedRect(ctx, cx - chanW / 2, cy - chanH / 2, chanW, chanH, r);
     this.applyStyle(ctx, p, glow);
-    // Internal channel lines (pore opening)
     ctx.save();
     ctx.globalAlpha *= 0.2;
     ctx.strokeStyle = p.stroke; ctx.lineWidth = 1;
@@ -454,7 +491,11 @@ export const EnzymeStyles = {
     this.drawLabel(ctx, 'UCP', cx, cy, p.stroke, 10);
   },
 
-  /* ==== Shared Metabolite Node ==== */
+  /* ═══════════════════════════════════════
+     Metabolite Node
+     ═══════════════════════════════════════ */
+
+  /** Pill-shaped metabolite with optional count badge and "2x" stoichiometry marker. */
   drawMetaboliteNode(ctx, cx, cy, label, active, lightMode, show2x, count) {
     const w = Math.max(ctx.measureText(label).width + 16, 32);
     const h = CFG.metabNodeHeight;
@@ -473,6 +514,7 @@ export const EnzymeStyles = {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(label, cx, cy);
+    // Accent badge showing current pool count
     if (count > 0) {
       const badgeR = CFG.metabBadgeRadius;
       const bx = cx + w / 2 - 2, by = cy - h / 2 - 4;
@@ -484,6 +526,7 @@ export const EnzymeStyles = {
       ctx.fillStyle = th.textOnAccent;
       ctx.fillText(count, bx, by);
     }
+    // "2x" marker for metabolites produced in pairs (C6 -> 2x C3)
     if (show2x) {
       ctx.font = _F.mono600_8;
       ctx.fillStyle = th.textMuted;
@@ -491,6 +534,10 @@ export const EnzymeStyles = {
     }
   },
 
+  /**
+   * Enzyme tag pill — clickable label on arrows.
+   * Dual-color gradient when the enzyme serves two pathways (color vs color2).
+   */
   drawEnzymeTag(ctx, cx, cy, label, color, active, lightMode, color2) {
     const pad = CFG.enzymeTagPad;
     ctx.font = active ? _F.tag700 : _F.tag500;
@@ -521,7 +568,11 @@ export const EnzymeStyles = {
     ctx.fillText(label, cx, cy);
   },
 
-  /* ---- Membrane band ---- */
+  /* ═══════════════════════════════════════
+     Membrane Phospholipid Bilayer
+     ═══════════════════════════════════════ */
+
+  /** Draw the membrane bilayer with wobbling phospholipid heads and tails. */
   drawMembrane(ctx, x, y, w, h, lightMode, time) {
     const t = time || 0;
     const headSpacing = 6;
@@ -535,6 +586,7 @@ export const EnzymeStyles = {
     ctx.lineWidth = 0.7;
     for (let lx = x + 6; lx < x + w; lx += headSpacing) {
       const wobble = Math.sin(t * 2 + lx * 0.1) * 1.2;
+      // Upper leaflet (faces lumen)
       const topHeadY = y + 3 + wobble;
       ctx.beginPath();
       ctx.arc(lx, topHeadY, headRadius, 0, _TWO_PI);
@@ -545,6 +597,7 @@ export const EnzymeStyles = {
       ctx.moveTo(lx + 1, topHeadY + headRadius);
       ctx.lineTo(lx + 1.5, topHeadY + headRadius + tailLen);
       ctx.stroke();
+      // Lower leaflet (faces matrix) — offset by half-spacing for bilayer stagger
       const botHeadY = y + h - 3 - wobble;
       const bx = lx + headSpacing / 2;
       ctx.beginPath();
@@ -559,7 +612,10 @@ export const EnzymeStyles = {
     }
   },
 
-  /* ---- Particles ---- */
+  /* ═══════════════════════════════════════
+     Particle Renderers
+     ═══════════════════════════════════════ */
+
   drawElectron(ctx, x, y, intensity, type, fade) {
     const hex = _ROLE.electron.stroke;
     const a = fade != null ? fade : 1;
@@ -586,6 +642,7 @@ export const EnzymeStyles = {
     ctx.shadowBlur = 5 * intensity;
     ctx.fill();
     ctx.shadowBlur = 0;
+    // "+" label centered on proton
     ctx.font = _F.mono600_8;
     ctx.fillStyle = _r(_THEME.protonText, a);
     ctx.textAlign = 'center';
@@ -594,7 +651,14 @@ export const EnzymeStyles = {
     ctx.restore();
   },
 
-  /* ---- Arrows ---- */
+  /* ═══════════════════════════════════════
+     Arrow Primitives
+     ═══════════════════════════════════════ */
+
+  /**
+   * Core arrow renderer — straight or curved, with optional bidirectional heads.
+   * Dual-color gradient when color2 != color (shared enzyme serving two pathways).
+   */
   _drawArrowCore(ctx, x1, y1, x2, y2, opts) {
     ctx.save();
     const o = opts || {};
@@ -652,6 +716,7 @@ export const EnzymeStyles = {
     const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
     const dx = x2 - x1, dy = y2 - y1;
     const len = Math.sqrt(dx * dx + dy * dy);
+    // Perpendicular offset (18px) creates the curve
     const nx = -dy / len * 18 * (curveDir || 1);
     const ny = dx / len * 18 * (curveDir || 1);
     this._drawArrowCore(ctx, x1, y1, x2, y2, { color, alpha, curved: true, cpx: mx + nx, cpy: my + ny });
@@ -661,6 +726,11 @@ export const EnzymeStyles = {
     this._drawArrowCore(ctx, x1, y1, x2, y2, { color, alpha });
   },
 
+  /**
+   * Circular arrow for batch reactions (Krebs, Calvin, PPP, beta-ox cycle targets).
+   * bidir adds arrowheads at both ends for reversible cycles (e.g. beta-ox/FA synthesis).
+   * Rotation animates smoothly via rotAccum in state.
+   */
   drawCycleTarget(ctx, cx, cy, color, label, dir = 1, rotation = 0, bidir = false) {
     const radius = CFG.cycleTargetRadius;
     const parentAlpha = ctx.globalAlpha;
@@ -679,7 +749,6 @@ export const EnzymeStyles = {
     ctx.globalAlpha = parentAlpha;
     ctx.stroke();
 
-    // Primary arrowhead (at the end of the arc)
     const _drawArrowhead = (eAngle, tAngle) => {
       ctx.beginPath();
       const ax = cx + radius * Math.cos(eAngle);
@@ -700,14 +769,12 @@ export const EnzymeStyles = {
       ctx.fill();
     };
 
-    // Forward arrowhead
     if (dir === 1) {
       _drawArrowhead(_TWO_PI - 0.4, _TWO_PI - 0.4 + Math.PI / 2);
     } else {
       _drawArrowhead(0.4, 0.4 - Math.PI / 2);
     }
 
-    // Reverse arrowhead (bidir only — at the start of the arc)
     if (bidir) {
       if (dir === 1) {
         _drawArrowhead(0.4, 0.4 - Math.PI / 2);

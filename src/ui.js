@@ -1,4 +1,5 @@
-// ─── UI: DOM cache, event binding, sidebar, intro ───
+// UI wiring — DOM cache, event binding, sidebar, organism presets,
+// intro screen, keyboard shortcuts, and info tip registration.
 import { simState, store, resetState } from './state.js';
 import { updateTheme, cycleTheme } from './theme.js';
 import { initDashboard, updateDashboard } from './dashboard.js';
@@ -7,9 +8,10 @@ import Renderer from './renderer.js';
 import Particles from './particles.js';
 import { ORGANISMS } from './organisms.js';
 
-const _SIDEBAR_W = 374; // panel-w(350) + gap(24)
+const _SIDEBAR_W = 374; // panel-w(350) + right gap(24)
 function _isMobile() { return window.innerWidth <= 900; }
 
+/** Build the DOM element cache. Only IDs matter — class names/hierarchy can change freely. */
 export function cacheDOMElements() {
     return {
         canvas: document.getElementById('sim-canvas'),
@@ -32,17 +34,14 @@ export function cacheDOMElements() {
         dashboard: document.getElementById('dashboard'),
         introScreen: document.getElementById('intro-screen'),
         introStart: document.getElementById('intro-start'),
-        // Ratio Bars
         atpBar: document.getElementById('atp-bar'), atpRatio: document.getElementById('atp-ratio'),
         nadhBar: document.getElementById('nadh-bar'), nadhRatio: document.getElementById('nadh-ratio'),
         nadphBar: document.getElementById('nadph-bar'), nadphRatio: document.getElementById('nadph-ratio'),
         fadh2Bar: document.getElementById('fadh2-bar'), fadh2Ratio: document.getElementById('fadh2-ratio'),
-        // Counters
         protonGradient: document.getElementById('proton-gradient'),
         co2Net: document.getElementById('co2-net'),
         o2Net: document.getElementById('o2-net'),
         h2oNet: document.getElementById('h2o-net'),
-        // Active Step
         krebsEnzyme: document.getElementById('krebs-enzyme'), krebsReaction: document.getElementById('krebs-reaction'),
         krebsYield: document.getElementById('krebs-yield'), krebsTurn: document.getElementById('krebs-turn'),
         calvinTurn: document.getElementById('calvin-turn'), glycolysisRun: document.getElementById('glycolysis-run'),
@@ -54,7 +53,6 @@ export function cacheDOMElements() {
         atpSourceOx: document.getElementById('atp-source-ox'),
         organismSelect: document.getElementById('organism-select'),
         organismDesc: document.getElementById('organism-desc'),
-        // ROS / oxidative stress
         rosProduced: document.getElementById('ros-produced'),
         rosScavenged: document.getElementById('ros-scavenged'),
         activeROS: document.getElementById('active-ros'),
@@ -71,14 +69,15 @@ function toggleSidebar(dom, forceClose) {
     }
     const isOpen = dom.dashboard.classList.contains('open');
     if (dom.menuBtn) dom.menuBtn.classList.toggle('active', isOpen);
+    // Push canvas layout on desktop; mobile uses bottom sheet overlay
     Renderer.sidebarInset = (isOpen && !_isMobile()) ? _SIDEBAR_W : 0;
 }
 
+/** Wire all DOM events: toggles, presets, reset, theme, sidebar, shortcuts, info tips. */
 export function bindEvents(dom) {
-    // Initialize dashboard DOM reference
     initDashboard(dom);
 
-    // Pathway toggles
+    // ── Pathway & environment toggles ──
     dom.lightToggle.addEventListener('change', () => {
         simState.lightOn = dom.lightToggle.checked;
         updateTheme(dom.themeBtn);
@@ -92,12 +91,11 @@ export function bindEvents(dom) {
     if (dom.autoplayToggle) dom.autoplayToggle.addEventListener('change', () => simState.autoPlay = dom.autoplayToggle.checked);
     dom.uncouplingToggle?.addEventListener('change', e => { simState.uncouplingEnabled = e.target.checked; });
 
-    // Organism preset selector
+    // ── Organism preset selector ──
     dom.organismSelect?.addEventListener('change', e => {
         const key = e.target.value;
         if (key === 'custom') {
             simState.lockedPathways = {};
-            // Unlock all toggles
             const pathwayMap = {
                 glycolysis: dom.glycToggle,
                 ppp: dom.pppToggle,
@@ -118,7 +116,7 @@ export function bindEvents(dom) {
         simState.activeOrganism = key;
         simState.lockedPathways = org.lockedReason || {};
 
-        // Apply pathway enables
+        // Apply pathway enables + lock state
         const pathwayMap = {
             glycolysis: dom.glycToggle,
             ppp: dom.pppToggle,
@@ -134,24 +132,22 @@ export function bindEvents(dom) {
             toggle.closest('.ctrl-row')?.classList.toggle('locked', !!org.lockedReason?.[pw]);
         }
 
-        // Apply environment
         dom.lightToggle.checked = org.environment.light;
         dom.lightToggle.dispatchEvent(new Event('change'));
         dom.oxygenToggle.checked = org.environment.oxygen;
         dom.oxygenToggle.dispatchEvent(new Event('change'));
 
-        // Reset metabolite pools with organism-specific ratios
+        // Reset pools to organism-specific initial ratios
         resetState();
         store.atp = Math.round(store.totalAtpAdp * org.initialRatios.atp);
         store.nadh = Math.round(store.totalNad * org.initialRatios.nadh);
         store.nadph = Math.round(store.totalNadp * org.initialRatios.nadph);
         store.fadh2 = Math.round(store.totalFad * org.initialRatios.fadh2);
 
-        // Update description
         dom.organismDesc.textContent = org.desc;
     });
 
-    // Reset
+    // ── Reset ──
     dom.resetBtn.addEventListener('click', () => {
         resetState();
         resetAutoplayTimers();
@@ -159,14 +155,14 @@ export function bindEvents(dom) {
         updateDashboard();
     });
 
-    // Add substrates
+    // ── Add substrates ──
     if (dom.addGlucoseBtn) dom.addGlucoseBtn.addEventListener('click', () => { store.glucose++; updateDashboard(); });
     if (dom.addFattyAcidBtn) dom.addFattyAcidBtn.addEventListener('click', () => { store.fattyAcid++; updateDashboard(); });
 
-    // Theme toggle
+    // ── Theme ──
     if (dom.themeBtn) dom.themeBtn.addEventListener('click', () => cycleTheme(dom.themeBtn));
 
-    // Sidebar toggle
+    // ── Sidebar ──
     if (dom.menuBtn) dom.menuBtn.addEventListener('click', () => toggleSidebar(dom));
     if (dom.closeStats) dom.closeStats.addEventListener('click', () => toggleSidebar(dom, true));
 
@@ -180,19 +176,21 @@ export function bindEvents(dom) {
         });
     }
 
-    // Intro screen
+    // ── Intro screen ──
     if (dom.introStart && dom.introScreen) {
         dom.introStart.addEventListener('click', () => {
             dom.introScreen.classList.add('hidden');
             document.body.classList.add('app-ready');
+            // Auto-open sidebar on desktop
             if (!_isMobile()) {
                 toggleSidebar(dom);
             }
+            // Delay display:none until CSS fade-out completes
             setTimeout(() => { dom.introScreen.style.display = 'none'; }, 850);
         });
     }
 
-    // ─── Keyboard shortcuts ───
+    // ── Keyboard shortcuts (via shared-shortcuts.js) ──
     const toggleCheck = (el, setter) => {
         el.checked = !el.checked;
         setter(el.checked);
@@ -233,7 +231,7 @@ export function bindEvents(dom) {
         initShortcuts(shortcuts, { helpTitle: 'Keyboard Shortcuts' });
     }
 
-    // ─── Info tips ───
+    // ── Info tips (via shared-info.js) ──
     const infoData = {
         glycolysis: { title: 'Glycolysis', body: 'Breaks down glucose into pyruvate, producing 2 ATP and 2 NADH per glucose.<br>Net: Glucose + 2 NAD\u207A + 2 ADP \u2192 2 Pyruvate + 2 NADH + 2 ATP' },
         ppp: { title: 'Pentose Phosphate Pathway', body: 'Generates NADPH for biosynthesis (primary role). The non-oxidative phase recycles R5P back to G6P, allowing continuous NADPH production.<br>Net per cycle: G6P + 2 NADP\u207A \u2192 G6P(regenerated) + 2 NADPH + CO\u2082' },
