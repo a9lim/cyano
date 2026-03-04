@@ -1,42 +1,53 @@
 # Cellular Metabolism
 
-An interactive HTML5 Canvas simulation of cellular carbon metabolism and electron transport chains.
+An interactive HTML5 Canvas simulation of cellular carbon metabolism, electron transport chains, and bioenergetics.
 
-**[Live Demo →](https://a9l.im/biosim)** · Part of the [a9l.im](https://a9l.im) portfolio
+**[Live Demo](https://a9l.im/biosim)** -- Part of the [a9l.im](https://a9l.im) portfolio
 
-## Overview
+## What It Does
 
-Visualizes the interconnected nature of 10 major biochemical systems within a photosynthetic cell. Users trace the flow of carbon, electrons, and energy (ATP/NADH/NADPH) by clicking on enzymatic reactions to advance the simulation step-by-step.
+Visualizes ten interconnected biochemical pathways inside a photosynthetic cell. Instead of treating each pathway as an isolated textbook diagram, the simulator maps them onto a shared metabolite grid so that intersections (e.g. Fructose-6-Phosphate shared by Glycolysis, PPP, and the Calvin Cycle) are immediately visible.
 
-Rather than treating pathways as isolated diagrams, the simulator uses **shared metabolite nodes** (e.g., Fructose-6-Phosphate) in an orthogonal grid layout, demonstrating how pathways like Glycolysis, the Calvin Cycle, and the Pentose Phosphate Pathway naturally intersect.
+Users advance the simulation by clicking enzyme labels on the canvas. Available reactions highlight based on current substrate levels and cofactor ratios. Toggle sunlight and oxygen to shift the cell between photosynthesis, aerobic respiration, and fermentation. An autoplay mode runs the full metabolic program automatically, with allosteric regulation gating reaction rates in real time.
+
+## Pathways
+
+1. **Glycolysis / Gluconeogenesis** -- bidirectional glucose breakdown and resynthesis
+2. **Pentose Phosphate Pathway** -- NADPH production and carbon skeleton recycling
+3. **Calvin Cycle** -- CO2 fixation using light-derived ATP and NADPH
+4. **Krebs Cycle** -- acetyl-CoA oxidation, NADH/FADH2 generation
+5. **Beta Oxidation / Fatty Acid Synthesis** -- bidirectional fatty acid catabolism and anabolism
+6. **Linear Light Reactions (Z-scheme)** -- water splitting, PSII to PSI electron flow
+7. **Cyclic Light Reactions** -- PSI cyclic electron flow for extra ATP
+8. **Oxidative Phosphorylation** -- respiratory ETC and chemiosmotic ATP synthesis
+9. **Fermentation** -- ethanol pathway when oxygen is absent
+10. **NNT** -- proton-gradient-driven NADH-to-NADPH conversion
 
 ## Features
 
-- **Click-to-React** — Manually advance metabolic flux by clicking enzymatic arrows. Available reactions are highlighted based on current metabolite, ATP, and redox coenzyme levels. Add glucose or fatty acid substrates via on-screen buttons or keyboard shortcuts.
-- **Allosteric Regulation** — PFK, citrate synthase, isocitrate DH, PDH, G6PDH, RuBisCO, and ACAD respond to cellular energy state. High ATP inhibits glycolysis and Krebs; high NADH inhibits Krebs; high NADPH inhibits PPP while low NADPH activates it; low ATP inhibits Calvin cycle; high FADH₂ inhibits beta oxidation; low NADPH inhibits FA synthesis. Direction-aware: PFK only inhibits forward glycolysis. Regulation factor (0–1.5) gates reactions with toast feedback.
-- **Enzyme Dimming** — Unavailable enzymes drawn at reduced opacity (0.4 when blocked, 0.7 when partially inhibited) based on substrate availability and regulation status.
-- **Biochemical Accuracy** — Reversible enzymes (Aldolase, PGI, etc.) calculate substrate/product availability dynamically. Clicking in reverse consumes the product and returns the substrate. Shared enzymes display in the color of the pathway they serve in each direction (e.g. PGI forward = glycolysis orange, PGI reverse = PPP rose). Realistic initial cofactor ratios (90% ATP, 10% NADH/NADPH/FADH₂).
-- **Enzyme & Metabolite Info** — Hover enzymes or metabolites for detailed popups with name, description, pathway, equation, and regulation notes (~35 enzymes, ~26 metabolites).
-- **Orthogonal Grid Layout** — Cytoplasmic carbon architecture (Glycolysis, Calvin, PPP, Krebs) mapped to a strict column-and-row system.
-- **Unrolled Krebs Block** — The citric acid cycle integrated as a 3×3 logical circuit beneath Glycolysis.
-- **Dynamic Shared Reactions** — Enzymes shared between pathways (TKT/TAL, TK/SBP) adapt colors based on which pathways are active.
-- **Live Bioenergetic Tracking** — Global cellular pools of ATP/ADP, NADH/NAD+, NADPH/NADP+, FADH2/FAD shown as real-time percentage bars.
-- **Keyboard Shortcuts** — Space (autoplay), G (glucose), F (fatty acid), L (light), O (oxygen), 1-5 (pathway toggles), T (theme), S (sidebar); press `?` for help overlay
-- **Info Tips** — Hover `?` icons for explanations of pathways, cofactors, and environmental controls
-- **Three-State Theme Toggle** — Simulation (follows sunlight), Light, Dark.
+- **Click-to-React** -- manually advance metabolic flux by clicking enzyme arrows on the canvas. Substrate availability and regulation status determine which reactions are available.
+- **Allosteric Regulation** -- PFK, citrate synthase, isocitrate DH, PDH, G6PDH, RuBisCO, and ACAD respond to cellular energy state. Regulation factor (0--1.5) gates reactions with toast feedback on manual clicks and probabilistic gating during autoplay.
+- **Organism Presets** -- choose from Cyanobacterium, Animal Cell, Obligate Anaerobe, Plant Chloroplast, or Archaeon. Each preset locks/unlocks pathways and environment toggles to match that organism's biology.
+- **Reactive Oxygen Species** -- 2% electron leak at Complex I and the Q-cycle produces ROS. SOD and catalase scavenge for free; GPx consumes NADPH. Cell health degrades if ROS accumulate unchecked.
+- **Cofactor Sparklines** -- real-time time-series plots of ATP, NADH, NADPH, FADH2 ratios and proton gradient (300 samples at 5 Hz, 60-second window).
+- **Enzyme and Metabolite Info** -- hover enzyme tags or metabolite nodes for popups with name, pathway, equation, and regulation notes.
+- **Three-State Theme** -- Simulation (follows sunlight), Light, Dark.
+- **Keyboard Shortcuts** -- Space (autoplay), G (glucose), F (fatty acid), L (light), O (oxygen), 1--5 (pathway toggles), T (theme), S (sidebar). Press `?` for help overlay.
+- **Uncoupling Proteins** -- toggle passive proton leak to dissipate the gradient as heat, mimicking brown fat thermogenesis.
 
-### Pathways
+## Controls
 
-1. Glycolysis / Gluconeogenesis (bidirectional)
-2. Pentose Phosphate Pathway (PPP)
-3. Calvin Cycle (Carbon Fixation)
-4. Krebs Cycle (Citric Acid Cycle)
-5. Beta Oxidation / Fatty Acid Synthesis (bidirectional)
-6. Linear Light-Dependent Reactions (Z-scheme)
-7. Cyclic Light-Dependent Reactions (PSI cyclic flow)
-8. Oxidative Phosphorylation (Respiratory ETC)
-9. Fermentation (Ethanol pathway when anoxic)
-10. NNT (Nicotinamide Nucleotide Transhydrogenase)
+| Control | Effect |
+|---------|--------|
+| Click enzyme label | Advance that reaction one step |
+| Right-click bidirectional enzyme | Run the reverse direction |
+| Add Glucose / Add Fatty Acid | Inject substrate into the system |
+| Pathway toggles | Enable/disable individual pathways |
+| Sunlight toggle | Enable photosynthetic light reactions; in Simulation theme, also switches light/dark canvas |
+| Ambient O2 toggle | Enable aerobic respiration; disabling activates fermentation |
+| Auto-Play toggle | Run all pathways automatically with regulation gating |
+| Organism select | Apply preset pathway/environment configurations |
+| Uncoupling toggle | Enable passive proton leak (2% base, 10% with UCP) |
 
 ## Running Locally
 
@@ -45,45 +56,50 @@ npx serve .
 # or: python -m http.server
 ```
 
-No build step, no dependencies. Shared design system files (`shared-tokens.js`, `shared-base.css`) load from the root site — serve from the parent `a9lim.github.io/` directory for full functionality.
+No build step, no dependencies. Shared design system files (`shared-tokens.js`, `shared-base.css`, etc.) load from the root site via absolute paths. For full functionality, serve from the parent `a9lim.github.io/` directory.
 
 ## Architecture
 
-ES6 modules loaded via `<script type="module" src="main.js">`. Non-module `colors.js` loads in `<head>` to freeze `_PALETTE` before modules run.
+ES6 modules loaded via `<script type="module" src="main.js">`. Non-module scripts (`shared-tokens.js`, `colors.js`) load in `<head>` before modules run. Canvas 2D rendering with `requestAnimationFrame` loop. Zero runtime dependencies -- vanilla HTML5/CSS3/JS.
 
 ```
-index.html              — Application shell, DOM controls, dashboard UI
-styles.css              — Visual styling, toggle switches, responsive layout
-colors.js               — Extends shared palette with pathway colors, CSS vars
-main.js                 — Entry point: init, rAF loop
+index.html              -- Application shell, sidebar tabs, substrate bar
+styles.css              -- Visual styling, toggle switches, responsive layout
+colors.js               -- Extends shared palette with pathway colors, _BASE families, CSS vars
+main.js                 -- Entry point: init, rAF loop, sparkline sampling
 src/
-  state.js              — simState, store, counters, resetState()
-  anim.js               — Easing functions, fade trackers, rotation accumulators
-  theme.js              — Three-state theme toggle (Simulation/Light/Dark)
-  dashboard.js          — Dashboard DOM sync, stat bars, active step display
-  enzymes.js            — Drawing routines for membrane proteins, shared nodes, labels
-  renderer.js           — Canvas 2D engine: layout, zoom/pan, hit detection, draw pipeline
-  autoplay.js           — Automated pathway cycling with regulation gating
-  ui.js                 — DOM cache, event binding, sidebar, intro screen, shortcuts, info tips
-  info.js               — ENZYMES (~41) and METABOLITES (~26) data for hover popups
-  regulation.js         — getRegulationFactor(), getRegulationReason() — allosteric regulation
+  state.js              -- simState, store, counters, histories, resetState()
+  anim.js               -- Easing functions, fade trackers, rotation accumulators, trail system
+  sparkline.js           -- Ring buffer time-series history, sparkline canvas renderer
+  theme.js              -- Three-state theme toggle (Simulation/Light/Dark)
+  dashboard.js          -- Dashboard DOM sync, stat bars, active step display, sparklines
+  enzymes.js            -- ETC complex shapes, metabolite nodes, enzyme tags, arrow drawing
+  renderer.js           -- Canvas 2D engine: layout, camera/zoom, hit detection, draw pipeline
+  particles.js          -- Electron chain animation, proton/photon spawning and rendering
+  autoplay.js           -- Automated pathway cycling, passive ATP drain, proton leak, ROS damage
+  layout.js             -- Membrane/ETC/metabolite position computation
+  ui.js                 -- DOM cache, event binding, sidebar, intro screen, shortcuts, info tips
+  info.js               -- ENZYMES and METABOLITES data for hover popups
+  organisms.js          -- Organism preset definitions (pathway/environment configurations)
+  regulation.js         -- getRegulationFactor(), getRegulationReason()
   reactions/
-    dispatch.js         — Unified reaction dispatcher (_dispatch map, advanceStep, canReact)
-    glycolysis.js       — Glycolysis upper/lower half + gluconeogenesis (reverse)
-    krebs.js            — Krebs cycle (8 steps)
-    calvin.js           — Calvin cycle (carbon fixation)
-    ppp.js              — Pentose phosphate pathway
-    etc.js              — ETC complexes, ATP synthase, BR, NNT
-    fermentation.js     — PDH, PDC, ADH, ALDH, ACS, fermentation
-    betaoxidation.js    — Beta oxidation + fatty acid synthesis (reverse)
+    dispatch.js         -- Unified reaction dispatcher (_dispatch map, advanceStep, canReact)
+    glycolysis.js       -- Glycolysis upper/lower + gluconeogenesis (reverse)
+    krebs.js            -- Krebs cycle (8 steps)
+    calvin.js           -- Calvin cycle (carbon fixation)
+    ppp.js              -- Pentose phosphate pathway
+    etc.js              -- ETC complexes, ATP synthase, BR, NNT
+    fermentation.js     -- PDH, PDC, ADH, ALDH, ACS, fermentation
+    betaoxidation.js    -- Beta oxidation + fatty acid synthesis (reverse)
+    ros.js              -- SOD, catalase, GPx, batch ROS scavenging
 ```
 
-Uses the shared design system from [a9lim.github.io](https://github.com/a9lim/a9lim.github.io) — glass panels, tool buttons, intro screen, tab system, sidebar stats, and responsive breakpoints.
+Uses the shared design system from [a9lim.github.io](https://github.com/a9lim/a9lim.github.io) -- glass panels, tool buttons, intro screen, tab system, sidebar stats, info tips, keyboard shortcuts, and responsive breakpoints.
 
 ## Sibling Projects
 
-- [Relativistic N-Body](https://github.com/a9lim/physsim) — [a9l.im/physsim](https://a9l.im/physsim)
-- [Redistricting Simulator](https://github.com/a9lim/gerry) — [a9l.im/gerry](https://a9l.im/gerry)
+- [Relativistic N-Body](https://github.com/a9lim/physsim) -- [a9l.im/physsim](https://a9l.im/physsim)
+- [Redistricting Simulator](https://github.com/a9lim/gerry) -- [a9l.im/gerry](https://a9l.im/gerry)
 
 ## License
 
