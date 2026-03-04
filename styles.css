@@ -1,11 +1,11 @@
 /* ═══════════════════════════════════════════════════════════════
-   Cellular Metabolism
-   Typography: Instrument Serif (display) · Geist (body) · Geist Mono (data)
+   styles.css — Project-specific overrides for biosim.
+   Shared patterns (glass, tool-btn, layout tokens) in /shared-base.css.
+   All colors via CSS vars injected by colors.js — no hardcoded values.
    ═══════════════════════════════════════════════════════════════ */
 
 /* ───── Design Tokens ───── */
 :root {
-  /* Toggle (non-color) */
   --tog-shadow:       inset 0 1px 2px var(--tog-inset);
 }
 
@@ -17,7 +17,7 @@
 }
 
 
-/* ───── Base ───── */
+/* ───── Base — full-viewport app shell ───── */
 html {
   font-size: clamp(14px, 1.5vw, 16px);
   -webkit-text-size-adjust: 100%;
@@ -27,7 +27,7 @@ html {
 
 body {
   height: 100vh;
-  height: 100dvh;
+  height: 100dvh;  /* iOS Safari dynamic viewport height */
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -46,7 +46,6 @@ body {
 #theme-btn[data-theme="dark"] .icon-moon { display: block; }
 
 
-/* (action buttons removed — glucose moved to floating bar) */
 
 
 /* ═══════════════════════════════════════
@@ -297,13 +296,12 @@ main {
   transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Per-card color assignments */
+/* Per-card --mc-color assignments; one generic rule styles all variants */
 .mc-atp   { --mc-color: var(--co-atp); }
 .mc-nadh  { --mc-color: var(--co-nadh); }
 .mc-nadph { --mc-color: var(--co-nadph); }
 .mc-fadh2 { --mc-color: var(--co-fadh2); }
 
-/* Generic metabolite card styles */
 .metab-card[class*="mc-"] {
   background: color-mix(in srgb, var(--mc-color) 8%, transparent);
 }
@@ -316,8 +314,8 @@ main {
 
 
 /* ═══════════════════════════════════════
-   TOGGLE SWITCHES — Per-toggle colors
-   (Generic toggle styles in shared-base.css)
+   TOGGLE SWITCHES — --tog-color per pathway
+   Generic toggle mechanics in shared-base.css
    ═══════════════════════════════════════ */
 .tog-light  { --tog-color: var(--co-atp); }
 .tog-o2     { --tog-color: var(--co-nadh); }
@@ -328,14 +326,14 @@ main {
 .tog-betaox { --tog-color: var(--pw-betaox); }
 .tog-uncoupling { --tog-color: var(--pw-ferment); }
 
-/* Sunlight glow exception */
+/* Sunlight toggle gets extra glow to reinforce "light is on" */
 .tog-wrap input:checked + .tog-light {
   box-shadow: 0 0 12px color-mix(in srgb, var(--tog-color) 30%, transparent);
 }
 
 
 /* ═══════════════════════════════════════
-   STATS — Overrides
+   STATS — scale-bounce animation on value change
    ═══════════════════════════════════════ */
 .stat-value {
   transition: transform 0.15s var(--ease-spring);
@@ -388,7 +386,7 @@ main {
   margin-top: 2px;
 }
 
-/* Equation pathway colors */
+/* --eq-color per pathway; one generic rule colors .eq-name + .eq-dot */
 .eq-glycolysis { --eq-color: var(--pw-glyc); }
 .eq-calvin     { --eq-color: var(--pw-calvin); }
 .eq-krebs      { --eq-color: var(--pw-krebs); }
@@ -457,14 +455,13 @@ main {
 
 
 /* ═══════════════════════════════════════
-   DARK MODE
+   DARK MODE — deeper toggle shadow + adjusted card/toggle opacity
    ═══════════════════════════════════════ */
 [data-theme="dark"] {
-  /* Color overrides injected by colors.js */
   --tog-shadow:       inset 0 1px 3px var(--tog-inset);
 }
 
-/* Sunlight dark glow */
+/* Sunlight toggle glow more prominent in dark mode */
 [data-theme="dark"] .tog-wrap input:checked + .tog-light {
   border-color: color-mix(in srgb, var(--tog-color) 35%, transparent);
   box-shadow: 0 0 14px color-mix(in srgb, var(--tog-color) 12%, transparent), inset 0 1px 2px var(--tog-checked-inset);
@@ -478,7 +475,7 @@ main {
 
 /* ═══════════════════════════════════════
    RESPONSIVE — Tablet (≤ 900px)
-   Full-viewport canvas + bottom sheet overlay
+   Canvas fills viewport; dashboard becomes bottom sheet
    ═══════════════════════════════════════ */
 @media (max-width: 900px) {
   body {
@@ -507,7 +504,7 @@ main {
     height: 100%;
   }
 
-  /* Dashboard becomes bottom sheet overlay */
+  /* Bottom sheet: slides up from bottom, 60vh max */
   #dashboard {
     position: fixed;
     top: auto;
@@ -577,10 +574,8 @@ main {
 
 
 /* ═══════════════════════════════════════
-   ACCESSIBILITY
+   ACCESSIBILITY — coarse pointer touch targets
    ═══════════════════════════════════════ */
-
-/* Larger touch targets on coarse pointers */
 @media (pointer: coarse) {
   .ctrl-row {
     padding: 0.4rem 0;
@@ -593,7 +588,7 @@ main {
 
 
 /* ═══════════════════════════════════════
-   CONTROL GROUP + ROW (moved from shared-base.css)
+   CONTROL GROUP + ROW — biosim sidebar only
    ═══════════════════════════════════════ */
 .ctrl-group {
   margin-bottom: 0.7rem;
@@ -621,7 +616,7 @@ main {
 .ctrl-row.locked { opacity: 0.4; pointer-events: none; }
 
 
-/* ───── Canvas Tooltip ───── */
+/* ───── Canvas Tooltip — positioned by renderer.js _showTooltip ───── */
 .canvas-tooltip {
   position: fixed;
   z-index: 1000;

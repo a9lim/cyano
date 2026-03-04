@@ -1,25 +1,32 @@
-// ─── Layout calculations for biosim ───
-// Computes membrane, ETC complex, and metabolite positions
+// Layout engine — computes membrane, ETC complex, and metabolite positions.
+// Enforces minimum content dimensions so pathways remain readable at small viewports.
 
 export const MIN_CONTENT_W = 900;
 export const MIN_CONTENT_H = 600;
 
+/**
+ * Compute all layout positions. Called on resize and sidebar animation.
+ * @param {number} zoom — when vertical zoom < 1, layout widens to fill viewport edge-to-edge
+ */
 export function computeLayout(W, H, sidebarInset, zoom = 1) {
     const rawLW = (W - sidebarInset) / zoom;
     const LW = Math.max(rawLW, MIN_CONTENT_W);
     const LH = Math.max(H, MIN_CONTENT_H);
 
-    // ── MEMBRANE ──
+    // ── Membrane ──
+    // Positioned at 22% of content height; 60px tall phospholipid bilayer
     const membraneY = LH * 0.22;
     const membraneH = 60;
     const memMid = membraneY + membraneH / 2;
     const mPad = LW * 0.02, mW = LW - mPad * 2;
 
-    // Linearly distribute 13 complexes across the available membrane width
+    // ── ETC Complexes ──
+    // 14 complexes distributed linearly across membrane width
     const numComplexes = 14;
     const step = mW / (numComplexes + 1);
     const colW = (i) => mPad + step * i;
 
+    // SDH and Fd/FNR offset vertically (SDH anchors into matrix, Fd/FNR sit below membrane)
     const etcComplexes = {
         psii:   { cx: colW(1),  cy: memMid },
         ndh1:   { cx: colW(2),  cy: memMid },
@@ -37,20 +44,20 @@ export function computeLayout(W, H, sidebarInset, zoom = 1) {
         ucp:    { cx: colW(14), cy: memMid },
     };
 
-    // ── CYTOPLASM — Orthogonal Layout ──
+    // ── Cytoplasm — Orthogonal Metabolite Grid ──
     const top = membraneY + membraneH + 120;
     const rowH = (LH - top + 200) / 5;
     const col = (i) => LW * (0.04 + i * 0.082);
     const r = [top, top + rowH, top + rowH * 2, top + rowH * 3, top + rowH * 4, top + rowH * 5];
 
     const metab = {
-        // Row 0
+        // Row 0: PPP intermediates + RuBP
         pgl6: { cx: col(1), cy: r[0], label: '6-PGL' },
         pga6: { cx: col(2), cy: r[0], label: '6-PGA' },
         r5p:  { cx: col(3), cy: r[0], label: 'R5P' },
         rubp: { cx: col(7), cy: r[0], label: 'RuBP' },
 
-        // Row 1 (Glycolysis Backbone)
+        // Row 1: Glycolysis backbone (Glucose → Pyruvate)
         glucose:      { cx: col(0),  cy: r[1], label: 'Glucose' },
         g6p:          { cx: col(1),  cy: r[1], label: 'G6P' },
         f6p:          { cx: col(3),  cy: r[1], label: 'F6P' },
@@ -64,7 +71,7 @@ export function computeLayout(W, H, sidebarInset, zoom = 1) {
         ethanol:      { cx: col(11), cy: r[0], label: 'Ethanol' },
         acetaldehyde: { cx: col(11), cy: r[1], label: 'Acetaldehyde' },
 
-        // Row 2-4 (Krebs Cycle Orthogonal Loop under Pyruvate)
+        // Row 2-3: Krebs cycle (orthogonal loop under Pyruvate)
         acetylCoA:  { cx: col(10), cy: r[2], label: 'Acetyl-CoA' },
         aceticAcid: { cx: col(11), cy: r[2], label: 'Acetic Acid' },
         citrate:    { cx: col(9),  cy: r[2], label: 'Citrate' },
@@ -76,14 +83,14 @@ export function computeLayout(W, H, sidebarInset, zoom = 1) {
         malate:     { cx: col(8),  cy: r[3], label: 'Malate' },
         oaa:        { cx: col(9),  cy: r[3], label: 'OAA' },
 
-        // Beta Oxidation (2×2 grid directly below Acetyl-CoA / Acetic Acid)
+        // Beta-oxidation: 2x2 grid below Acetyl-CoA
         fattyAcid:  { cx: col(10), cy: r[3], label: 'Fatty Acid' },
         enoylCoA:   { cx: col(11), cy: r[3], label: 'Enoyl-CoA' },
         hydroxyCoA: { cx: col(11), cy: r[3] + rowH * 0.85, label: 'OH-CoA' },
         ketoCoA:    { cx: col(10), cy: r[3] + rowH * 0.85, label: 'Keto-CoA' },
     };
 
-    // Actual content extent (for camera bounds — may exceed LH due to bottom pathways)
+    // Content height may exceed LH when bottom pathways extend beyond viewport
     let contentH = LH;
     for (const m of Object.values(metab)) {
         contentH = Math.max(contentH, m.cy + 80);

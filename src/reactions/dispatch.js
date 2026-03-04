@@ -1,4 +1,5 @@
-// ─── Reaction dispatch & advanceStep ───
+// Reaction dispatch — routes pathway/step keys to handler functions and
+// enforces allosteric regulation before any substrate mutation.
 import { _TWO_PI } from '../anim.js';
 import { simState, store } from '../state.js';
 import { showActiveStep, updateDashboard } from '../dashboard.js';
@@ -12,6 +13,9 @@ import { advancePDH, advancePDC, advanceADH, advanceALDH, advanceFermentation, a
 import { advanceBetaOx, runBetaOxCycle, runBetaOxReverse } from './betaoxidation.js';
 import { advanceSOD, advanceCatalase, advanceGPx, runROSScavenging } from './ros.js';
 
+// ─── Handler Map ───
+// Maps dispatch keys to (stepIndex, direction) => result handlers.
+// Per-step keys receive both args; batch "run_*" keys typically ignore stepIndex.
 const _dispatch = {
     glycolysis:             (i, d) => advanceGlycolysis(i, d),
     calvin:                 (i, d) => advanceCalvin(i, d),
@@ -44,7 +48,9 @@ const _dispatch = {
 
 const _rosColor = '--pw-ros';
 
-// Shared enzymes whose reverse direction serves a different pathway
+// ─── Reverse-Direction Color Map ───
+// Shared glycolysis enzymes that serve a different pathway in reverse.
+// Renderer uses this to color the active-step label by the alternate pathway.
 const _reverseColorPathway = {
     'glycolysis:1':  'ppp',     // PGI reverse: F6P→G6P feeds PPP
     'glycolysis:2':  'calvin',  // FBPase: gluconeogenesis/Calvin
@@ -54,6 +60,10 @@ const _reverseColorPathway = {
     'glycolysis:10': 'calvin',  // TK+SBPase: feeds Calvin
 };
 
+// ─── Cycle Rotation Nudges ───
+// Each entry maps a dispatch key to the simState rotation accumulator
+// and the angular delta to apply on successful reaction.
+// Full-cycle "run_*" keys nudge a full turn; per-step keys nudge ~23 degrees.
 const _rotNudge = {
     run_krebs:  { rot: 'krebsRot',  delta: -_TWO_PI },
     krebs:      { rot: 'krebsRot',  delta: -0.4 },
@@ -65,14 +75,18 @@ const _rotNudge = {
     betaox:     { rot: 'betaoxRot', delta:  0.4 },
 };
 
+/**
+ * Central reaction dispatcher. Checks allosteric regulation, then delegates
+ * to the appropriate handler. Returns true if the reaction fired.
+ */
 export function advanceStep(pathway, stepIndex, direction) {
     const handler = _dispatch[pathway];
     if (!handler) { updateDashboard(); return false; }
 
-    // Check allosteric regulation
+    // Allosteric gate — blocks fully inhibited reactions
     const regFactor = getRegulationFactor(pathway, stepIndex, store, direction);
     if (regFactor <= 0) {
-        // Fully inhibited — show toast on manual clicks only (not autoplay)
+        // Toast only on manual clicks, not autoplay (avoids notification spam)
         if (!simState.autoPlay) {
             const reason = getRegulationReason(pathway, stepIndex, store);
             if (reason && typeof showToast === 'function') showToast(reason);
@@ -81,7 +95,8 @@ export function advanceStep(pathway, stepIndex, direction) {
         return false;
     }
 
-    // Partial inhibition in autoplay: probabilistic gate
+    // Partial inhibition in autoplay: probabilistic gate (e.g. 0.5 factor
+    // means ~50% chance of proceeding, modeling reduced enzyme activity)
     if (regFactor < 1 && simState.autoPlay && Math.random() > regFactor) {
         updateDashboard();
         return false;
@@ -90,6 +105,7 @@ export function advanceStep(pathway, stepIndex, direction) {
     const result = handler(stepIndex, direction);
 
     if (result) {
+        // Determine pathway color — reverse direction may belong to a different pathway
         let colorPw = pathway;
         if (direction === 'reverse' && stepIndex != null) {
             colorPw = _reverseColorPathway[pathway + ':' + stepIndex] || pathway;
@@ -105,6 +121,7 @@ export function advanceStep(pathway, stepIndex, direction) {
 
 /**
  * Dry-run check: can this reaction fire (substrates available + regulation)?
+ * Used by renderer to dim unavailable enzymes.
  */
 export function canReact(pathway, stepIndex) {
     const regFactor = getRegulationFactor(pathway, stepIndex, store);

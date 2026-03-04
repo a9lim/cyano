@@ -1,4 +1,5 @@
-// ─── Organism Presets ───
+// Organism preset configurations — pathway/environment combinations
+// modeling real biological constraints (e.g. no Calvin in heterotrophs).
 export const ORGANISMS = {
     cyanobacterium: {
         name: 'Cyanobacterium',
@@ -20,6 +21,7 @@ export const ORGANISMS = {
         desc: 'Fermentation only — no oxidative phosphorylation',
         pathways: { glycolysis: true, ppp: true, calvin: false, krebs: false, betaox: false },
         environment: { light: false, oxygen: false },
+        // Lower ATP ratio reflects reliance on substrate-level phosphorylation only
         initialRatios: { atp: 0.5, nadh: 0.5, nadph: 0.1, fadh2: 0.1 },
         lockedReason: {
             calvin: 'No photosynthetic machinery',
@@ -32,6 +34,7 @@ export const ORGANISMS = {
         desc: 'Light reactions and carbon fixation only',
         pathways: { glycolysis: false, ppp: false, calvin: true, krebs: false, betaox: false },
         environment: { light: true, oxygen: true },
+        // High NADPH reflects light-reaction output surplus
         initialRatios: { atp: 0.3, nadh: 0.1, nadph: 0.5, fadh2: 0.1 },
         lockedReason: {
             glycolysis: 'Chloroplast does not perform glycolysis',
@@ -44,6 +47,7 @@ export const ORGANISMS = {
         name: 'Archaeon',
         desc: 'Uses bacteriorhodopsin for light-driven proton pumping',
         pathways: { glycolysis: true, ppp: true, calvin: false, krebs: true, betaox: true },
+        // Light but no O2 — anaerobic photoheterotroph
         environment: { light: true, oxygen: false },
         initialRatios: { atp: 0.7, nadh: 0.2, nadph: 0.1, fadh2: 0.1 },
         lockedReason: {

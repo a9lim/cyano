@@ -1,14 +1,15 @@
-/* ===================================================================
-   colors.js — biosim project-specific tokens
-   Extends shared-tokens.js with pathway/cofactor colors, color math
-   helpers, _BASE families, and project-specific CSS vars.
-   =================================================================== */
+/* ═══════════════════════════════════════════════════════════════
+   colors.js — Biosim project-specific color tokens.
+   Extends _PALETTE (from shared-tokens.js) with pathway/cofactor
+   colors, builds _BASE families for canvas use, and injects
+   CSS custom properties (--pw-*, --co-*).
+   ═══════════════════════════════════════════════════════════════ */
 
-// ---------- Font extension ----------
+// ─── Font Extension ───
 _FONT.emoji = "sans-serif";
 
-// ---------- Project-specific palette keys ----------
-// Pathway / particle base hues (from shared extended palette)
+// ─── Pathway / Particle Base Hues ───
+// Promote extended palette entries to top-level for convenience in enzymes.js
 _PALETTE.orange = _PALETTE.extended.orange;
 _PALETTE.blue   = _PALETTE.extended.blue;
 _PALETTE.green  = _PALETTE.extended.green;
@@ -20,13 +21,12 @@ _PALETTE.cyan   = _PALETTE.extended.cyan;
 _PALETTE.yellow = _PALETTE.extended.yellow;
 _PALETTE.slate  = _PALETTE.extended.slate;
 
-// Cofactor bar colors (from extended palette)
+// ─── Cofactor Bar Colors ───
 _PALETTE.atp   = _PALETTE.extended.yellow;
 _PALETTE.nadh  = _PALETTE.extended.blue;
 _PALETTE.nadph = _PALETTE.extended.green;
 _PALETTE.fadh2 = _PALETTE.extended.rose;
 
-// Mode-independent
 _PALETTE.textOnAccent = _PALETTE.light.elevated;
 
 Object.freeze(_PALETTE.extended);
@@ -35,21 +35,25 @@ Object.freeze(_PALETTE.dark);
 Object.freeze(_FONT);
 Object.freeze(_PALETTE);
 
-// ---------- Color Math Helpers (use shared _parseHex, _rgb2hsl, _hsl2hex, _darken) ----------
+// ─── Color Math Helpers ───
+// (Uses shared _parseHex, _rgb2hsl, _hsl2hex, _darken from shared-tokens.js)
 
-// _darkFill: same hue, fixed sat (0.55), custom lightness — for dark-mode fills
+/** Derive a dark-mode fill: same hue as the stroke, fixed saturation, custom lightness. */
 function _darkFill(base, lightness) {
   const [h] = _rgb2hsl(..._parseHex(base.stroke));
   return _hsl2hex(h, 0.55, lightness / 100);
 }
 
+/** Build a { stroke, strokeLight, fill? } family from a hex color. */
 function _makeBase(stroke, fillL) {
   const o = { stroke, strokeLight: _darken(stroke) };
   if (fillL != null) o.fill = _darkFill(o, fillL);
   return o;
 }
 
-// ---------- Base Color Families ----------
+// ─── Base Color Families ───
+// Used by enzymes.js _ROLE map to assign pathway semantics to colors.
+// fillL values tuned per-hue so dark-mode fills have sufficient contrast.
 const _BASE = {
   orange: _makeBase(_PALETTE.orange, 7),
   blue:   _makeBase(_PALETTE.blue, 13),
@@ -63,10 +67,11 @@ const _BASE = {
   slate:  _makeBase(_PALETTE.slate),
 };
 
-// ---------- Project-specific CSS vars ----------
+// ─── CSS Custom Property Injection ───
 (function injectProjectVars() {
   const P = _PALETTE, L = P.light, D = P.dark;
 
+  // [CSS var name, _PALETTE key, optional alpha]
   const shared = [
     ['text-on-accent', 'textOnAccent'],
     ['pw-glyc',        'orange'],
@@ -114,6 +119,6 @@ ${genShared()}
   document.head.appendChild(style);
 })();
 
-// Expose on window so ES6 modules can access via `window._BASE` etc.
+// Expose on window so ES6 modules (strict mode) can access frozen objects
 window._BASE = _BASE;
 window._darkFill = _darkFill;

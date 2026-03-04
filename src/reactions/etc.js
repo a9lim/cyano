@@ -1,8 +1,10 @@
-// ─── Electron Transport Chain, ATP Synthase, BR, NNT ───
+// Electron Transport Chain, ATP Synthase, Bacteriorhodopsin, NNT.
+// Manages proton pumping, electron flow visualization, and chemiosmotic ATP synthesis.
 import { store, simState } from '../state.js';
 import { updateDashboard } from '../dashboard.js';
 import Renderer from '../renderer.js';
 
+/** Pump protons into the gradient and spawn upward visual particles at the given complex. */
 function pumpProtons(count, complexKey) {
     store.protonGradient += count; store.protonsPumped += count;
     for (let i = 0; i < count; i++) {
@@ -13,10 +15,18 @@ function pumpProtons(count, complexKey) {
     }
 }
 
+/**
+ * Advance one ETC step. Three pathways:
+ *   etc_resp  — respiratory (NADH/FADH2 → O2, pumps H+)
+ *   etc_photo — linear photosynthetic (H2O → NADPH, pumps H+)
+ *   etc_cyclic — cyclic photosynthetic (pumps H+ only, no net redox)
+ */
 export function advanceETC(pathway, stepIndex) {
     if (pathway === 'etc_resp') {
         if (!simState.oxygenAvailable || !simState.oxphosEnabled) return false;
         let src = null;
+        // stepIndex 1 = Complex II (FADH2 entry); stepIndex 0 = Complex I (NADH entry);
+        // default = prefer NADH, fall back to FADH2
         if (stepIndex === 1) {
             if (store.fadh2 > 0) { store.fadh2--; src = 'sdh'; }
             else return false;
@@ -29,13 +39,13 @@ export function advanceETC(pathway, stepIndex) {
         }
         if (src) {
             store.electronsTransferred += 2;
-            // 2% chance of electron leak → superoxide at Complex I
+            // ~2% electron leak at Complex I produces superoxide
             if (src === 'ndh1' && Math.random() < 0.02) { store.rosProduced++; }
-            // Continuous chain: electron flows src → pq → cytb6f → pc → cytOx
+            // Multi-hop electron chain: src → PQ → Cyt b6f → PC → Cyt c Oxidase
             Renderer.spawnElectronChain([src, 'pq', 'cytb6f', 'pc', 'cytOx'], 'resp', {
                 2: () => {
                     pumpProtons(4, 'cytb6f'); updateDashboard();
-                    // 2% chance of electron leak at Q-cycle
+                    // ~2% electron leak at the Q-cycle
                     if (Math.random() < 0.02) { store.rosProduced++; }
                 },
                 3: () => { pumpProtons(2, 'cytOx'); store.o2Consumed += 0.5; store.h2oProduced++; updateDashboard(); },
@@ -43,11 +53,11 @@ export function advanceETC(pathway, stepIndex) {
             return true;
         }
     } else if (pathway === 'etc_photo') {
+        // Linear (Z-scheme): PSII splits H2O, electrons flow to PSI, FNR reduces NADP+
         if (!simState.lightOn || !simState.linearLightEnabled) return false;
         store.h2oSplit++; store.o2Produced += 0.5; store.electronsTransferred += 2;
         pumpProtons(2, 'psii');
         Renderer.spawnPhoton('psii');
-        // Continuous chain: psii → pq → cytb6f → pc → psi → fd → fnr
         Renderer.spawnElectronChain(['psii', 'pq', 'cytb6f', 'pc', 'psi', 'fd', 'fnr'], 'photo', {
             2: () => {
                 pumpProtons(4, 'cytb6f'); updateDashboard();
@@ -61,10 +71,10 @@ export function advanceETC(pathway, stepIndex) {
         });
         return true;
     } else if (pathway === 'etc_cyclic') {
+        // Cyclic electron flow around PSI: pumps H+ without net NADPH production
         if (!simState.lightOn || !simState.cyclicLightEnabled) return false;
         store.electronsTransferred += 2;
         Renderer.spawnPhoton('psi');
-        // Continuous chain: psi → fd → pq → cytb6f → pc → psi
         Renderer.spawnElectronChain(['psi', 'fd', 'pq', 'cytb6f', 'pc', 'psi'], 'cyclic', {
             2: () => { pumpProtons(4, 'cytb6f'); updateDashboard(); },
         });
@@ -73,6 +83,7 @@ export function advanceETC(pathway, stepIndex) {
     return false;
 }
 
+/** ATP Synthase: 4 H+ flow down gradient → 1 ATP (chemiosmotic coupling) */
 export function advanceATPSynthase() {
     if (store.protonGradient >= 4 && store.atp < store.totalAtpAdp) {
         store.protonGradient -= 4; store.atp++; store.atpOxidative++;
@@ -83,6 +94,7 @@ export function advanceATPSynthase() {
     return false;
 }
 
+/** Bacteriorhodopsin: archaeal light-driven proton pump (1 H+ per photon absorbed) */
 export function advanceBacteriorhodopsin() {
     if (!simState.lightOn) return false;
     store.protonGradient += 1; store.protonsPumped += 1;
@@ -92,6 +104,7 @@ export function advanceBacteriorhodopsin() {
     return true;
 }
 
+/** NNT (transhydrogenase): uses 1 H+ to convert NADH → NADPH */
 export function advanceNNT() {
     if (store.protonGradient < 1 || store.nadh < 1 || store.nadph >= store.totalNadp) return false;
     store.protonGradient -= 1;

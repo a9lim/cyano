@@ -1,10 +1,12 @@
-// ─── Dashboard UI sync ───
+// Dashboard UI sync — updates sidebar stats, cofactor bars, sparklines,
+// ROS/health indicators, and the active-step display.
 import { store, counters, histories } from './state.js';
 import { drawSparkline } from './sparkline.js';
 
 const _PAL = window._PALETTE;
 
 let _dom;
+// Lazy-initialized canvas contexts for sparkline canvases
 const _sparkCtx = {};
 function _getSparkCtx(id) {
     if (!_sparkCtx[id]) {
@@ -16,6 +18,8 @@ function _getSparkCtx(id) {
 
 export function initDashboard(dom) { _dom = dom; }
 
+// ─── Pathway → CSS Variable Map ───
+// Used to color the active-step enzyme name by its owning pathway.
 const _pwColor = {
     glycolysis: '--pw-glyc', run_glycolysis_upper: '--pw-glyc', run_glycolysis_lower: '--pw-glyc',
     krebs: '--pw-krebs', run_krebs: '--pw-krebs',
@@ -27,6 +31,7 @@ const _pwColor = {
     ros: '--pw-ros', sod: '--pw-ros', catalase: '--pw-ros', gpx: '--pw-ros', run_ros_scavenge: '--pw-ros',
 };
 
+/** Update the active-step display with enzyme name, reaction, and yield summary. */
 export function showActiveStep(enzyme, reaction, yields, pathway) {
     _dom.krebsEnzyme.textContent = enzyme;
     _dom.krebsEnzyme.style.color = pathway && _pwColor[pathway]
@@ -48,6 +53,7 @@ export function applyYields(y) {
     if (y.co2Fixed) store.co2Fixed += y.co2Fixed;
 }
 
+/** Micro-animation: scale-bump a stat element when its text changes. */
 function animateStatEl(el, newText) {
     if (!el) return;
     if (el.textContent !== newText) {
@@ -62,25 +68,29 @@ function updateBar(bar, ratio, val, total) {
     if (bar) { bar.style.width = pct; ratio.textContent = pct; }
 }
 
+/** Full dashboard refresh — called after every reaction and on timer ticks. */
 export function updateDashboard() {
+    // Cofactor ratio bars
     updateBar(_dom.atpBar, _dom.atpRatio, store.atp, store.totalAtpAdp);
     updateBar(_dom.nadhBar, _dom.nadhRatio, store.nadh, store.totalNad);
     updateBar(_dom.nadphBar, _dom.nadphRatio, store.nadph, store.totalNadp);
     updateBar(_dom.fadh2Bar, _dom.fadh2Ratio, store.fadh2, store.totalFad);
 
+    // Proton gradient + gas exchange
     animateStatEl(_dom.protonGradient, '' + store.protonGradient);
     if (_dom.protonsLeaked) _dom.protonsLeaked.textContent = store.protonsLeaked;
     animateStatEl(_dom.co2Net, '' + (store.co2Produced - store.co2Fixed));
     animateStatEl(_dom.o2Net, (store.o2Produced - store.o2Consumed).toFixed(1));
     animateStatEl(_dom.h2oNet, '' + (store.h2oProduced - store.h2oSplit));
 
-    // Sync turn/run counters
+    // Turn/run counters
     _dom.krebsTurn.textContent = counters.krebsTurns;
     _dom.calvinTurn.textContent = counters.calvinTurns;
     _dom.glycolysisRun.textContent = counters.glycRuns;
     if (_dom.pppRun) _dom.pppRun.textContent = counters.pppRuns;
     if (_dom.betaoxRun) _dom.betaoxRun.textContent = counters.betaoxRuns;
 
+    // ATP source breakdown (substrate-level vs oxidative phosphorylation)
     if (_dom.atpSubstrate) _dom.atpSubstrate.textContent = store.atpSubstrate;
     if (_dom.atpOxidative) _dom.atpOxidative.textContent = store.atpOxidative;
     const totalAtpProduced = store.atpSubstrate + store.atpOxidative;
@@ -100,7 +110,7 @@ export function updateDashboard() {
     }
     if (_dom.healthRatio) _dom.healthRatio.textContent = Math.round(store.cellHealth) + '%';
 
-    // Sparklines
+    // Sparklines (160x36 canvases in sidebar)
     const sparkW = 160, sparkH = 36;
     const atpCtx = _getSparkCtx('spark-atp');
     if (atpCtx) drawSparkline(atpCtx, histories.atp, sparkW, sparkH, _PAL.atp);

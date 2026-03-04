@@ -1,7 +1,8 @@
-// ─── Theme management ───
+// Three-state theme toggle: 0=Simulation (follows sunlight), 1=Light, 2=Dark.
+// Sets data-theme on <html> and syncs simState.visualLightMode for canvas.
 import { simState } from './state.js';
 
-let themeMode = 0; // 0 = simulation (follows sunlight), 1 = light, 2 = dark
+let themeMode = 0;
 const _themeNames = ['auto', 'light', 'dark'];
 const _themeTitles = ['Theme: Simulation', 'Theme: Light', 'Theme: Dark'];
 
