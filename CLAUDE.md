@@ -38,8 +38,9 @@ main.js (entry point)
   +-  src/layout.js       -- computeLayout() -- membrane/ETC/metabolite positioning
   +-  src/particles.js    -- Particles -- spawn/draw electrons (single + multi-hop chain), protons, photons
   +-  src/autoplay.js     -- autoplayTick(), protonLeakTick(), resetAutoplayTimers()
-  +-  src/ui.js           -- cacheDOMElements(), bindEvents() -- DOM cache, events, intro, shortcuts, info tips
-  +-  src/info.js         -- ENZYMES, METABOLITES -- enzyme/metabolite data for info popups
+  +-  src/ui.js           -- cacheDOMElements(), bindEvents() -- DOM cache, events, intro, shortcuts, info tips, reference overlay
+  +-  src/info.js         -- ENZYMES, METABOLITES -- enzyme/metabolite data for canvas hover tooltips
+  +-  src/reference.js    -- REFERENCE -- in-depth reference pages for each pathway/concept (Shift+click on ? buttons)
   +-  src/organisms.js    -- ORGANISMS -- preset configurations (Cyanobacterium, Animal Cell, etc.)
   +-  src/regulation.js   -- getRegulationFactor(), getRegulationReason() -- allosteric regulation
   +-- src/reactions/
@@ -117,9 +118,11 @@ Per-step (`glycolysis`, `krebs`, `ppp`, `calvin`, `betaox`) and batch (`run_kreb
 
 Preset selection resets `store` with organism-specific initial cofactor ratios. Locked pathways disable toggles and show lock indicator. Custom mode unlocks all toggles.
 
-### Enzyme/Metabolite Info
+### Enzyme/Metabolite Info & Reference Pages
 
-`src/info.js` exports `ENZYMES` (~50 entries including batch cycle targets, ROS scavenging enzymes, and mobile electron carriers) and `METABOLITES` (~26 entries) with name, description, pathway, equation, and regulation notes. Cycle target and run arrow hitboxes map to info entries via `_enzymeInfoKey` and `_etcInfoKey` in renderer.js.
+`src/info.js` exports `ENZYMES` (~50 entries including batch cycle targets, ROS scavenging enzymes, and mobile electron carriers) and `METABOLITES` (~26 entries) with name, description, pathway, equation, and regulation notes. Cycle target and run arrow hitboxes map to info entries via `_enzymeInfoKey` and `_etcInfoKey` in renderer.js. Used for canvas hover tooltips.
+
+`src/reference.js` exports `REFERENCE` (11 entries) with in-depth multi-section HTML content for each sidebar `?` button topic. Uses KaTeX math (`$$...$$` display, `$...$` inline) rendered via `renderMathInElement()` on open. Opened via Shift+click (desktop) or long-press (mobile) on info triggers, shown in the `#reference-overlay` modal. Keys match `data-info` attributes: glycolysis, ppp, calvin, krebs, betaox, sunlight, oxygen, autoplay, protons, uncoupling, oxStress.
 
 ### Enzyme Dimming
 
@@ -256,10 +259,11 @@ JS binds via `getElementById` (~60 IDs cached in `cacheDOMElements()`). **Only I
 - Sparkline ring buffer (`createHistory()` in sparkline.js): fixed-size `Float32Array(300)`, circular write via `head` index, drawn as polyline with dashed "now" marker.
 - Sidebar inset animation in renderer.js matches the CSS transition (0.45s cubic-bezier(0.23, 1, 0.32, 1)) via `cubicBezier()` from shared-utils.js.
 
-### Keyboard Shortcuts and Info Tips
+### Keyboard Shortcuts, Info Tips, and Reference Pages
 
 - **Shortcuts** via `initShortcuts()` from `shared-shortcuts.js`: Space (autoplay), G (glucose), F (fatty acid), L (light), O (oxygen), 1-5 (pathway toggles: glycolysis/PPP/Calvin/Krebs/beta-ox), T (theme), S (sidebar). Groups: Simulation, Environment, Pathways, View.
-- **Info tips** via `createInfoTip()` from `shared-info.js`: `?` buttons with `data-info` attribute matching keys in `infoData` object defined in `ui.js`. Topics: glycolysis, ppp, calvin, krebs, betaox, sunlight, oxygen, autoplay, protons, uncoupling, oxStress.
+- **Info tips** via `createInfoTip()` from `shared-info.js`: `?` buttons with `data-info` attribute matching keys in `infoData` object defined in `ui.js`. Short 1-sentence summaries. Topics: glycolysis, ppp, calvin, krebs, betaox, sunlight, oxygen, autoplay, protons, uncoupling, oxStress.
+- **Reference pages** via `REFERENCE` in `src/reference.js`: in-depth multi-section pages for each topic, opened via Shift+click (desktop) or long-press (mobile) on `?` buttons. Shown in a `.sim-overlay` modal (`#reference-overlay`). Same `data-info` keys as info tips.
 
 ### CSS Parameterization
 

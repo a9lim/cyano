@@ -17,6 +17,9 @@
 }
 
 
+/* ───── Reference Overlay — above all other layers ───── */
+#reference-overlay { z-index: 9999; }
+
 /* ───── Base — full-viewport app shell ───── */
 html {
   font-size: clamp(14px, 1.5vw, 16px);

@@ -7,6 +7,7 @@ import { resetAutoplayTimers } from './autoplay.js';
 import Renderer from './renderer.js';
 import Particles from './particles.js';
 import { ORGANISMS } from './organisms.js';
+import { REFERENCE } from './reference.js';
 
 const _SIDEBAR_W = 374; // panel-w(350) + right gap(24)
 function _isMobile() { return window.innerWidth <= 900; }
@@ -231,19 +232,19 @@ export function bindEvents(dom) {
         initShortcuts(shortcuts, { helpTitle: 'Keyboard Shortcuts' });
     }
 
-    // ── Info tips (via shared-info.js) ──
+    // ── Info tips (via shared-info.js) — short summaries ──
     const infoData = {
-        glycolysis: { title: 'Glycolysis', body: 'Breaks down glucose into pyruvate, producing 2 ATP and 2 NADH per glucose.<br>Net: Glucose + 2 NAD\u207A + 2 ADP \u2192 2 Pyruvate + 2 NADH + 2 ATP' },
-        ppp: { title: 'Pentose Phosphate Pathway', body: 'Generates NADPH for biosynthesis (primary role). The non-oxidative phase recycles R5P back to G6P, allowing continuous NADPH production.<br>Net per cycle: G6P + 2 NADP\u207A \u2192 G6P(regenerated) + 2 NADPH + CO\u2082' },
-        calvin: { title: 'Calvin Cycle', body: 'Fixes CO\u2082 into organic carbon using ATP and NADPH from the light reactions.<br>Net: 3 CO\u2082 + 9 ATP + 6 NADPH \u2192 G3P + 9 ADP + 6 NADP\u207A' },
-        krebs: { title: 'Krebs Cycle (TCA)', body: 'Oxidizes acetyl-CoA to CO\u2082, generating NADH, FADH\u2082, and GTP.<br>Net: Acetyl-CoA + 3 NAD\u207A + FAD + GDP \u2192 2 CO\u2082 + 3 NADH + FADH\u2082 + GTP' },
-        sunlight: { title: 'Sunlight', body: 'Enables photosynthetic light reactions (Z-scheme). PSII splits water, PSI reduces NADP\u207A. Drives linear electron flow and proton pumping.' },
-        oxygen: { title: 'Ambient O\u2082', body: 'Enables aerobic respiration (Krebs cycle + ETC). When off, fermentation regenerates NAD\u207A from NADH to sustain glycolysis.' },
-        autoplay: { title: 'Auto-Play', body: 'Automatically advances reactions in priority order: ATP synthase \u2192 ETC \u2192 metabolic pathways. Includes passive ATP/NADPH drain to mimic cellular maintenance.' },
-        protons: { title: 'Proton Gradient', body: 'H\u207A ions pumped across the membrane by ETC complexes. Drives ATP synthase (4 H\u207A \u2192 1 ATP). Higher gradient = faster ATP production.' },
-        betaox: { title: 'Beta Oxidation', body: 'Breaks down fatty acids (palmitoyl-CoA) into acetyl-CoA units, producing FADH\u2082 and NADH per round. 7 rounds yield 8 acetyl-CoA.<br>Net: Palmitoyl-CoA \u2192 8 Acetyl-CoA + 7 FADH\u2082 + 7 NADH' },
-        uncoupling: { title: 'Uncoupling Proteins', body: 'Uncoupling proteins create a passive proton leak across the membrane, dissipating the gradient as heat instead of making ATP. Found in brown fat for thermogenesis. Base leak rate: 2%/tick. With uncoupling: 10%/tick.' },
-        oxStress: { title: 'Oxidative Stress', body: 'Reactive oxygen species (ROS) from 2% electron leak at Complex I and the Q-cycle. SOD and catalase scavenge for free; GPx consumes NADPH. PPP provides the NADPH needed for antioxidant defense.' },
+        glycolysis: { title: 'Glycolysis', body: 'Splits glucose into 2 pyruvate, netting 2 ATP and 2 NADH.' },
+        ppp: { title: 'Pentose Phosphate Pathway', body: 'Produces NADPH for biosynthesis and antioxidant defense.' },
+        calvin: { title: 'Calvin Cycle', body: 'Fixes CO\u2082 into sugar using ATP and NADPH from the light reactions.' },
+        krebs: { title: 'Krebs Cycle (TCA)', body: 'Oxidizes acetyl-CoA to CO\u2082, producing NADH, FADH\u2082, and GTP.' },
+        sunlight: { title: 'Sunlight', body: 'Powers photosynthetic electron transport: water splitting, O\u2082 release, NADPH production.' },
+        oxygen: { title: 'Ambient O\u2082', body: 'Enables aerobic respiration. Without it, fermentation regenerates NAD\u207A.' },
+        autoplay: { title: 'Auto-Play', body: 'Continuously fires reactions in priority order, mimicking cellular steady state.' },
+        protons: { title: 'Proton Gradient', body: 'H\u207A gradient across the membrane drives ATP synthase (4 H\u207A per ATP).' },
+        betaox: { title: 'Beta Oxidation', body: 'Breaks fatty acids into acetyl-CoA, yielding FADH\u2082 and NADH per round.' },
+        uncoupling: { title: 'Uncoupling Proteins', body: 'Leak protons across the membrane, dissipating the gradient as heat.' },
+        oxStress: { title: 'Oxidative Stress', body: 'ROS from electron leak damage cells; SOD, catalase, and GPx scavenge them.' },
     };
 
     if (typeof createInfoTip === 'function') {
@@ -252,6 +253,57 @@ export function bindEvents(dom) {
             if (infoData[key]) {
                 createInfoTip(trigger, infoData[key]);
             }
+        });
+    }
+
+    // ── Reference overlay (Shift+click or long-press on info buttons) ──
+    // Content is trusted project-defined HTML from reference.js (not user input)
+    const refOverlay = document.getElementById('reference-overlay');
+    const refTitle = document.getElementById('reference-title');
+    const refBody = document.getElementById('reference-body');
+    const refClose = document.getElementById('reference-close');
+
+    const openReference = (key) => {
+        const ref = REFERENCE[key];
+        if (!ref) return;
+        refTitle.textContent = ref.title;
+        refBody.innerHTML = ref.body; // trusted static content from reference.js
+        refOverlay.hidden = false;
+        if (typeof renderMathInElement === 'function') {
+            renderMathInElement(refBody, { delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false },
+            ]});
+        }
+    };
+
+    if (refOverlay) {
+        document.querySelectorAll('.info-trigger[data-info]').forEach(trigger => {
+            // Shift+click (desktop)
+            trigger.addEventListener('click', (e) => {
+                if (!e.shiftKey) return;
+                e.stopPropagation();
+                openReference(trigger.dataset.info);
+            });
+            // Long-press (mobile): 500ms touch hold opens reference
+            let longPressTimer = 0;
+            trigger.addEventListener('touchstart', (e) => {
+                longPressTimer = setTimeout(() => {
+                    e.preventDefault();
+                    openReference(trigger.dataset.info);
+                    longPressTimer = 0;
+                }, 500);
+            }, { passive: false });
+            trigger.addEventListener('touchend', () => {
+                if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = 0; }
+            });
+            trigger.addEventListener('touchmove', () => {
+                if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = 0; }
+            });
+        });
+        refClose.addEventListener('click', () => { refOverlay.hidden = true; });
+        refOverlay.addEventListener('click', (e) => {
+            if (e.target === refOverlay) refOverlay.hidden = true;
         });
     }
 }
