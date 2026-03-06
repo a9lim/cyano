@@ -268,8 +268,8 @@ Repeated per-variant CSS blocks are collapsed via custom property assignments + 
 - **Metabolite cards**: `.mc-*` classes set `--mc-color`, generic `[class*="mc-"]` rules style background/bar/text.
 - **Legend dots**: `.legend-dot.*` variants set `--dot-color`, one generic rule sets `background`.
 - **Equations**: `.eq-*` variants set `--eq-color`, one generic rule colors `.eq-name` and `.eq-dot`.
-- **Tab system** (in `styles.css`): `.tabs-wrap`, `.tab-bar`, `.tab-btn`, `.tab-panels`, `.tab-panel` -- biosim sidebar only.
-- **Control group/row** (in `styles.css`): `.ctrl-group`, `.ctrl-row` -- biosim only. `.locked` class dims locked pathway rows.
+- **Tab system** (in `shared-base.css`): `.tabs-wrap`, `.tab-bar`, `.tab-btn`, `.tab-panels`, `.tab-panel` -- shared across all sims.
+- **Control group/row** (in `shared-base.css`): `.ctrl-group`, `.ctrl-row`, `.ctrl-disabled`, `.ctrl-row.locked` -- shared across all sims.
 - **Glass panels**: `.glass` class on `header`, `#canvas-controls`, `#glucose-bar`, `#dashboard`. Dashboard overrides to `shadow-lg`. 900px breakpoint strips glass from dashboard.
 
 ## Gotchas
@@ -280,6 +280,6 @@ Repeated per-variant CSS blocks are collapsed via custom property assignments + 
 - **Intro card SVGs keep their attributes** -- `.tool-btn svg` defaults don't apply to intro cards. Those SVGs need explicit `fill="none" stroke="currentColor"` etc.
 - **Renderer uses minimum content dimensions** -- `LW = Math.max(rawLW, MIN_CONTENT_W)` (900) and `LH = Math.max(H, MIN_CONTENT_H)` (600) so pathways never compress below readable size on small screens. Zoom auto-fits to `_minZoom()` on first init. When vertical zoom < 1, `_updateLayout` does a two-pass: first to get `contentH`, then recomputes with `zoom` param to widen content so it fills the viewport edge-to-edge at that zoom level.
 - **Pan clamping left/top-aligns** -- `_clampCamera()` positions content at the viewport origin when it fits, not centered. This ensures no gap between content and screen edges at any zoom level.
-- **Tab switching runs outside module scope** -- an inline `<script>` in index.html handles tab button clicks before the module loads. This means tab switching works even if the main module fails to load.
+- **Tab switching runs outside module scope** -- `shared-tabs.js` (loaded as a plain `<script>` at end of body) handles tab button clicks before the module loads. This means tab switching works even if the main module fails to load.
 - **Organism presets reset state** -- selecting a preset calls `resetState()` and then applies organism-specific initial ratios. It also dispatches `change` events on toggles to update `simState`.
 - **`_BASE` must be on `window`** -- colors.js exposes `window._BASE` and `window._darkFill` so ES6 modules (which run in strict mode) can access them. These are read-only after `Object.freeze(_PALETTE)`.

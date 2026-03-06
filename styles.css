@@ -84,37 +84,6 @@ main {
 
 
 /* ═══════════════════════════════════════
-   ZOOM CONTROLS
-   ═══════════════════════════════════════ */
-#canvas-controls button {
-  width: 34px;
-  height: 30px;
-  border: none;
-  background: transparent;
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font-size: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s ease, color 0.15s ease;
-  padding: 0;
-}
-
-#canvas-controls button svg {
-  width: 16px;
-  height: 16px;
-}
-
-#canvas-controls button:hover {
-  background: var(--bg-hover);
-  color: var(--text);
-}
-
-#canvas-controls button:active { transform: scale(0.88); }
-
-/* ═══════════════════════════════════════
    FLOATING SUBSTRATE BAR
    ═══════════════════════════════════════ */
 .substrate-pill-group {
@@ -587,33 +556,7 @@ main {
 }
 
 
-/* ═══════════════════════════════════════
-   CONTROL GROUP + ROW — biosim sidebar only
-   ═══════════════════════════════════════ */
-.ctrl-group {
-  margin-bottom: 0.7rem;
-}
-
-.ctrl-group:last-child {
-  margin-bottom: 0;
-}
-
-.ctrl-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.3rem 0;
-}
-
-.ctrl-row > label {
-  font-size: 0.78rem;
-  color: var(--text);
-  font-weight: 400;
-}
-
-.organism-select { width: 100%; padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-panel); color: var(--text); font-family: var(--font-body); font-size: 0.82rem; }
 .organism-desc { font-size: 0.75rem; color: var(--text-muted); margin: 4px 0 0; }
-.ctrl-row.locked { opacity: 0.4; pointer-events: none; }
 
 
 /* ───── Canvas Tooltip — positioned by renderer.js _showTooltip ───── */

@@ -118,15 +118,15 @@
       <canvas id="sim-canvas"></canvas>
       <div id="canvas-tooltip" class="canvas-tooltip" hidden></div>
       <div id="canvas-controls" class="sim-controls glass">
-        <button id="zoom-in-btn" title="Zoom in" aria-label="Zoom in">
+        <button id="zoom-in-btn" class="tool-btn" title="Zoom in" aria-label="Zoom in">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
         <span id="zoom-indicator" class="zoom-level">100%</span>
-        <button id="zoom-out-btn" title="Zoom out" aria-label="Zoom out">
+        <button id="zoom-out-btn" class="tool-btn" title="Zoom out" aria-label="Zoom out">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
         <div class="ctrl-sep"></div>
-        <button id="zoom-reset-btn" title="Fit to view" aria-label="Reset zoom">
+        <button id="zoom-reset-btn" class="tool-btn" title="Fit to view" aria-label="Reset zoom">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>
         </button>
       </div>
@@ -157,7 +157,7 @@
           <div class="tab-panel active" id="tab-controls" role="tabpanel">
             <div class="ctrl-group">
               <div class="group-label">Organism</div>
-              <select id="organism-select" class="organism-select">
+              <select id="organism-select" class="sim-select">
                 <option value="cyanobacterium">Cyanobacterium</option>
                 <option value="animalCell">Animal Cell</option>
                 <option value="obligateAnaerobe">Obligate Anaerobe</option>
@@ -405,23 +405,7 @@
     </div>
   </main>
 
-  <!-- Tab switching — inline IIFE so it works even if the module fails to load -->
-  <script>
-    (function () {
-      const btns = document.querySelectorAll('.tab-btn');
-      const panels = document.querySelectorAll('.tab-panel');
-      btns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          btns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
-          panels.forEach(p => p.classList.remove('active'));
-          btn.classList.add('active');
-          btn.setAttribute('aria-selected', 'true');
-          const target = document.getElementById('tab-' + btn.dataset.tab);
-          if (target) target.classList.add('active');
-        });
-      });
-    })();
-  </script>
+  <script src="/shared-tabs.js"></script>
 
   <script type="module" src="main.js"></script>
 </body>
