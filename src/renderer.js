@@ -170,6 +170,7 @@ const Renderer = {
         this.canvas.height = this.H * this.dpr;
         this.canvas.style.width = this.W + 'px';
         this.canvas.style.height = this.H + 'px';
+        this._canvasRect = this.canvas.getBoundingClientRect();
         this._updateLayout();
         if (this.camera) {
             const minZ = this._minZoom();
@@ -347,7 +348,7 @@ const Renderer = {
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
                 const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-                const rect = c.getBoundingClientRect();
+                const rect = this._canvasRect;
                 this.camera.zoomBy(dist / touchStartDist, mx - rect.left, my - rect.top);
                 touchStartDist = dist;
             } else if (e.touches.length === 1) {
