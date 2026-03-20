@@ -5,6 +5,7 @@ import { _TWO_PI, Anim } from './anim.js';
 import { EnzymeStyles } from './enzymes.js';
 
 const _r = window._r;
+let _photonFill, _photonGlow;
 // Trapezoidal fade: ramp in over first 15%, full, ramp out over last 15%
 const _fadeCurve = (t) => t < 0.15 ? t / 0.15 : t > 0.85 ? (1 - t) / 0.15 : 1;
 
@@ -143,6 +144,10 @@ const Particles = {
         }
 
         // ── Photons (manual alpha avoids save/restore per particle) ──
+        if (!_photonFill) {
+            _photonFill = _r(EnzymeStyles.roleColors.photon.stroke, 0.9);
+            _photonGlow = _r(EnzymeStyles.roleColors.photon.stroke, 0.5);
+        }
         for (let i = this.photons.length - 1; i >= 0; i--) {
             const ph = this.photons[i];
             ph.progress += ph.speed * spd;
@@ -152,8 +157,8 @@ const Particles = {
             ctx.globalAlpha = fade * 0.9;
             ctx.beginPath();
             ctx.arc(ph.x + (ph.tx - ph.x) * t, ph.y + (ph.ty - ph.y) * t, 3, 0, _TWO_PI);
-            ctx.fillStyle = _r(EnzymeStyles.roleColors.photon.stroke, 0.9);
-            ctx.shadowColor = _r(EnzymeStyles.roleColors.photon.stroke, 0.5);
+            ctx.fillStyle = _photonFill;
+            ctx.shadowColor = _photonGlow;
             ctx.shadowBlur = 12;
             ctx.fill();
         }

@@ -14,6 +14,15 @@ import { ENZYMES, METABOLITES } from './info.js';
 
 const _r = window._r;
 
+let _lightGlow, _nightDim, _nightDimmer, _respDashed;
+function _initColorCache() {
+    const R = EnzymeStyles.roleColors;
+    _lightGlow   = _r(R.lightIndicator.stroke, 0.4);
+    _nightDim    = _r(R.nightIndicator.stroke, 0.3);
+    _nightDimmer = _r(R.nightIndicator.stroke, 0.2);
+    _respDashed  = _r(R.respiratory.stroke, 0.15);
+}
+
 // ─── Info lookup maps ───
 // Translate canvas label text → ENZYMES dict key (handles slash-delimited bidir names)
 const _enzymeInfoKey = {
@@ -149,6 +158,7 @@ const Renderer = {
             },
         });
         this._initInteraction();
+        _initColorCache();
     },
 
     resize() {
@@ -468,13 +478,13 @@ const Renderer = {
             ctx.font = _F.body500_14; ctx.fillStyle = EnzymeStyles.roleColors.lightIndicator.stroke;
             ctx.fillText('LIGHT', cx, lightY - 24);
             ctx.font = _F.emoji38;
-            ctx.shadowColor = _r(EnzymeStyles.roleColors.lightIndicator.stroke, 0.4); ctx.shadowBlur = 16;
+            ctx.shadowColor = _lightGlow; ctx.shadowBlur = 16;
             ctx.fillText('☀', cx, lightY + 14); ctx.shadowBlur = 0;
             ctx.restore();
         } else {
-            ctx.font = _F.body500_14; ctx.fillStyle = _r(EnzymeStyles.roleColors.nightIndicator.stroke, 0.3);
+            ctx.font = _F.body500_14; ctx.fillStyle = _nightDim;
             ctx.fillText('DARK', cx, lightY - 24);
-            ctx.font = _F.emoji38; ctx.fillStyle = _r(EnzymeStyles.roleColors.nightIndicator.stroke, 0.2);
+            ctx.font = _F.emoji38; ctx.fillStyle = _nightDimmer;
             ctx.fillText('☾', cx, lightY + 14);
         }
     },
@@ -546,7 +556,7 @@ const Renderer = {
 
         ctx.beginPath(); ctx.setLineDash([2, 2]);
         ctx.moveTo(c.atpSyn.cx, this.membraneY - 2); ctx.lineTo(c.atpSyn.cx, this.membraneY + this.membraneH + 2);
-        ctx.strokeStyle = _r(EnzymeStyles.roleColors.respiratory.stroke, 0.15); ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
+        ctx.strokeStyle = _respDashed; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
 
         ctx.save(); ctx.globalAlpha = rA;
         EnzymeStyles.drawNDH1(ctx, c.ndh1.cx, c.ndh1.cy, cxW, cxH * 0.6, respPulse, lm);
