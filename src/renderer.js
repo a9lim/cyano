@@ -231,7 +231,7 @@ const Renderer = {
             if (key && ENZYMES[key]) return ENZYMES[key];
             if (ENZYMES[hb.enzyme]) return ENZYMES[hb.enzyme];
         }
-        const etcKey = `${hb.pathway}:${hb.stepIndex}`;
+        const etcKey = hb._etcKey;
         const k2 = _etcInfoKey[etcKey];
         if (k2 && ENZYMES[k2]) return ENZYMES[k2];
         return null;
@@ -400,8 +400,9 @@ const Renderer = {
             const hb = arr[i];
             hb.cx = cx; hb.cy = cy; hb.w = w; hb.h = h;
             hb.pathway = pathway; hb.stepIndex = stepIndex; hb.enzyme = enzyme || '';
+            hb._etcKey = pathway + ':' + stepIndex;
         } else {
-            arr.push({ cx, cy, w, h, pathway, stepIndex, enzyme: enzyme || '' });
+            arr.push({ cx, cy, w, h, pathway, stepIndex, enzyme: enzyme || '', _etcKey: pathway + ':' + stepIndex });
         }
     },
 
