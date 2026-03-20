@@ -88,7 +88,7 @@ export function advanceStep(pathway, stepIndex, direction) {
     if (regFactor <= 0) {
         // Toast only on manual clicks, not autoplay (avoids notification spam)
         if (!simState.autoPlay) {
-            const reason = getRegulationReason(pathway, stepIndex, store);
+            const reason = getRegulationReason(pathway, stepIndex, store, regFactor);
             if (reason && typeof showToast === 'function') showToast(reason);
         }
         markDashboardDirty();

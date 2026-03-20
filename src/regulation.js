@@ -139,8 +139,8 @@ export function getRegulationFactor(pathway, stepIndex, store, direction) {
  * Human-readable reason for current inhibition. Returns null when not inhibited.
  * Used for toast messages on blocked manual clicks.
  */
-export function getRegulationReason(pathway, stepIndex, store) {
-    const factor = getRegulationFactor(pathway, stepIndex, store);
+export function getRegulationReason(pathway, stepIndex, store, precomputedFactor) {
+    const factor = precomputedFactor !== undefined ? precomputedFactor : getRegulationFactor(pathway, stepIndex, store);
     if (factor >= 1) return null;
 
     const atpRatio = store.atp / store.totalAtpAdp;
