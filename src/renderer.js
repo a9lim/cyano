@@ -4,7 +4,7 @@
    Hitbox arrays pooled each frame (count reset, slots reused) for click-to-react and hover tooltips.
    =================================================================== */
 
-import { EnzymeStyles, CFG, _F } from './enzymes.js';
+import { EnzymeStyles, CFG, _F, _cachedMeasure } from './enzymes.js';
 import { computeLayout, MIN_CONTENT_W, MIN_CONTENT_H } from './layout.js';
 import Particles from './particles.js';
 import { canReact } from './reactions/dispatch.js';
@@ -421,6 +421,7 @@ const Renderer = {
         const ctx = this.ctx;
         const lm = state.visualLightMode !== undefined ? state.visualLightMode : state.lightOn;
         this._currentLightMode = lm;
+        this._th = EnzymeStyles.t(lm);
 
         // Animate sidebar inset to match CSS panel transition: 0.45s cubic-bezier(0.23,1,0.32,1)
         if (this.sidebarInset !== this._sidebarAnimTo) {
@@ -467,7 +468,7 @@ const Renderer = {
 
     drawLabels(ctx, state, lm) {
         ctx.font = _F.body300_9;
-        const th = EnzymeStyles.t(lm);
+        const th = this._th;
         ctx.fillStyle = th.sectionLabel;
         ctx.textAlign = 'center';
         const cx = (this._LW || this.W) * 0.5;
@@ -505,24 +506,27 @@ const Renderer = {
 
         // ── Respiratory arrows (blue) — NDH-1/SDH → PQ, PC → CytOx ──
         if (rA > 0.01) {
-            ctx.save(); ctx.globalAlpha = rA;
+            const prevAlpha = ctx.globalAlpha;
+            ctx.globalAlpha = rA;
             EnzymeStyles.drawArrow(ctx, c.ndh1.cx, c.ndh1.cy, c.pq.cx - 22, c.pq.cy, respC, rA);
             EnzymeStyles.drawArrow(ctx, c.sdh.cx, c.sdh.cy, c.pq.cx - 22, c.pq.cy, respC, rA);
             EnzymeStyles.drawArrow(ctx, c.pc.cx, c.pc.cy, c.cytOx.cx - 29, c.cytOx.cy, respC, rA);
-            ctx.restore();
+            ctx.globalAlpha = prevAlpha;
         }
 
         // ── Shared arrows (orange) — PQ → Cyt b6f → PC — used by both chains ──
         if (shA > 0.01) {
-            ctx.save(); ctx.globalAlpha = shA;
+            const prevAlpha = ctx.globalAlpha;
+            ctx.globalAlpha = shA;
             EnzymeStyles.drawArrow(ctx, c.pq.cx, c.pq.cy, c.cytb6f.cx - 20, c.cytb6f.cy, sharedC, shA);
             EnzymeStyles.drawArrow(ctx, c.cytb6f.cx, c.cytb6f.cy, c.pc.cx - sR, c.pc.cy, sharedC, shA);
-            ctx.restore();
+            ctx.globalAlpha = prevAlpha;
         }
 
         // ── Photosynthetic arrows (green) — PSII→PQ, PC→PSI→Fd→FNR, cyclic Fd→PQ ──
         if (phA > 0.01) {
-            ctx.save(); ctx.globalAlpha = phA;
+            const prevAlpha = ctx.globalAlpha;
+            ctx.globalAlpha = phA;
             EnzymeStyles.drawArrow(ctx, c.psii.cx, c.psii.cy, c.pq.cx - 22, c.pq.cy, photoC, phA);
             EnzymeStyles.drawArrow(ctx, c.pc.cx, c.pc.cy, c.psi.cx - cxW / 2, c.psi.cy, photoC, phA);
             EnzymeStyles.drawArrow(ctx, c.psi.cx, c.psi.cy, c.fd.cx - 18, c.fd.cy, photoC, phA);
@@ -534,24 +538,27 @@ const Renderer = {
                 const cCpx = (cStartX + cEndX) / 2, cCpy = this.membraneY + this.membraneH + 80;
                 EnzymeStyles._drawArrowCore(ctx, cStartX, cStartY, cEndX, cEndY, { color: cyclicC, alpha: phA, curved: true, cpx: cCpx, cpy: cCpy });
             }
-            ctx.restore();
+            ctx.globalAlpha = prevAlpha;
         }
 
         if (rA > 0.01) {
-            ctx.save(); ctx.globalAlpha = rA;
+            const prevAlpha = ctx.globalAlpha;
+            ctx.globalAlpha = rA;
             this.drawSmallProtonArrow(ctx, c.ndh1.cx, c.ndh1.cy - cxH * 0.6 / 2 - 18, '4H⁺');
             this.drawSmallProtonArrow(ctx, c.cytOx.cx, c.cytOx.cy - cxH * 0.6 / 2 - 18, '2H⁺');
-            ctx.restore();
+            ctx.globalAlpha = prevAlpha;
         }
         if (shA > 0.01) {
-            ctx.save(); ctx.globalAlpha = shA;
+            const prevAlpha = ctx.globalAlpha;
+            ctx.globalAlpha = shA;
             this.drawSmallProtonArrow(ctx, c.cytb6f.cx, c.cytb6f.cy - cxH * 0.68 / 2 - 18, '4H⁺');
-            ctx.restore();
+            ctx.globalAlpha = prevAlpha;
         }
         if (phA > 0.01) {
-            ctx.save(); ctx.globalAlpha = phA;
+            const prevAlpha = ctx.globalAlpha;
+            ctx.globalAlpha = phA;
             this.drawSmallProtonArrow(ctx, c.psii.cx, c.psii.cy - cxH * 0.8 / 2 - 18, '2H⁺');
-            ctx.restore();
+            ctx.globalAlpha = prevAlpha;
         }
 
         ctx.beginPath(); ctx.setLineDash([2, 2]);
@@ -1110,9 +1117,9 @@ const Renderer = {
     /** Two-part float label for bidir enzymes: forward yield in colorA, reverse yield in colorB. */
     drawDualFloatLabel(ctx, x, y, text1, color1, text2, color2) {
         ctx.font = _F.mono500_10;
-        const w1 = ctx.measureText(text1).width;
-        const gap = ctx.measureText(' ').width;
-        const w2 = ctx.measureText(text2).width;
+        const w1 = _cachedMeasure(ctx, text1);
+        const gap = _cachedMeasure(ctx, ' ');
+        const w2 = _cachedMeasure(ctx, text2);
         const totalW = w1 + gap + w2;
         const startX = x - totalW / 2;
         ctx.textAlign = 'left';
