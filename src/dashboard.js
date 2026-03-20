@@ -5,6 +5,17 @@ import { drawSparkline } from './sparkline.js';
 
 const _PAL = window._PALETTE;
 
+let _dimColors;
+function _initDimColors() {
+    _dimColors = {
+        atp: _PAL.atp + '66',
+        nadh: _PAL.nadh + '66',
+        nadph: _PAL.nadph + '66',
+        fadh2: _PAL.fadh2 + '66',
+        gradient: _PAL.extended.red + '66',
+    };
+}
+
 let _dom;
 // Lazy-initialized canvas contexts for sparkline canvases
 const _sparkCtx = {};
@@ -16,7 +27,7 @@ function _getSparkCtx(id) {
     return _sparkCtx[id];
 }
 
-export function initDashboard(dom) { _dom = dom; }
+export function initDashboard(dom) { _dom = dom; _initDimColors(); }
 
 // ─── RAF-debounced dashboard update ───
 // Coalesces multiple updateDashboard() calls within the same frame into one.
@@ -125,13 +136,13 @@ export function updateDashboard() {
     // Sparklines (160x36 canvases in sidebar)
     const sparkW = 160, sparkH = 36;
     const atpCtx = _getSparkCtx('spark-atp');
-    if (atpCtx) drawSparkline(atpCtx, histories.atp, sparkW, sparkH, _PAL.atp);
+    if (atpCtx) drawSparkline(atpCtx, histories.atp, sparkW, sparkH, _PAL.atp, _dimColors.atp);
     const nadhCtx = _getSparkCtx('spark-nadh');
-    if (nadhCtx) drawSparkline(nadhCtx, histories.nadh, sparkW, sparkH, _PAL.nadh);
+    if (nadhCtx) drawSparkline(nadhCtx, histories.nadh, sparkW, sparkH, _PAL.nadh, _dimColors.nadh);
     const nadphCtx = _getSparkCtx('spark-nadph');
-    if (nadphCtx) drawSparkline(nadphCtx, histories.nadph, sparkW, sparkH, _PAL.nadph);
+    if (nadphCtx) drawSparkline(nadphCtx, histories.nadph, sparkW, sparkH, _PAL.nadph, _dimColors.nadph);
     const fadh2Ctx = _getSparkCtx('spark-fadh2');
-    if (fadh2Ctx) drawSparkline(fadh2Ctx, histories.fadh2, sparkW, sparkH, _PAL.fadh2);
+    if (fadh2Ctx) drawSparkline(fadh2Ctx, histories.fadh2, sparkW, sparkH, _PAL.fadh2, _dimColors.fadh2);
     const gradCtx = _getSparkCtx('spark-gradient');
-    if (gradCtx) drawSparkline(gradCtx, histories.gradient, sparkW, sparkH, _PAL.extended.red);
+    if (gradCtx) drawSparkline(gradCtx, histories.gradient, sparkW, sparkH, _PAL.extended.red, _dimColors.gradient);
 }

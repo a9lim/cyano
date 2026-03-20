@@ -13,7 +13,7 @@ export function pushSample(h, value) {
 }
 
 /** Draw polyline sparkline with dashed "now" marker at the data frontier. */
-export function drawSparkline(ctx, h, w, hh, color) {
+export function drawSparkline(ctx, h, w, hh, color, dimColor) {
     if (h.count < 2) return;
     ctx.clearRect(0, 0, w, hh);
 
@@ -33,7 +33,7 @@ export function drawSparkline(ctx, h, w, hh, color) {
     // Dashed vertical at the right edge of written data
     const nowX = (h.count / HISTORY_LEN) * w;
     ctx.setLineDash([2, 2]);
-    ctx.strokeStyle = color + '66';
+    ctx.strokeStyle = dimColor;
     ctx.beginPath();
     ctx.moveTo(nowX, 0);
     ctx.lineTo(nowX, hh);
