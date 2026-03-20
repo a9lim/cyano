@@ -1,7 +1,7 @@
 /* ===================================================================
    renderer.js — Canvas 2D draw pipeline for the metabolic network.
    Draw order: membrane → ETC → cytoplasm → Krebs → beta-ox → particles → labels.
-   Hitbox arrays rebuilt each frame for click-to-react and hover tooltips.
+   Hitbox arrays pooled each frame (count reset, slots reused) for click-to-react and hover tooltips.
    =================================================================== */
 
 import { EnzymeStyles, CFG, _F } from './enzymes.js';
@@ -76,8 +76,10 @@ const Renderer = {
     sidebarInset: 0, _sidebarInsetCurrent: 0,
     _sidebarAnimStart: 0, _sidebarAnimFrom: 0, _sidebarAnimTo: 0, _sidebarAnimating: false,
     etcComplexes: {}, metab: {},
-    enzymeHitboxes: [],  // rebuilt each frame; used for click-to-react + hover tooltips
-    metabHitboxes: [],   // rebuilt each frame; used for hover tooltips
+    enzymeHitboxes: [],  // pooled each frame; used for click-to-react + hover tooltips
+    metabHitboxes: [],   // pooled each frame; used for hover tooltips
+    _enzymeHBCount: 0,
+    _metabHBCount: 0,
     metabPulse: {},      // scale pulse on metabolite count change
     onEnzymeClick: null, // wired by main.js → advanceStep
     hoveredEnzyme: null,
@@ -134,6 +136,7 @@ const Renderer = {
             clamp: (cam) => this._clampCamera(cam),
         });
         this.camera.bindWheel(this.canvas);
+        this.camera.bindMousePan(this.canvas);
         this.camera.bindZoomButtons({
             zoomIn: document.getElementById('zoom-in-btn'),
             zoomOut: document.getElementById('zoom-out-btn'),
@@ -194,20 +197,18 @@ const Renderer = {
 
     /** Hit-test enzyme hitboxes at world coordinates. */
     _hitTestEnzyme(wx, wy) {
-        for (const hb of this.enzymeHitboxes) {
-            if (Math.abs(wx - hb.cx) < hb.w / 2 && Math.abs(wy - hb.cy) < hb.h / 2) {
-                return hb;
-            }
+        for (let i = 0; i < this._enzymeHBCount; i++) {
+            const hb = this.enzymeHitboxes[i];
+            if (Math.abs(wx - hb.cx) < hb.w / 2 && Math.abs(wy - hb.cy) < hb.h / 2) return hb;
         }
         return null;
     },
 
     /** Hit-test metabolite nodes at world coordinates. */
     _hitTestMetab(wx, wy) {
-        for (const hb of this.metabHitboxes) {
-            if (Math.abs(wx - hb.cx) < hb.w / 2 && Math.abs(wy - hb.cy) < hb.h / 2) {
-                return hb;
-            }
+        for (let i = 0; i < this._metabHBCount; i++) {
+            const hb = this.metabHitboxes[i];
+            if (Math.abs(wx - hb.cx) < hb.w / 2 && Math.abs(wy - hb.cy) < hb.h / 2) return hb;
         }
         return null;
     },
@@ -380,6 +381,31 @@ const Renderer = {
         this._metabKeys = layout.metabKeys;
     },
 
+    /** Pool helper: write or reuse slot i in enzymeHitboxes. */
+    _pushEnzymeHB(cx, cy, w, h, pathway, stepIndex, enzyme) {
+        const i = this._enzymeHBCount++;
+        const arr = this.enzymeHitboxes;
+        if (i < arr.length) {
+            const hb = arr[i];
+            hb.cx = cx; hb.cy = cy; hb.w = w; hb.h = h;
+            hb.pathway = pathway; hb.stepIndex = stepIndex; hb.enzyme = enzyme || '';
+        } else {
+            arr.push({ cx, cy, w, h, pathway, stepIndex, enzyme: enzyme || '' });
+        }
+    },
+
+    /** Pool helper: write or reuse slot i in metabHitboxes. */
+    _pushMetabHB(cx, cy, w, h, key) {
+        const i = this._metabHBCount++;
+        const arr = this.metabHitboxes;
+        if (i < arr.length) {
+            const hb = arr[i];
+            hb.cx = cx; hb.cy = cy; hb.w = w; hb.h = h; hb.key = key;
+        } else {
+            arr.push({ cx, cy, w, h, key });
+        }
+    },
+
     /* ═══ MAIN DRAW ═══ */
     draw(state) {
         const ctx = this.ctx;
@@ -411,8 +437,8 @@ const Renderer = {
         ctx.save();
         this.camera.applyToCanvas(ctx);
 
-        this.enzymeHitboxes.length = 0;
-        this.metabHitboxes.length = 0;
+        this._enzymeHBCount = 0;
+        this._metabHBCount = 0;
         this.drawMembrane(ctx, lm, state.time);
         this.drawETCChain(ctx, state, lm);
         this.drawCytoplasmNetwork(ctx, state, lm);
@@ -611,27 +637,27 @@ const Renderer = {
 
         // ── ETC hitboxes ──
         if (rA > 0.1) {
-            this.enzymeHitboxes.push({ cx: c.ndh1.cx, cy: c.ndh1.cy, w: cxW + 10, h: cxH + 10, pathway: 'etc_resp', stepIndex: 0 });
-            this.enzymeHitboxes.push({ cx: c.sdh.cx, cy: c.sdh.cy, w: cxW + 10, h: cxH + 10, pathway: 'etc_resp', stepIndex: 1 });
+            this._pushEnzymeHB(c.ndh1.cx, c.ndh1.cy, cxW + 10, cxH + 10, 'etc_resp', 0);
+            this._pushEnzymeHB(c.sdh.cx, c.sdh.cy, cxW + 10, cxH + 10, 'etc_resp', 1);
         }
-        this.enzymeHitboxes.push({ cx: c.nnt.cx, cy: c.nnt.cy, w: cxW + 10, h: cxH + 10, pathway: 'nnt', stepIndex: 0 });
-        this.enzymeHitboxes.push({ cx: c.psii.cx, cy: c.psii.cy, w: cxW + 10, h: cxH + 10, pathway: 'etc_photo', stepIndex: 0 });
-        this.enzymeHitboxes.push({ cx: c.atpSyn.cx, cy: c.atpSyn.cy, w: cxW + 10, h: cxH + 10, pathway: 'atp_syn', stepIndex: 0 });
-        this.enzymeHitboxes.push({ cx: c.br.cx, cy: c.br.cy, w: cxW + 10, h: cxH + 10, pathway: 'br', stepIndex: 0 });
-        this.enzymeHitboxes.push({ cx: c.ucp.cx, cy: c.ucp.cy, w: cxW + 10, h: cxH + 10, pathway: 'ucp', stepIndex: 0 });
-        this.enzymeHitboxes.push({ cx: c.psi.cx, cy: c.psi.cy, w: cxW + 10, h: cxH + 10, pathway: 'etc_cyclic', stepIndex: 0 });
+        this._pushEnzymeHB(c.nnt.cx, c.nnt.cy, cxW + 10, cxH + 10, 'nnt', 0);
+        this._pushEnzymeHB(c.psii.cx, c.psii.cy, cxW + 10, cxH + 10, 'etc_photo', 0);
+        this._pushEnzymeHB(c.atpSyn.cx, c.atpSyn.cy, cxW + 10, cxH + 10, 'atp_syn', 0);
+        this._pushEnzymeHB(c.br.cx, c.br.cy, cxW + 10, cxH + 10, 'br', 0);
+        this._pushEnzymeHB(c.ucp.cx, c.ucp.cy, cxW + 10, cxH + 10, 'ucp', 0);
+        this._pushEnzymeHB(c.psi.cx, c.psi.cy, cxW + 10, cxH + 10, 'etc_cyclic', 0);
         // Mobile carriers / non-clickable complexes — tooltip-only via '_info' pathway
         if (shA > 0.1) {
-            this.enzymeHitboxes.push({ cx: c.pq.cx, cy: c.pq.cy, w: 56, h: 30, pathway: '_info', stepIndex: 0, enzyme: 'PQ' });
-            this.enzymeHitboxes.push({ cx: c.cytb6f.cx, cy: c.cytb6f.cy, w: cxW + 10, h: cxH + 10, pathway: '_info', stepIndex: 0, enzyme: 'Cytb6f' });
-            this.enzymeHitboxes.push({ cx: c.pc.cx, cy: c.pc.cy, w: sR * 2 + 10, h: sR * 2 + 10, pathway: '_info', stepIndex: 0, enzyme: 'PC' });
+            this._pushEnzymeHB(c.pq.cx, c.pq.cy, 56, 30, '_info', 0, 'PQ');
+            this._pushEnzymeHB(c.cytb6f.cx, c.cytb6f.cy, cxW + 10, cxH + 10, '_info', 0, 'Cytb6f');
+            this._pushEnzymeHB(c.pc.cx, c.pc.cy, sR * 2 + 10, sR * 2 + 10, '_info', 0, 'PC');
         }
         if (rA > 0.1) {
-            this.enzymeHitboxes.push({ cx: c.cytOx.cx, cy: c.cytOx.cy, w: cxW + 10, h: cxH + 10, pathway: '_info', stepIndex: 0, enzyme: 'CytOx' });
+            this._pushEnzymeHB(c.cytOx.cx, c.cytOx.cy, cxW + 10, cxH + 10, '_info', 0, 'CytOx');
         }
         if (phA > 0.1) {
-            this.enzymeHitboxes.push({ cx: c.fd.cx, cy: c.fd.cy, w: sR * 2 + 10, h: sR * 2 + 10, pathway: '_info', stepIndex: 0, enzyme: 'Fd' });
-            this.enzymeHitboxes.push({ cx: c.fnr.cx, cy: c.fnr.cy, w: 56, h: 30, pathway: '_info', stepIndex: 0, enzyme: 'FNR' });
+            this._pushEnzymeHB(c.fd.cx, c.fd.cy, sR * 2 + 10, sR * 2 + 10, '_info', 0, 'Fd');
+            this._pushEnzymeHB(c.fnr.cx, c.fnr.cy, 56, 30, '_info', 0, 'FNR');
         }
     },
 
@@ -660,7 +686,7 @@ const Renderer = {
         ctx.font = _F.mono700_12;
         ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText(label, midX, y);
-        this.enzymeHitboxes.push({ cx: midX, cy: y, w: halfW * 2, h: 30, pathway, stepIndex: 0, enzyme: label });
+        this._pushEnzymeHB(midX, y, halfW * 2, 30, pathway, 0, label);
     },
 
     drawSmallProtonArrow(ctx, x, y, label, dir = 'up') {
@@ -840,7 +866,7 @@ const Renderer = {
             const ccx = (m.r5p.cx + m.rubp.cx) / 2;
             const ccy = (m.r5p.cy + m.f6p.cy) / 2;
             EnzymeStyles.drawCycleTarget(ctx, ccx, ccy, cC, 'CALVIN×6', 1, state.calvinRot ? state.calvinRot.angle : 0);
-            this.enzymeHitboxes.push({ cx: ccx, cy: ccy, w: 50, h: 50, pathway: 'run_calvin', stepIndex: 0, enzyme: 'CALVIN×6' });
+            this._pushEnzymeHB(ccx, ccy, 50, 50, 'run_calvin', 0, 'CALVIN×6');
             ctx.restore();
         }
 
@@ -860,7 +886,7 @@ const Renderer = {
             const cx = (m.g6p.cx + m.r5p.cx) / 2;
             const cy = (m.g6p.cy + m.pga6.cy) / 2;
             EnzymeStyles.drawCycleTarget(ctx, cx, cy, pC, 'PPP×6', 1, state.pppRot ? state.pppRot.angle : 0);
-            this.enzymeHitboxes.push({ cx, cy, w: 50, h: 50, pathway: 'run_ppp', stepIndex: 0, enzyme: 'PPP×6' });
+            this._pushEnzymeHB(cx, cy, 50, 50, 'run_ppp', 0, 'PPP×6');
             ctx.restore();
         }
 
@@ -889,7 +915,7 @@ const Renderer = {
                 }
                 EnzymeStyles.drawMetaboliteNode(ctx, m[key].cx, m[key].cy, m[key].label, this.isMetabActive(key, state), lm, _TWO_X.has(key), count);
                 ctx.restore();
-                this.metabHitboxes.push({ cx: m[key].cx, cy: m[key].cy, w: 56, h: 28, key });
+                this._pushMetabHB(m[key].cx, m[key].cy, 56, 28, key);
             }
         }
     },
@@ -927,7 +953,7 @@ const Renderer = {
     _tagAndHitbox(ctx, tagX, tagY, enzyme, color, active, pathway, stepIndex, color2) {
         EnzymeStyles.drawEnzymeTag(ctx, tagX, tagY, enzyme, color, active, this._currentLightMode || false, color2);
         if (pathway !== undefined) {
-            this.enzymeHitboxes.push({ cx: tagX, cy: tagY, w: 40, h: 14, pathway, stepIndex, enzyme });
+            this._pushEnzymeHB(tagX, tagY, 40, 14, pathway, stepIndex, enzyme);
         }
     },
 
@@ -1020,7 +1046,7 @@ const Renderer = {
         const centerKx = (m.succoa.cx + m.oaa.cx) / 2;
         const centerKy = (m.akg.cy + m.succinate.cy) / 2;
         EnzymeStyles.drawCycleTarget(ctx, centerKx, centerKy, kC, 'KREBS×2', -1, state.krebsRot ? state.krebsRot.angle : 0);
-        this.enzymeHitboxes.push({ cx: centerKx, cy: centerKy, w: 50, h: 50, pathway: 'run_krebs', stepIndex: 0, enzyme: 'KREBS×2' });
+        this._pushEnzymeHB(centerKx, centerKy, 50, 50, 'run_krebs', 0, 'KREBS×2');
 
         ctx.restore();
     },
@@ -1059,7 +1085,7 @@ const Renderer = {
         const centerX = (m.fattyAcid.cx + m.enoylCoA.cx) / 2;
         const centerY = (m.fattyAcid.cy + m.ketoCoA.cy) / 2;
         EnzymeStyles.drawCycleTarget(ctx, centerX, centerY, bC, 'β-OX×7', 1, state.betaoxRot ? state.betaoxRot.angle : 0, true);
-        this.enzymeHitboxes.push({ cx: centerX, cy: centerY, w: 50, h: 50, pathway: 'run_betaox', stepIndex: 0, enzyme: 'β-OX×7' });
+        this._pushEnzymeHB(centerX, centerY, 50, 50, 'run_betaox', 0, 'β-OX×7');
 
         ctx.restore();
     },
