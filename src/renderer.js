@@ -417,7 +417,7 @@ const Renderer = {
     },
 
     /* ═══ MAIN DRAW ═══ */
-    draw(state) {
+    draw(state, timestamp) {
         const ctx = this.ctx;
         const lm = state.visualLightMode !== undefined ? state.visualLightMode : state.lightOn;
         this._currentLightMode = lm;
@@ -427,11 +427,11 @@ const Renderer = {
         if (this.sidebarInset !== this._sidebarAnimTo) {
             this._sidebarAnimFrom = this._sidebarInsetCurrent;
             this._sidebarAnimTo = this.sidebarInset;
-            this._sidebarAnimStart = performance.now();
+            this._sidebarAnimStart = timestamp;
             this._sidebarAnimating = true;
         }
         if (this._sidebarAnimating) {
-            const elapsed = (performance.now() - this._sidebarAnimStart) / 450; // 0.45s
+            const elapsed = (timestamp - this._sidebarAnimStart) / 450; // 0.45s
             if (elapsed >= 1) {
                 this._sidebarInsetCurrent = this._sidebarAnimTo;
                 this._sidebarAnimating = false;

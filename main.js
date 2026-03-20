@@ -48,7 +48,7 @@ function mainLoop(now) {
         pushSample(histories.fadh2, store.fadh2 / store.totalFad);
         pushSample(histories.gradient, Math.min(1, store.protonGradient / 40));
     }
-    Renderer.draw(simState);
+    Renderer.draw(simState, now);
     requestAnimationFrame(mainLoop);
 }
 
