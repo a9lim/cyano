@@ -42,17 +42,6 @@ export function showActiveStep(enzyme, reaction, yields, pathway) {
         : '—';
 }
 
-export function applyYields(y) {
-    if (!y) return;
-    if (y.atpConsume && store.atp >= y.atpConsume) store.atp -= y.atpConsume;
-    if (y.atp && store.atp < store.totalAtpAdp) store.atp = Math.min(store.atp + y.atp, store.totalAtpAdp);
-    if (y.nadh && store.nadh < store.totalNad) store.nadh = Math.min(store.nadh + y.nadh, store.totalNad);
-    if (y.nadph && store.nadph < store.totalNadp) store.nadph = Math.min(store.nadph + y.nadph, store.totalNadp);
-    if (y.nadphConsume && store.nadph >= y.nadphConsume) store.nadph -= y.nadphConsume;
-    if (y.fadh2 && store.fadh2 < store.totalFad) store.fadh2 = Math.min(store.fadh2 + y.fadh2, store.totalFad);
-    if (y.co2Fixed) store.co2Fixed += y.co2Fixed;
-}
-
 /** Micro-animation: scale-bump a stat element when its text changes. */
 function animateStatEl(el, newText) {
     if (!el) return;
@@ -106,7 +95,7 @@ export function updateDashboard() {
     if (_dom.activeROS) _dom.activeROS.textContent = activeROS;
     if (_dom.healthBar) {
         _dom.healthBar.style.width = store.cellHealth + '%';
-        _dom.healthBar.style.background = store.cellHealth > 50 ? 'var(--palette-green)' : store.cellHealth > 20 ? 'var(--palette-orange)' : 'var(--palette-red)';
+        _dom.healthBar.style.background = store.cellHealth > 50 ? 'var(--ext-green)' : store.cellHealth > 20 ? 'var(--ext-orange)' : 'var(--ext-red)';
     }
     if (_dom.healthRatio) _dom.healthRatio.textContent = Math.round(store.cellHealth) + '%';
 
