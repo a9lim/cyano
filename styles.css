@@ -225,7 +225,7 @@ main {
   background: var(--metab-card-bg);
   border-radius: var(--radius-md);
   padding: 0.4rem 0.5rem;
-  transition: all 0.28s ease;
+  transition: background 0.28s ease;
 }
 
 .metab-head {
@@ -282,6 +282,27 @@ main {
 .metab-card[class*="mc-"] .metab-fill {
   background: linear-gradient(90deg, color-mix(in srgb, var(--mc-color), black 20%), var(--mc-color));
   box-shadow: 0 0 6px color-mix(in srgb, var(--mc-color) 35%, transparent);
+}
+
+
+#atp-source-bar {
+  display: flex;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  width: 100%;
+}
+
+#atp-source-sub {
+  background: var(--pw-glyc);
+  height: 100%;
+  transition: width 0.3s;
+}
+
+#atp-source-ox {
+  background: var(--pw-krebs);
+  height: 100%;
+  transition: width 0.3s;
 }
 
 
