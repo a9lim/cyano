@@ -1,8 +1,20 @@
 # Metabolism
 
-An interactive simulation of cellular carbon metabolism, electron transport chains, and bioenergetics. Ten interconnected biochemical pathways mapped onto a shared metabolite grid, with allosteric regulation, organism presets, reactive oxygen species, and real-time cofactor tracking.
+An interactive simulation of cellular carbon metabolism, electron transport chains, and bioenergetics. Ten interconnected biochemical pathways mapped onto a shared metabolite grid, with allosteric regulation at 11 enzyme control points, five organism presets, reactive oxygen species, and real-time cofactor tracking -- all in zero-dependency vanilla JavaScript.
 
 **[Live Demo](https://a9l.im/biosim)** | Part of the [a9l.im](https://a9l.im) portfolio
+
+## Highlights
+
+- **10 interconnected pathways** -- glycolysis/gluconeogenesis, pentose phosphate, Calvin cycle, Krebs cycle, beta-oxidation/fatty acid synthesis, linear and cyclic light reactions, oxidative phosphorylation, fermentation, and NNT transhydrogenation
+- **14-complex electron transport chain** -- PSII, NDH-1, SDH, PQ, Cyt b6f, PC, Cyt c oxidase, PSI, Fd, FNR, ATP synthase, bacteriorhodopsin, NNT, and UCP, each with unique visual silhouettes
+- **Allosteric regulation** -- 11 enzyme control points (PFK, PDH, citrate synthase, isocitrate DH, G6PDH, RuBisCO, ACAD, and more) gate reactions based on ATP/ADP ratio, NADH/NAD+ balance, and cofactor pools
+- **5 organism presets** -- cyanobacterium, animal cell, obligate anaerobe, plant chloroplast, and archaeon, each locking pathways and environment to match real biology
+- **Reactive oxygen species** -- 2% electron leak at Complex I and the Q-cycle produces ROS; SOD, catalase, and GPx scavenge; cell health degrades if ROS accumulate
+- **Closed-system cofactor pools** -- ATP+ADP (40), NAD++NADH (40), NADP++NADPH (40), FAD+FADH2 (20) are strictly conserved
+- **Real-time sparklines** -- 60-second rolling histories for all four cofactor ratios and the proton gradient
+- **Bidirectional pathways** -- glycolysis reverses to gluconeogenesis, beta-oxidation reverses to fatty acid synthesis, each with direction-aware regulation and distinct cofactor requirements
+- **Three-state theme** -- Simulation (follows sunlight), Light, Dark
 
 ## What It Does
 
@@ -30,7 +42,7 @@ Users advance the simulation by clicking enzyme labels on the canvas. Available 
 - **Organism Presets** -- choose from Cyanobacterium, Animal Cell, Obligate Anaerobe, Plant Chloroplast, or Archaeon. Each preset locks/unlocks pathways and environment toggles to match that organism's biology.
 - **Reactive Oxygen Species** -- 2% electron leak at Complex I and the Q-cycle produces ROS. SOD and catalase scavenge for free; GPx consumes NADPH. Cell health degrades if ROS accumulate unchecked.
 - **Cofactor Sparklines** -- real-time time-series plots of ATP, NADH, NADPH, FADH2 ratios and proton gradient (300 samples at 5 Hz, 60-second window).
-- **Enzyme and Metabolite Info** -- hover enzyme tags or metabolite nodes for popups with name, pathway, equation, and regulation notes.
+- **Enzyme and Metabolite Info** -- hover enzyme tags or metabolite nodes for popups with name, pathway, equation, and regulation notes. Shift+click opens in-depth reference pages with KaTeX-rendered equations.
 - **Three-State Theme** -- Simulation (follows sunlight), Light, Dark.
 - **Keyboard Shortcuts** -- Space (autoplay), G (glucose), F (fatty acid), L (light), O (oxygen), 1--5 (pathway toggles), T (theme), S (sidebar). Press `?` for help overlay.
 - **Uncoupling Proteins** -- toggle passive proton leak to dissipate the gradient as heat, mimicking brown fat thermogenesis.
@@ -80,6 +92,7 @@ src/
   layout.js             -- Membrane/ETC/metabolite position computation
   ui.js                 -- DOM cache, event binding, sidebar, intro screen, shortcuts, info tips
   info.js               -- ENZYMES and METABOLITES data for hover popups
+  reference.js          -- In-depth reference pages with KaTeX math for each pathway
   organisms.js          -- Organism preset definitions (pathway/environment configurations)
   regulation.js         -- getRegulationFactor(), getRegulationReason()
   reactions/
