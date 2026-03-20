@@ -565,35 +565,50 @@ const Renderer = {
         ctx.moveTo(c.atpSyn.cx, this.membraneY - 2); ctx.lineTo(c.atpSyn.cx, this.membraneY + this.membraneH + 2);
         ctx.strokeStyle = _respDashed; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
 
-        ctx.save(); ctx.globalAlpha = rA;
-        EnzymeStyles.drawNDH1(ctx, c.ndh1.cx, c.ndh1.cy, cxW, cxH * 0.6, respPulse, lm);
-        EnzymeStyles.drawSDH(ctx, c.sdh.cx, c.sdh.cy, cxW * 0.6, respPulse * 0.3, lm);
-        EnzymeStyles.drawCytOx(ctx, c.cytOx.cx, c.cytOx.cy, cxW, cxH * 0.6, respPulse, lm);
-        ctx.restore();
+        {
+            const prevAlpha = ctx.globalAlpha;
+            ctx.globalAlpha = rA;
+            EnzymeStyles.drawNDH1(ctx, c.ndh1.cx, c.ndh1.cy, cxW, cxH * 0.6, respPulse, lm);
+            EnzymeStyles.drawSDH(ctx, c.sdh.cx, c.sdh.cy, cxW * 0.6, respPulse * 0.3, lm);
+            EnzymeStyles.drawCytOx(ctx, c.cytOx.cx, c.cytOx.cy, cxW, cxH * 0.6, respPulse, lm);
+            ctx.globalAlpha = prevAlpha;
+        }
 
-        ctx.save(); ctx.globalAlpha = shA;
-        EnzymeStyles.drawPQ(ctx, c.pq.cx, c.pq.cy, 52, 26, pulse * 0.35, lm);
-        EnzymeStyles.drawCytB6f(ctx, c.cytb6f.cx, c.cytb6f.cy, cxW, cxH * 0.68, pulse * 0.4, lm);
-        ctx.restore();
+        {
+            const prevAlpha = ctx.globalAlpha;
+            ctx.globalAlpha = shA;
+            EnzymeStyles.drawPQ(ctx, c.pq.cx, c.pq.cy, 52, 26, pulse * 0.35, lm);
+            EnzymeStyles.drawCytB6f(ctx, c.cytb6f.cx, c.cytb6f.cy, cxW, cxH * 0.68, pulse * 0.4, lm);
+            ctx.globalAlpha = prevAlpha;
+        }
 
-        ctx.save(); ctx.globalAlpha = shA;
-        EnzymeStyles.drawPC(ctx, c.pc.cx, c.pc.cy, sR, shA > 0.5 ? pulse * 0.3 : 0, lm);
-        ctx.restore();
+        {
+            const prevAlpha = ctx.globalAlpha;
+            ctx.globalAlpha = shA;
+            EnzymeStyles.drawPC(ctx, c.pc.cx, c.pc.cy, sR, shA > 0.5 ? pulse * 0.3 : 0, lm);
+            ctx.globalAlpha = prevAlpha;
+        }
 
-        ctx.save(); ctx.globalAlpha = phA;
-        EnzymeStyles.drawPSII(ctx, c.psii.cx, c.psii.cy, cxW, cxH * 0.8, photoPulse, lm);
-        EnzymeStyles.drawPSI(ctx, c.psi.cx, c.psi.cy, cxW, cxH * 0.7, photoPulse, lm);
-        EnzymeStyles.drawFd(ctx, c.fd.cx, c.fd.cy, sR, photoPulse * 0.25, lm);
-        EnzymeStyles.drawFNR(ctx, c.fnr.cx, c.fnr.cy, 52, 26, photoPulse * 0.35, lm);
-        ctx.restore();
+        {
+            const prevAlpha = ctx.globalAlpha;
+            ctx.globalAlpha = phA;
+            EnzymeStyles.drawPSII(ctx, c.psii.cx, c.psii.cy, cxW, cxH * 0.8, photoPulse, lm);
+            EnzymeStyles.drawPSI(ctx, c.psi.cx, c.psi.cy, cxW, cxH * 0.7, photoPulse, lm);
+            EnzymeStyles.drawFd(ctx, c.fd.cx, c.fd.cy, sR, photoPulse * 0.25, lm);
+            EnzymeStyles.drawFNR(ctx, c.fnr.cx, c.fnr.cy, 52, 26, photoPulse * 0.35, lm);
+            ctx.globalAlpha = prevAlpha;
+        }
 
         const atpGlow = state.protonGradient > 0 ? pulse : 0;
         EnzymeStyles.drawATPSynthase(ctx, c.atpSyn.cx, c.atpSyn.cy, cxW + 4, cxH * 0.8, atpGlow, lm);
 
-        ctx.save(); ctx.globalAlpha = phA;
-        EnzymeStyles.drawBR(ctx, c.br.cx, c.br.cy, cxW - 4, cxH * 0.6, phA > 0.5 ? 5 + 3 * Math.sin(t * 4) : 0, lm);
-        if (phA > 0.01) this.drawSmallProtonArrow(ctx, c.br.cx, c.br.cy - cxH * 0.6 / 2 - 18, '1H⁺');
-        ctx.restore();
+        {
+            const prevAlpha = ctx.globalAlpha;
+            ctx.globalAlpha = phA;
+            EnzymeStyles.drawBR(ctx, c.br.cx, c.br.cy, cxW - 4, cxH * 0.6, phA > 0.5 ? 5 + 3 * Math.sin(t * 4) : 0, lm);
+            if (phA > 0.01) this.drawSmallProtonArrow(ctx, c.br.cx, c.br.cy - cxH * 0.6 / 2 - 18, '1H⁺');
+            ctx.globalAlpha = prevAlpha;
+        }
 
         // NNT always visible; glows when proton gradient drives the transhydrogenase
         const nntGlow = state.protonGradient > 0 ? pulse : 0;
@@ -602,20 +617,24 @@ const Renderer = {
         // Yield labels inside synced alpha blocks — dim with their parent complex
         ctx.font = _F.mono500_10; ctx.textAlign = 'center';
 
-        ctx.save();
-        ctx.globalAlpha = phA;
-        ctx.fillStyle = photoC;
-        ctx.fillText('+½O₂', c.psii.cx, c.psii.cy + cxH * 0.8 / 2 + 12);
-        ctx.fillText('+NADPH', c.fnr.cx, c.fnr.cy + 26 / 2 + 14);
-        ctx.restore();
+        {
+            const prevAlpha = ctx.globalAlpha;
+            ctx.globalAlpha = phA;
+            ctx.fillStyle = photoC;
+            ctx.fillText('+½O₂', c.psii.cx, c.psii.cy + cxH * 0.8 / 2 + 12);
+            ctx.fillText('+NADPH', c.fnr.cx, c.fnr.cy + 26 / 2 + 14);
+            ctx.globalAlpha = prevAlpha;
+        }
 
-        ctx.save();
-        ctx.globalAlpha = rA;
-        ctx.fillStyle = respC;
-        ctx.fillText('-NADH', c.ndh1.cx, c.ndh1.cy + cxH * 0.6 / 2 + 18);
-        ctx.fillText('-FADH₂', c.sdh.cx, c.sdh.cy + cxH * 0.3 / 2 + 22);
-        ctx.fillText('-½O₂', c.cytOx.cx, c.cytOx.cy + cxH * 0.6 / 2 + 12);
-        ctx.restore();
+        {
+            const prevAlpha = ctx.globalAlpha;
+            ctx.globalAlpha = rA;
+            ctx.fillStyle = respC;
+            ctx.fillText('-NADH', c.ndh1.cx, c.ndh1.cy + cxH * 0.6 / 2 + 18);
+            ctx.fillText('-FADH₂', c.sdh.cx, c.sdh.cy + cxH * 0.3 / 2 + 22);
+            ctx.fillText('-½O₂', c.cytOx.cx, c.cytOx.cy + cxH * 0.6 / 2 + 12);
+            ctx.globalAlpha = prevAlpha;
+        }
 
         // ATP Synthase: downward H+ flow through rotor → ATP production
         const atpBotY = c.atpSyn.cy + cxH * 0.8 / 2;
