@@ -50,9 +50,19 @@ export function showActiveStep(enzyme, reaction, yields, pathway) {
     _dom.krebsEnzyme.style.color = pathway && _pwColor[pathway]
         ? 'var(' + _pwColor[pathway] + ')' : '';
     _dom.krebsReaction.textContent = reaction;
-    _dom.krebsYield.textContent = yields
-        ? Object.entries(yields).map(([k, v]) => k.includes('Consume') ? `-${v} ${k.replace('Consume', '').toUpperCase()}` : `+${v} ${k.toUpperCase()}`).join(' ')
-        : '—';
+    if (!yields) {
+        _dom.krebsYield.textContent = '—';
+    } else {
+        let text = '';
+        for (const k in yields) {
+            if (text) text += ' ';
+            const v = yields[k];
+            text += k.includes('Consume')
+                ? `-${v} ${k.replace('Consume', '').toUpperCase()}`
+                : `+${v} ${k.toUpperCase()}`;
+        }
+        _dom.krebsYield.textContent = text;
+    }
 }
 
 /** Micro-animation: scale-bump a stat element when its text changes. */
