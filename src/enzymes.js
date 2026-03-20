@@ -131,6 +131,26 @@ export const _THEME = {
   },
 };
 
+function _cycleArrowhead(ctx, cx, cy, radius, eAngle, tAngle, color, parentAlpha) {
+  ctx.beginPath();
+  const ax = cx + radius * Math.cos(eAngle);
+  const ay = cy + radius * Math.sin(eAngle);
+  const tipX = ax + CFG.cycleTipLen * Math.cos(tAngle);
+  const tipY = ay + CFG.cycleTipLen * Math.sin(tAngle);
+  const pAngle = tAngle + Math.PI / 2;
+  const fin1X = ax + CFG.cycleFinLen * Math.cos(pAngle);
+  const fin1Y = ay + CFG.cycleFinLen * Math.sin(pAngle);
+  const fin2X = ax - CFG.cycleFinLen * Math.cos(pAngle);
+  const fin2Y = ay - CFG.cycleFinLen * Math.sin(pAngle);
+  ctx.moveTo(tipX, tipY);
+  ctx.lineTo(fin1X, fin1Y);
+  ctx.lineTo(fin2X, fin2Y);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.globalAlpha = parentAlpha;
+  ctx.fill();
+}
+
 export const EnzymeStyles = {
   roleColors: _ROLE,
   theme: _THEME,
@@ -749,37 +769,17 @@ export const EnzymeStyles = {
     ctx.globalAlpha = parentAlpha;
     ctx.stroke();
 
-    const _drawArrowhead = (eAngle, tAngle) => {
-      ctx.beginPath();
-      const ax = cx + radius * Math.cos(eAngle);
-      const ay = cy + radius * Math.sin(eAngle);
-      const tipX = ax + CFG.cycleTipLen * Math.cos(tAngle);
-      const tipY = ay + CFG.cycleTipLen * Math.sin(tAngle);
-      const pAngle = tAngle + Math.PI / 2;
-      const fin1X = ax + CFG.cycleFinLen * Math.cos(pAngle);
-      const fin1Y = ay + CFG.cycleFinLen * Math.sin(pAngle);
-      const fin2X = ax - CFG.cycleFinLen * Math.cos(pAngle);
-      const fin2Y = ay - CFG.cycleFinLen * Math.sin(pAngle);
-      ctx.moveTo(tipX, tipY);
-      ctx.lineTo(fin1X, fin1Y);
-      ctx.lineTo(fin2X, fin2Y);
-      ctx.closePath();
-      ctx.fillStyle = color;
-      ctx.globalAlpha = parentAlpha;
-      ctx.fill();
-    };
-
     if (dir === 1) {
-      _drawArrowhead(_TWO_PI - 0.4, _TWO_PI - 0.4 + Math.PI / 2);
+      _cycleArrowhead(ctx, cx, cy, radius, _TWO_PI - 0.4, _TWO_PI - 0.4 + Math.PI / 2, color, parentAlpha);
     } else {
-      _drawArrowhead(0.4, 0.4 - Math.PI / 2);
+      _cycleArrowhead(ctx, cx, cy, radius, 0.4, 0.4 - Math.PI / 2, color, parentAlpha);
     }
 
     if (bidir) {
       if (dir === 1) {
-        _drawArrowhead(0.4, 0.4 - Math.PI / 2);
+        _cycleArrowhead(ctx, cx, cy, radius, 0.4, 0.4 - Math.PI / 2, color, parentAlpha);
       } else {
-        _drawArrowhead(_TWO_PI - 0.4, _TWO_PI - 0.4 + Math.PI / 2);
+        _cycleArrowhead(ctx, cx, cy, radius, _TWO_PI - 0.4, _TWO_PI - 0.4 + Math.PI / 2, color, parentAlpha);
       }
     }
 
