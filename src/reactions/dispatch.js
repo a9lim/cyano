@@ -2,7 +2,7 @@
 // enforces allosteric regulation before any substrate mutation.
 import { _TWO_PI } from '../anim.js';
 import { simState, store } from '../state.js';
-import { showActiveStep, updateDashboard } from '../dashboard.js';
+import { showActiveStep, updateDashboard, markDashboardDirty } from '../dashboard.js';
 import { getRegulationFactor, getRegulationReason } from '../regulation.js';
 import { advanceGlycolysis, runGlycolysisUpper, runGlycolysisLower, runGlycolysisLowerReverse, runGlycolysisUpperReverse } from './glycolysis.js';
 import { advanceKrebs, runKrebsCycle } from './krebs.js';
@@ -81,7 +81,7 @@ const _rotNudge = {
  */
 export function advanceStep(pathway, stepIndex, direction) {
     const handler = _dispatch[pathway];
-    if (!handler) { updateDashboard(); return false; }
+    if (!handler) { markDashboardDirty(); return false; }
 
     // Allosteric gate — blocks fully inhibited reactions
     const regFactor = getRegulationFactor(pathway, stepIndex, store, direction);
@@ -91,14 +91,14 @@ export function advanceStep(pathway, stepIndex, direction) {
             const reason = getRegulationReason(pathway, stepIndex, store);
             if (reason && typeof showToast === 'function') showToast(reason);
         }
-        updateDashboard();
+        markDashboardDirty();
         return false;
     }
 
     // Partial inhibition in autoplay: probabilistic gate (e.g. 0.5 factor
     // means ~50% chance of proceeding, modeling reduced enzyme activity)
     if (regFactor < 1 && simState.autoPlay && Math.random() > regFactor) {
-        updateDashboard();
+        markDashboardDirty();
         return false;
     }
 
@@ -115,7 +115,7 @@ export function advanceStep(pathway, stepIndex, direction) {
         if (nudge) simState[nudge.rot].targetAngle += direction === 'reverse' ? -nudge.delta : nudge.delta;
     }
 
-    updateDashboard();
+    markDashboardDirty();
     return !!result;
 }
 

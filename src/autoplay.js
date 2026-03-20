@@ -2,7 +2,7 @@
 // Fast tick (400ms): ETC + ATP synthase (membrane-bound, continuous).
 // Slow tick (800ms): metabolic round-robin (one pathway per tick).
 import { simState, store } from './state.js';
-import { updateDashboard } from './dashboard.js';
+import { markDashboardDirty } from './dashboard.js';
 import { advanceStep } from './reactions/dispatch.js';
 import Particles from './particles.js';
 import Renderer from './renderer.js';
@@ -33,7 +33,7 @@ export function autoplayTick(dt) {
     if (passiveDrainTimer > 1.6) {
         passiveDrainTimer = 0;
         if (store.atp > 2) store.atp -= 3;
-        updateDashboard();
+        markDashboardDirty();
     }
 
     // ── ETC fast tick (400ms) — continuous membrane processes ──

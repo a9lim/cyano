@@ -18,6 +18,19 @@ function _getSparkCtx(id) {
 
 export function initDashboard(dom) { _dom = dom; }
 
+// ─── RAF-debounced dashboard update ───
+// Coalesces multiple updateDashboard() calls within the same frame into one.
+let _dashboardDirty = false;
+
+export function markDashboardDirty() {
+    if (_dashboardDirty) return;
+    _dashboardDirty = true;
+    requestAnimationFrame(() => {
+        _dashboardDirty = false;
+        updateDashboard();
+    });
+}
+
 // ─── Pathway → CSS Variable Map ───
 // Used to color the active-step enzyme name by its owning pathway.
 const _pwColor = {
