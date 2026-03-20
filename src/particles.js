@@ -89,7 +89,7 @@ const Particles = {
         for (let i = this.electrons.length - 1; i >= 0; i--) {
             const e = this.electrons[i];
             e.progress += e.speed * spd;
-            if (e.progress >= 1) { this.electrons.splice(i, 1); continue; }
+            if (e.progress >= 1) { this.electrons[i] = this.electrons[this.electrons.length - 1]; this.electrons.pop(); continue; }
             const t = e.progress;
             let px, py;
 
@@ -132,7 +132,7 @@ const Particles = {
         for (let i = this.protons.length - 1; i >= 0; i--) {
             const p = this.protons[i];
             p.progress += p.speed * spd;
-            if (p.progress >= 1) { this.protons.splice(i, 1); continue; }
+            if (p.progress >= 1) { this.protons[i] = this.protons[this.protons.length - 1]; this.protons.pop(); continue; }
             const t = p.progress;
             // Horizontal wobble via sine wave
             EnzymeStyles.drawProton(ctx,
@@ -146,7 +146,7 @@ const Particles = {
         for (let i = this.photons.length - 1; i >= 0; i--) {
             const ph = this.photons[i];
             ph.progress += ph.speed * spd;
-            if (ph.progress >= 1) { this.photons.splice(i, 1); continue; }
+            if (ph.progress >= 1) { this.photons[i] = this.photons[this.photons.length - 1]; this.photons.pop(); continue; }
             const t = ph.progress;
             const fade = t < 0.3 ? t / 0.3 : (t > 0.7 ? (1 - t) / 0.3 : 1);
             ctx.globalAlpha = fade * 0.9;
