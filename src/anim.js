@@ -57,11 +57,11 @@ export const Anim = {
     return {
       angle: 0,
       targetAngle: 0,
-      update(dt, active, speed = 1.5) {
+      update(dt, active, speed = 1.5, rotK) {
         if (active) this.targetAngle += dt * speed;
         const diff = this.targetAngle - this.angle;
         if (Math.abs(diff) > 0.001) {
-          this.angle += diff * Math.min(1, 6 * dt);
+          this.angle += diff * (rotK !== undefined ? rotK : Math.min(1, 6 * dt));
         } else {
           this.angle = this.targetAngle;
         }

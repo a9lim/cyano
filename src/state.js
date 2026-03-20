@@ -72,12 +72,13 @@ export function resetState() {
 
 /** Tick all fade/rotation animations. Called once per frame from mainLoop. */
 export function updateAnimations(dt) {
-    simState.calvinRot.update(dt, simState.calvinEnabled && simState.autoPlay);
+    const rotK = Math.min(1, 6 * dt);
+    simState.calvinRot.update(dt, simState.calvinEnabled && simState.autoPlay, 1.5, rotK);
     // Krebs rotates opposite direction (CW, -1.5 rad/s)
-    simState.krebsRot.update(dt, simState.krebsEnabled && simState.oxygenAvailable && simState.autoPlay, -1.5);
-    simState.pppRot.update(dt, simState.pppEnabled && simState.autoPlay);
+    simState.krebsRot.update(dt, simState.krebsEnabled && simState.oxygenAvailable && simState.autoPlay, -1.5, rotK);
+    simState.pppRot.update(dt, simState.pppEnabled && simState.autoPlay, 1.5, rotK);
     // Beta-ox reverses direction in sunlight (FA synthesis runs the cycle backward)
-    simState.betaoxRot.update(dt, simState.betaoxEnabled && simState.autoPlay, simState.lightOn ? -1.5 : 1.5);
+    simState.betaoxRot.update(dt, simState.betaoxEnabled && simState.autoPlay, simState.lightOn ? -1.5 : 1.5, rotK);
     simState.glycolysisFade.update(dt, simState.glycolysisEnabled ? 1 : 0);
     simState.calvinFade.update(dt, simState.calvinEnabled ? 1 : 0);
     simState.krebsFade.update(dt, (simState.krebsEnabled && simState.oxygenAvailable) ? 1 : 0);
