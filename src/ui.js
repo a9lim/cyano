@@ -275,8 +275,10 @@ export function bindEvents(dom) {
         oxStress: { title: 'Oxidative Stress', body: 'ROS from electron leak damage cells; SOD, catalase, and GPx scavenge them.' },
     };
 
+    const infoTriggers = document.querySelectorAll('.info-trigger[data-info]');
+
     if (typeof createInfoTip === 'function') {
-        document.querySelectorAll('.info-trigger[data-info]').forEach(trigger => {
+        infoTriggers.forEach(trigger => {
             const key = trigger.dataset.info;
             if (infoData[key]) {
                 createInfoTip(trigger, infoData[key]);
@@ -306,7 +308,7 @@ export function bindEvents(dom) {
     };
 
     if (refOverlay) {
-        document.querySelectorAll('.info-trigger[data-info]').forEach(trigger => {
+        infoTriggers.forEach(trigger => {
             // Shift+click (desktop)
             trigger.addEventListener('click', (e) => {
                 if (!e.shiftKey) return;
