@@ -34,6 +34,13 @@ export function _labelFont(size) {
   return _labelFonts[size] || (_labelFonts[size] = `700 ${size}px ${_FONT.mono}`);
 }
 
+const _measureCache = {};
+export function _cachedMeasure(ctx, text) {
+    const key = ctx.font + '|' + text;
+    if (_measureCache[key] === undefined) _measureCache[key] = ctx.measureText(text).width;
+    return _measureCache[key];
+}
+
 const _gradCache = {};
 
 // ── Drawing Constants ──
@@ -519,7 +526,7 @@ export const EnzymeStyles = {
 
   /** Pill-shaped metabolite with optional count badge and "2x" stoichiometry marker. */
   drawMetaboliteNode(ctx, cx, cy, label, active, lightMode, show2x, count) {
-    const w = Math.max(ctx.measureText(label).width + 16, 32);
+    const w = Math.max(_cachedMeasure(ctx, label) + 16, 32);
     const h = CFG.metabNodeHeight;
     this.pill(ctx, cx, cy, w, h);
     const th = this.t(lightMode);
@@ -563,7 +570,7 @@ export const EnzymeStyles = {
   drawEnzymeTag(ctx, cx, cy, label, color, active, lightMode, color2) {
     const pad = CFG.enzymeTagPad;
     ctx.font = active ? _F.tag700 : _F.tag500;
-    const tw = ctx.measureText(label).width;
+    const tw = _cachedMeasure(ctx, label);
     const w = tw + pad * 2;
     const h = 15;
     ctx.beginPath();
@@ -616,32 +623,37 @@ export const EnzymeStyles = {
     ctx.fillStyle = headColor;
     ctx.strokeStyle = tailColor;
     ctx.lineWidth = 0.7;
+    // Batch upper and lower head arcs into a single fill path
+    ctx.beginPath();
     for (let lx = x + 6; lx < x + w; lx += headSpacing) {
       const wobble = Math.sin(t * 2 + lx * 0.1) * 1.2;
-      // Upper leaflet (faces lumen)
       const topHeadY = y + 3 + wobble;
-      ctx.beginPath();
+      ctx.moveTo(lx + headRadius, topHeadY);
       ctx.arc(lx, topHeadY, headRadius, 0, _TWO_PI);
-      ctx.fill();
-      ctx.beginPath();
+      const botHeadY = y + h - 3 - wobble;
+      const bx = lx + headSpacing / 2;
+      ctx.moveTo(bx + headRadius, botHeadY);
+      ctx.arc(bx, botHeadY, headRadius, 0, _TWO_PI);
+    }
+    ctx.fill();
+
+    // Batch all tail line segments into a single stroke path
+    ctx.beginPath();
+    for (let lx = x + 6; lx < x + w; lx += headSpacing) {
+      const wobble = Math.sin(t * 2 + lx * 0.1) * 1.2;
+      const topHeadY = y + 3 + wobble;
       ctx.moveTo(lx - 1, topHeadY + headRadius);
       ctx.lineTo(lx - 1.5, topHeadY + headRadius + tailLen);
       ctx.moveTo(lx + 1, topHeadY + headRadius);
       ctx.lineTo(lx + 1.5, topHeadY + headRadius + tailLen);
-      ctx.stroke();
-      // Lower leaflet (faces matrix) — offset by half-spacing for bilayer stagger
       const botHeadY = y + h - 3 - wobble;
       const bx = lx + headSpacing / 2;
-      ctx.beginPath();
-      ctx.arc(bx, botHeadY, headRadius, 0, _TWO_PI);
-      ctx.fill();
-      ctx.beginPath();
       ctx.moveTo(bx - 1, botHeadY - headRadius);
       ctx.lineTo(bx - 1.5, botHeadY - headRadius - tailLen);
       ctx.moveTo(bx + 1, botHeadY - headRadius);
       ctx.lineTo(bx + 1.5, botHeadY - headRadius - tailLen);
-      ctx.stroke();
     }
+    ctx.stroke();
   },
 
   /* ═══════════════════════════════════════
