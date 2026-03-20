@@ -93,7 +93,7 @@ const Renderer = {
     onEnzymeClick: null, // wired by main.js → advanceStep
     hoveredEnzyme: null,
     hoveredMetab: null,
-    _tooltipEl: null,
+    _tooltip: null,
 
     pathwayColors: null,
 
@@ -239,34 +239,22 @@ const Renderer = {
 
     /** Position and populate the canvas tooltip near the cursor, clamped to viewport. */
     _showTooltip(screenX, screenY, info, isMetab) {
-        if (!this._tooltipEl) {
-            this._tooltipEl = document.getElementById('canvas-tooltip');
-            if (!this._tooltipEl) return;
+        if (!this._tooltip) {
+            this._tooltip = createSimTooltip();
+            this._tooltip.el.classList.add('canvas-tip');
         }
-        const el = this._tooltipEl;
-        let html = `<strong>${info.name}</strong>`;
-        if (info.full) html += `<br><span class="ct-full">${info.full}</span>`;
-        if (info.eq) html += `<br><span class="ct-eq">${info.eq}</span>`;
-        html += `<br>${info.desc}`;
-        if (info.regulation) html += `<br><em>${info.regulation}</em>`;
+        const el = this._tooltip.el;
+        let html = '<strong>' + info.name + '</strong>';
+        if (info.full) html += '<br><span class="ct-full">' + info.full + '</span>';
+        if (info.eq) html += '<br><span class="ct-eq">' + info.eq + '</span>';
+        html += '<br>' + info.desc;
+        if (info.regulation) html += '<br><em>' + info.regulation + '</em>';
         el.innerHTML = html;
-        el.hidden = false;
-
-        // Flip to opposite side of cursor when approaching viewport edges
-        const pad = 12;
-        let x = screenX + pad, y = screenY + pad;
-        const rect = el.getBoundingClientRect();
-        const vw = window.innerWidth, vh = window.innerHeight;
-        if (x + rect.width > vw - pad) x = screenX - rect.width - pad;
-        if (y + rect.height > vh - pad) y = screenY - rect.height - pad;
-        if (x < pad) x = pad;
-        if (y < pad) y = pad;
-        el.style.left = x + 'px';
-        el.style.top = y + 'px';
+        this._tooltip.show(screenX, screenY);
     },
 
     _hideTooltip() {
-        if (this._tooltipEl) this._tooltipEl.hidden = true;
+        if (this._tooltip) this._tooltip.hide();
     },
 
     /* ── Mouse/touch interaction: pan, click-to-react, hover tooltips ── */
