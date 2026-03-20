@@ -24,24 +24,26 @@ export const Anim = {
 
   /** Fixed-length point trail for electron glow effects. */
   trail(maxLen = 8) {
-    const pts = [];
+    const xs = new Float32Array(maxLen);
+    const ys = new Float32Array(maxLen);
+    let head = 0, count = 0;
     return {
-      points: pts,
       push(x, y) {
-        pts.unshift({ x, y, alpha: 1.0 });
-        if (pts.length > maxLen) pts.pop();
-        for (let i = 1; i < pts.length; i++) {
-          pts[i].alpha = 1 - i / pts.length;
-        }
+        xs[head] = x;
+        ys[head] = y;
+        head = (head + 1) % maxLen;
+        if (count < maxLen) count++;
       },
-      clear() { pts.length = 0; },
+      clear() { head = 0; count = 0; },
       draw(ctx, radius, color) {
-        for (let i = pts.length - 1; i >= 0; i--) {
-          const p = pts[i];
+        if (count === 0) return;
+        ctx.fillStyle = color;
+        for (let i = 0; i < count; i++) {
+          const idx = (head - count + i + maxLen) % maxLen;
+          const alpha = (i + 1) / count;
+          ctx.globalAlpha = alpha * 0.35;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, radius * (0.4 + 0.6 * p.alpha), 0, _TWO_PI);
-          ctx.fillStyle = color;
-          ctx.globalAlpha = p.alpha * 0.35;
+          ctx.arc(xs[idx], ys[idx], radius * (0.4 + 0.6 * alpha), 0, _TWO_PI);
           ctx.fill();
         }
         ctx.globalAlpha = 1;
