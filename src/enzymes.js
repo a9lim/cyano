@@ -34,6 +34,8 @@ export function _labelFont(size) {
   return _labelFonts[size] || (_labelFonts[size] = `700 ${size}px ${_FONT.mono}`);
 }
 
+const _gradCache = {};
+
 // ── Drawing Constants ──
 export const CFG = {
   arrowHeadLen: 8,
@@ -574,11 +576,21 @@ export const EnzymeStyles = {
     ctx.fillStyle = active ? th.surfacePrimary : th.surfaceSecondary;
     ctx.fill();
     const useDual = color2 && color2 !== color;
-    const style = useDual ? (() => {
-      const g = ctx.createLinearGradient(cx - w / 2, cy, cx + w / 2, cy);
-      g.addColorStop(0, color2); g.addColorStop(1, color);
-      return g;
-    })() : color;
+    let style;
+    if (useDual) {
+        const gk = color2 + color;
+        const cached = _gradCache[gk];
+        if (cached && cached._cx === cx && cached._w === w && cached._cy === cy) {
+            style = cached;
+        } else {
+            style = ctx.createLinearGradient(cx - w / 2, cy, cx + w / 2, cy);
+            style.addColorStop(0, color2); style.addColorStop(1, color);
+            style._cx = cx; style._w = w; style._cy = cy;
+            _gradCache[gk] = style;
+        }
+    } else {
+        style = color;
+    }
     ctx.strokeStyle = style;
     ctx.lineWidth = 1.0;
     ctx.stroke();
