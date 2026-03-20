@@ -1,8 +1,8 @@
-# Cellular Metabolism
+# Metabolism
 
-An interactive HTML5 Canvas simulation of cellular carbon metabolism, electron transport chains, and bioenergetics.
+An interactive simulation of cellular carbon metabolism, electron transport chains, and bioenergetics. Ten interconnected biochemical pathways mapped onto a shared metabolite grid, with allosteric regulation, organism presets, reactive oxygen species, and real-time cofactor tracking.
 
-**[Live Demo](https://a9l.im/biosim)** -- Part of the [a9l.im](https://a9l.im) portfolio
+**[Live Demo](https://a9l.im/biosim)** | Part of the [a9l.im](https://a9l.im) portfolio
 
 ## What It Does
 
@@ -98,8 +98,9 @@ Uses the shared design system from [a9lim.github.io](https://github.com/a9lim/a9
 
 ## Sibling Projects
 
-- [Relativistic N-Body](https://github.com/a9lim/physsim) -- [a9l.im/physsim](https://a9l.im/physsim)
-- [Redistricting Simulator](https://github.com/a9lim/gerry) -- [a9l.im/gerry](https://a9l.im/gerry)
+- [Geon](https://github.com/a9lim/physsim) -- [a9l.im/physsim](https://a9l.im/physsim)
+- [Redistricting](https://github.com/a9lim/gerry) -- [a9l.im/gerry](https://a9l.im/gerry)
+- [Shoals](https://github.com/a9lim/finsim) -- [a9l.im/finsim](https://a9l.im/finsim)
 
 ## License
 
