@@ -733,7 +733,7 @@ const Renderer = {
 
 
         ctx.font = _F.body400_8;
-        ctx.fillStyle = EnzymeStyles.t(lm).sectionLabelAlt;
+        ctx.fillStyle = this._th.sectionLabelAlt;
         ctx.textAlign = 'left';
         ctx.fillText('CYTOPLASMIC CARBON METABOLISM', 5, this.membraneY + this.membraneH + 16);
 
@@ -1033,7 +1033,7 @@ const Renderer = {
         ctx.globalAlpha = krebsAlpha;
 
         ctx.font = _F.body400_8;
-        ctx.fillStyle = EnzymeStyles.t(lm).protonPoolLabel; ctx.textAlign = 'center';
+        ctx.fillStyle = this._th.protonPoolLabel; ctx.textAlign = 'center';
 
         // CS: two input arrows (AcCoA + OAA) converge on citrate
         this.drawEnzymeArrow(ctx, m.acetylCoA, m.citrate, '', kC, kS === 0, undefined, undefined);
@@ -1079,7 +1079,7 @@ const Renderer = {
         ctx.globalAlpha = bA;
 
         ctx.font = _F.body400_8;
-        ctx.fillStyle = EnzymeStyles.t(lm).sectionLabelAlt; ctx.textAlign = 'center';
+        ctx.fillStyle = this._th.sectionLabelAlt; ctx.textAlign = 'center';
 
         // Step 0: ACAD (forward) / ACC+ER (reverse FA synthesis)
         this.drawBidirArrow(ctx, m.fattyAcid, m.enoylCoA, 'ACAD/ACC+ER', bC, bC, false, 'betaox', 0);
