@@ -3,7 +3,7 @@
 import { simState, store, histories, updateAnimations } from './src/state.js';
 import { updateTheme } from './src/theme.js';
 import { showActiveStep, updateDashboard } from './src/dashboard.js';
-import { pushSample } from './src/sparkline.js';
+
 import { advanceStep } from './src/reactions/dispatch.js';
 import { autoplayTick, protonLeakTick } from './src/autoplay.js';
 import { cacheDOMElements, bindEvents } from './src/ui.js';
@@ -42,11 +42,11 @@ function mainLoop(now) {
     sparkTimer += dt;
     if (sparkTimer > 0.2) {
         sparkTimer = 0;
-        pushSample(histories.atp, store.atp / store.totalAtpAdp);
-        pushSample(histories.nadh, store.nadh / store.totalNad);
-        pushSample(histories.nadph, store.nadph / store.totalNadp);
-        pushSample(histories.fadh2, store.fadh2 / store.totalFad);
-        pushSample(histories.gradient, Math.min(1, store.protonGradient / 40));
+        pushSparkSample(histories.atp, store.atp / store.totalAtpAdp);
+        pushSparkSample(histories.nadh, store.nadh / store.totalNad);
+        pushSparkSample(histories.nadph, store.nadph / store.totalNadp);
+        pushSparkSample(histories.fadh2, store.fadh2 / store.totalFad);
+        pushSparkSample(histories.gradient, Math.min(1, store.protonGradient / 40));
     }
     Renderer.draw(simState, now);
     requestAnimationFrame(mainLoop);

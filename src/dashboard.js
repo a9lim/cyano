@@ -1,7 +1,7 @@
 // Dashboard UI sync — updates sidebar stats, cofactor bars, sparklines,
 // ROS/health indicators, and the active-step display.
 import { store, counters, histories } from './state.js';
-import { drawSparkline } from './sparkline.js';
+
 
 const _PAL = window._PALETTE;
 
