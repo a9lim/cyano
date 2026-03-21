@@ -170,9 +170,7 @@ export function bindEvents(dom) {
     });
 
     // ── Intro screen ──
-    _intro.init(dom.introScreen, dom.introStart, () => {
-        if (!_isMobile()) toggleSidebar(dom);
-    });
+    _intro.init(dom.introScreen, dom.introStart);
 
     // ── Keyboard shortcuts (via shared-shortcuts.js) ──
     const toggleCheck = (el, setter) => {
