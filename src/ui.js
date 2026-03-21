@@ -163,33 +163,16 @@ export function bindEvents(dom) {
     if (dom.themeBtn) dom.themeBtn.addEventListener('click', () => { cycleTheme(dom.themeBtn); _haptics.trigger('selection'); });
 
     // ── Sidebar ──
-    if (dom.menuBtn) dom.menuBtn.addEventListener('click', () => { toggleSidebar(dom); _haptics.trigger('light'); });
-    if (dom.closeStats) dom.closeStats.addEventListener('click', () => { toggleSidebar(dom, true); _haptics.trigger('light'); });
-
-    // Swipe-to-dismiss for mobile bottom sheet
-    if (typeof window.initSwipeDismiss === 'function' && dom.dashboard) {
-        window.initSwipeDismiss(dom.dashboard, {
-            onDismiss() {
-                _toolbar.closeSidebar(dom.menuBtn, dom.dashboard);
-                Renderer.sidebarInset = 0;
-            }
-        });
-    }
+    _toolbar.initSidebar(dom.menuBtn, dom.dashboard, dom.closeStats, {
+        onToggle(isOpen) {
+            Renderer.sidebarInset = (isOpen && !_isMobile()) ? _SIDEBAR_W : 0;
+        }
+    });
 
     // ── Intro screen ──
-    if (dom.introStart && dom.introScreen) {
-        dom.introStart.addEventListener('click', () => {
-            dom.introScreen.classList.add('hidden');
-            _haptics.trigger('medium');
-            document.body.classList.add('app-ready');
-            // Auto-open sidebar on desktop
-            if (!_isMobile()) {
-                toggleSidebar(dom);
-            }
-            // Delay display:none until CSS fade-out completes
-            setTimeout(() => { dom.introScreen.style.display = 'none'; }, 850);
-        });
-    }
+    _intro.init(dom.introScreen, dom.introStart, () => {
+        if (!_isMobile()) toggleSidebar(dom);
+    });
 
     // ── Keyboard shortcuts (via shared-shortcuts.js) ──
     const toggleCheck = (el, setter) => {
@@ -247,65 +230,15 @@ export function bindEvents(dom) {
         oxStress: { title: 'Oxidative Stress', body: 'ROS from electron leak damage cells; SOD, catalase, and GPx scavenge them.' },
     };
 
-    const infoTriggers = document.querySelectorAll('.info-trigger[data-info]');
+    registerInfoTips(infoData);
 
-    if (typeof createInfoTip === 'function') {
-        infoTriggers.forEach(trigger => {
-            const key = trigger.dataset.info;
-            if (infoData[key]) {
-                createInfoTip(trigger, infoData[key]);
-            }
-        });
-    }
-
-    // ── Reference overlay (Shift+click or long-press on info buttons) ──
-    // Content is trusted project-defined HTML from reference.js (not user input)
-    const refOverlay = document.getElementById('reference-overlay');
-    const refTitle = document.getElementById('reference-title');
-    const refBody = document.getElementById('reference-body');
-    const refClose = document.getElementById('reference-close');
-
-    const openReference = (key) => {
-        const ref = REFERENCE[key];
-        if (!ref) return;
-        refTitle.textContent = ref.title;
-        refBody.innerHTML = ref.body; // trusted static content from reference.js
-        refOverlay.hidden = false;
-        if (typeof renderMathInElement === 'function') {
-            renderMathInElement(refBody, { delimiters: [
-                { left: '$$', right: '$$', display: true },
-                { left: '$', right: '$', display: false },
-            ]});
-        }
-    };
-
-    if (refOverlay) {
-        infoTriggers.forEach(trigger => {
-            // Shift+click (desktop)
-            trigger.addEventListener('click', (e) => {
-                if (!e.shiftKey) return;
-                e.stopPropagation();
-                openReference(trigger.dataset.info);
-            });
-            // Long-press (mobile): 500ms touch hold opens reference
-            let longPressTimer = 0;
-            trigger.addEventListener('touchstart', (e) => {
-                longPressTimer = setTimeout(() => {
-                    e.preventDefault();
-                    openReference(trigger.dataset.info);
-                    longPressTimer = 0;
-                }, 500);
-            }, { passive: false });
-            trigger.addEventListener('touchend', () => {
-                if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = 0; }
-            });
-            trigger.addEventListener('touchmove', () => {
-                if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = 0; }
-            });
-        });
-        refClose.addEventListener('click', () => { refOverlay.hidden = true; });
-        refOverlay.addEventListener('click', (e) => {
-            if (e.target === refOverlay) refOverlay.hidden = true;
-        });
-    }
+    // ── Reference overlay (Shift+click / long-press on info buttons) ──
+    const openReference = initReferenceOverlay(
+        document.getElementById('reference-overlay'),
+        document.getElementById('reference-title'),
+        document.getElementById('reference-body'),
+        document.getElementById('reference-close'),
+        REFERENCE
+    );
+    bindReferenceTriggers(openReference);
 }
