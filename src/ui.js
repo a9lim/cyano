@@ -63,13 +63,13 @@ export function cacheDOMElements() {
 }
 
 function toggleSidebar(dom, forceClose) {
+    var isOpen;
     if (forceClose) {
-        dom.dashboard.classList.remove('open');
+        _toolbar.closeSidebar(dom.menuBtn, dom.dashboard);
+        isOpen = false;
     } else {
-        dom.dashboard.classList.toggle('open');
+        isOpen = _toolbar.toggleSidebar(dom.menuBtn, dom.dashboard);
     }
-    const isOpen = dom.dashboard.classList.contains('open');
-    if (dom.menuBtn) dom.menuBtn.classList.toggle('active', isOpen);
     // Push canvas layout on desktop; mobile uses bottom sheet overlay
     Renderer.sidebarInset = (isOpen && !_isMobile()) ? _SIDEBAR_W : 0;
 }
@@ -198,7 +198,7 @@ export function bindEvents(dom) {
     if (typeof window.initSwipeDismiss === 'function' && dom.dashboard) {
         window.initSwipeDismiss(dom.dashboard, {
             onDismiss() {
-                if (dom.menuBtn) dom.menuBtn.classList.remove('active');
+                _toolbar.closeSidebar(dom.menuBtn, dom.dashboard);
                 Renderer.sidebarInset = 0;
             }
         });
