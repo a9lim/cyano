@@ -1,7 +1,7 @@
 // Simulation state — all mutable data lives here.
 // Pools are closed-system: ATP+ADP, NAD+NADH, NADP+NADPH, FAD+FADH2 are conserved.
 import { Anim } from './anim.js';
-import { createHistory } from './sparkline.js';
+
 
 // ─── Runtime Flags and Animation State ───
 export const simState = {
@@ -52,11 +52,11 @@ export const counters = { krebsTurns: 0, calvinTurns: 0, glycRuns: 0, pppRuns: 0
 // ─── Sparkline Histories ───
 // 300 samples at 5 Hz = 60-second sliding window per metric
 export const histories = {
-    atp: createHistory(),
-    nadh: createHistory(),
-    nadph: createHistory(),
-    fadh2: createHistory(),
-    gradient: createHistory(),
+    atp: createSparkHistory(300),
+    nadh: createSparkHistory(300),
+    nadph: createSparkHistory(300),
+    fadh2: createSparkHistory(300),
+    gradient: createSparkHistory(300),
 };
 
 /** Reset all pools to initial values (called on organism preset change or manual reset). */
