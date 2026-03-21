@@ -275,6 +275,7 @@ Repeated per-variant CSS blocks are collapsed via custom property assignments + 
 - **Tab system** (in `shared-base.css`): `.tabs-wrap`, `.tab-bar`, `.tab-btn`, `.tab-panels`, `.tab-panel` -- shared across all sims.
 - **Control group/row** (in `shared-base.css`): `.ctrl-group`, `.ctrl-row`, `.ctrl-disabled`, `.ctrl-row.locked` -- shared across all sims.
 - **Glass panels**: `.glass` class on `header`, `#canvas-controls`, `#glucose-bar`, `#dashboard`. Dashboard overrides to `shadow-lg`. 900px breakpoint strips glass from dashboard.
+- **Shared utilities**: `_toolbar.initSidebar()` for sidebar toggle/close/swipe with `sidebarInset` callback, `_intro.init()` for intro screen dismiss with auto-open-sidebar callback, `_forms.bindToggle()` for all 9 pathway/environment toggles, `registerInfoTips()` for info tips, `initReferenceOverlay()`/`bindReferenceTriggers()` for reference pages with KaTeX caching. Three-state theme is project-specific (not shared).
 
 ## Gotchas
 
