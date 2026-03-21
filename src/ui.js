@@ -79,43 +79,15 @@ export function bindEvents(dom) {
     initDashboard(dom);
 
     // ── Pathway & environment toggles ──
-    dom.lightToggle.addEventListener('change', () => {
-        simState.lightOn = dom.lightToggle.checked;
-        updateTheme(dom.themeBtn);
-        _haptics.trigger('light');
-    });
-    dom.oxygenToggle.addEventListener('change', () => {
-        simState.oxygenAvailable = dom.oxygenToggle.checked;
-        _haptics.trigger('light');
-    });
-    dom.glycToggle.addEventListener('change', () => {
-        simState.glycolysisEnabled = dom.glycToggle.checked;
-        _haptics.trigger('light');
-    });
-    dom.pppToggle.addEventListener('change', () => {
-        simState.pppEnabled = dom.pppToggle.checked;
-        _haptics.trigger('light');
-    });
-    dom.calvinToggle.addEventListener('change', () => {
-        simState.calvinEnabled = dom.calvinToggle.checked;
-        _haptics.trigger('light');
-    });
-    dom.krebsToggle.addEventListener('change', () => {
-        simState.krebsEnabled = dom.krebsToggle.checked;
-        _haptics.trigger('light');
-    });
-    if (dom.betaoxToggle) dom.betaoxToggle.addEventListener('change', () => {
-        simState.betaoxEnabled = dom.betaoxToggle.checked;
-        _haptics.trigger('light');
-    });
-    if (dom.autoplayToggle) dom.autoplayToggle.addEventListener('change', () => {
-        simState.autoPlay = dom.autoplayToggle.checked;
-        _haptics.trigger('light');
-    });
-    dom.uncouplingToggle?.addEventListener('change', e => {
-        simState.uncouplingEnabled = e.target.checked;
-        _haptics.trigger('light');
-    });
+    _forms.bindToggle(dom.lightToggle, v => { simState.lightOn = v; updateTheme(dom.themeBtn); });
+    _forms.bindToggle(dom.oxygenToggle, v => { simState.oxygenAvailable = v; });
+    _forms.bindToggle(dom.glycToggle, v => { simState.glycolysisEnabled = v; });
+    _forms.bindToggle(dom.pppToggle, v => { simState.pppEnabled = v; });
+    _forms.bindToggle(dom.calvinToggle, v => { simState.calvinEnabled = v; });
+    _forms.bindToggle(dom.krebsToggle, v => { simState.krebsEnabled = v; });
+    if (dom.betaoxToggle) _forms.bindToggle(dom.betaoxToggle, v => { simState.betaoxEnabled = v; });
+    if (dom.autoplayToggle) _forms.bindToggle(dom.autoplayToggle, v => { simState.autoPlay = v; });
+    if (dom.uncouplingToggle) _forms.bindToggle(dom.uncouplingToggle, v => { simState.uncouplingEnabled = v; });
 
     // ── Organism preset selector ──
     dom.organismSelect?.addEventListener('change', e => {
