@@ -317,7 +317,8 @@ main {
 .tog-calvin { --tog-color: var(--pw-calvin); }
 .tog-krebs  { --tog-color: var(--pw-krebs); }
 .tog-betaox { --tog-color: var(--pw-betaox); }
-.tog-uncoupling { --tog-color: var(--pw-ferment); }
+.tog-uncoupling { --tog-color: var(--pw-ros); }
+.tog-auto       { --tog-color: var(--text); }
 
 /* Sunlight toggle gets extra glow to reinforce "light is on" */
 .tog-wrap input:checked + .tog-light {
