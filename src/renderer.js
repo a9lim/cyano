@@ -162,14 +162,13 @@ const Renderer = {
     },
 
     resize() {
-        this.dpr = window.devicePixelRatio || 1;
-        const rect = this.canvas.parentElement.getBoundingClientRect();
-        this.W = Math.floor(rect.width);
-        this.H = Math.floor(rect.height);
-        this.canvas.width = this.W * this.dpr;
-        this.canvas.height = this.H * this.dpr;
-        this.canvas.style.width = this.W + 'px';
-        this.canvas.style.height = this.H + 'px';
+        const r = resizeCanvasDPR(this.canvas, this.ctx, {
+            el: this.canvas.parentElement,
+            syncCSS: true,
+        });
+        this.dpr = r.dpr;
+        this.W = r.width;
+        this.H = r.height;
         this._canvasRect = this.canvas.getBoundingClientRect();
         this._updateLayout();
         if (this.camera) {
