@@ -4,14 +4,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Metabolism</title>
+  <title>Metabolism — Interactive Cellular Biochemistry Simulator</title>
   <meta name="description"
-    content="Interactive simulation of cellular carbon metabolism, electron transport chains, and bioenergetics. Ten interconnected pathways, allosteric regulation, and organism presets.">
-  <meta property="og:title" content="Metabolism">
-  <meta property="og:description" content="Interactive simulation of cellular carbon metabolism, electron transport chains, and bioenergetics.">
+    content="Step through cellular metabolism reaction by reaction. This interactive simulator covers glycolysis, the Krebs cycle, the Calvin cycle, beta-oxidation, the pentose phosphate pathway, and a 14-complex electron transport chain with allosteric regulation, ROS production, and five organism presets.">
+  <meta property="og:title" content="Metabolism — Interactive Cellular Biochemistry Simulator">
+  <meta property="og:description" content="Explore glycolysis, Krebs, Calvin, beta-oxidation, and the electron transport chain in an interactive simulator with allosteric regulation and organism presets.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://a9l.im/biosim">
+  <meta property="og:site_name" content="Hayashinet">
   <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@a9_lim">
+  <meta name="twitter:creator" content="@a9_lim">
+  <meta name="author" content="Hayashi">
+  <meta name="theme-color" content="#C8553D">
+  <link rel="canonical" href="https://a9l.im/biosim">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,6 +42,46 @@
   <script src="/shared-sparkline.js"></script>
   <script src="/shared-tooltip.js"></script>
   <script src="colors.js"></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Metabolism Simulator",
+    "url": "https://a9l.im/biosim",
+    "description": "Interactive cellular metabolism simulator covering 12 biochemical pathways including glycolysis, the Krebs cycle, the Calvin cycle, the pentose phosphate pathway, beta-oxidation, and fermentation. Features a 14-complex electron transport chain, allosteric enzyme regulation, reactive oxygen species production and scavenging, and five organism presets from cyanobacteria to animal cells.",
+    "applicationCategory": "EducationalApplication",
+    "educationalUse": "Interactive simulation for learning biochemistry, cellular respiration, photosynthesis, and metabolic regulation",
+    "learningResourceType": "Simulation",
+    "educationalLevel": "Undergraduate",
+    "about": [
+      {"@type": "Thing", "name": "Cellular metabolism"},
+      {"@type": "Thing", "name": "Glycolysis"},
+      {"@type": "Thing", "name": "Krebs cycle"},
+      {"@type": "Thing", "name": "Electron transport chain"},
+      {"@type": "Thing", "name": "Photosynthesis"},
+      {"@type": "Thing", "name": "Biochemistry"}
+    ],
+    "keywords": "metabolism simulator, glycolysis, Krebs cycle, Calvin cycle, electron transport chain, biochemistry, cellular respiration, photosynthesis, educational",
+    "operatingSystem": "Any (Web Browser)",
+    "browserRequirements": "Modern browser with Canvas support",
+    "author": {
+      "@type": "Person",
+      "name": "Hayashi",
+      "url": "https://a9l.im/#about"
+    },
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Hayashinet",
+      "url": "https://a9l.im"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
 </head>
 
 <body>
