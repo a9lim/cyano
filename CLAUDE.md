@@ -38,7 +38,7 @@ main.js (entry point)
   +-  src/theme.js        -- updateTheme(), cycleTheme() -- three-state theme toggle
   +-  src/dashboard.js    -- initDashboard(), updateDashboard(), showActiveStep(), applyYields()
   +-  src/enzymes.js      -- EnzymeStyles, CFG, _F, _ROLE, _THEME -- enzyme/particle/arrow drawing
-  +-  src/renderer.js     -- Renderer -- Canvas 2D engine: draw pipeline, hit detection, camera/zoom, tooltip via shared-tooltip.js
+  +-  src/renderer.js     -- Renderer -- Canvas 2D engine: draw pipeline, hit detection, camera/zoom, tooltip via shared-tooltip.js, resize via resizeCanvasDPR()
   +-  src/layout.js       -- computeLayout() -- membrane/ETC/metabolite positioning
   +-  src/particles.js    -- Particles -- spawn/draw electrons (single + multi-hop chain), protons, photons
   +-  src/autoplay.js     -- autoplayTick(), protonLeakTick(), resetAutoplayTimers()
