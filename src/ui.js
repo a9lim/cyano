@@ -213,6 +213,19 @@ export function bindEvents(dom) {
         initShortcuts(shortcuts, { helpTitle: 'Keyboard Shortcuts' });
     }
 
+    if (typeof initAboutPanel === 'function') {
+        initAboutPanel({
+            title: 'Metabolism',
+            description: 'Cellular metabolism simulator with 12 biochemical pathways, 14 electron transport chain complexes, and allosteric regulation. Visualize ATP production, ROS dynamics, and photosynthesis across 5 organism presets.',
+            controls: [
+                { label: 'Step simulation', value: 'Click Step button' },
+                { label: 'Toggle pathway', value: 'Click pathway toggle in sidebar' },
+            ],
+            shortcuts: shortcuts,
+            repo: 'https://github.com/a9lim/biosim',
+        });
+    }
+
     // ── Info tips (via shared-info.js) — short summaries ──
     const infoData = {
         glycolysis: { title: 'Glycolysis', body: 'Splits glucose into 2 pyruvate, netting 2 ATP and 2 NADH.' },
