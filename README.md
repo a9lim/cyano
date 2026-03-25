@@ -1,4 +1,4 @@
-# Metabolism
+# Cyano
 
 An interactive simulation of cellular carbon metabolism, electron transport chains, and bioenergetics. Ten interconnected biochemical pathways mapped onto a shared metabolite grid, with allosteric regulation at 11 enzyme control points, five organism presets, reactive oxygen species, and real-time cofactor tracking -- all in zero-dependency vanilla JavaScript.
 
@@ -112,7 +112,7 @@ Uses the shared design system from [a9lim.github.io](https://github.com/a9lim/a9
 ## Sibling Projects
 
 - [Geon](https://github.com/a9lim/physsim) -- [a9l.im/physsim](https://a9l.im/physsim)
-- [Redistricting](https://github.com/a9lim/gerry) -- [a9l.im/gerry](https://a9l.im/gerry)
+- [Gerry](https://github.com/a9lim/gerry) -- [a9l.im/gerry](https://a9l.im/gerry)
 - [Shoals](https://github.com/a9lim/finsim) -- [a9l.im/finsim](https://a9l.im/finsim)
 
 ## License

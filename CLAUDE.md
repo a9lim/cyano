@@ -8,7 +8,7 @@ Always prefer shared modules over project-specific reimplementations. This proje
 
 ## Overview
 
-Metabolism Simulator -- interactive HTML5 Canvas visualization of cellular metabolism. Click enzyme labels to advance reactions step-by-step, tracking metabolites and bioenergetics in real time. Zero dependencies -- vanilla HTML5/CSS3/JS with ES6 modules.
+Cyano -- interactive HTML5 Canvas visualization of cellular metabolism. Click enzyme labels to advance reactions step-by-step, tracking metabolites and bioenergetics in real time. Zero dependencies -- vanilla HTML5/CSS3/JS with ES6 modules.
 
 ## Running Locally
 
