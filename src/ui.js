@@ -216,10 +216,15 @@ export function bindEvents(dom) {
     if (typeof initAboutPanel === 'function') {
         initAboutPanel({
             title: 'Metabolism',
-            description: 'Cellular metabolism simulator with 12 biochemical pathways, 14 electron transport chain complexes, and allosteric regulation. Visualize ATP production, ROS dynamics, and photosynthesis across 5 organism presets.',
+            description: 'Explore how cells produce energy. Click enzyme labels to advance reactions step by step, toggle sunlight and oxygen to shift between photosynthesis, respiration, and fermentation, and watch cofactor pools and the proton gradient respond in real time.',
             controls: [
-                { label: 'Step simulation', value: 'Click Step button' },
-                { label: 'Toggle pathway', value: 'Click pathway toggle in sidebar' },
+                { label: 'Advance reaction', value: 'Click enzyme label on canvas' },
+                { label: 'Reverse reaction', value: 'Right-click bidirectional enzyme' },
+                { label: 'Add substrate', value: 'Glucose / Fatty Acid buttons' },
+                { label: 'Toggle pathway', value: 'Sidebar toggles or keys 1\u20135' },
+                { label: 'Toggle environment', value: 'Sunlight (L) / Oxygen (O)' },
+                { label: 'Auto-play', value: 'Space bar or sidebar toggle' },
+                { label: 'Zoom / pan', value: 'Scroll wheel / click + drag' },
             ],
             shortcuts: shortcuts,
             repo: 'https://github.com/a9lim/biosim',
