@@ -227,7 +227,7 @@ export function bindEvents(dom) {
                 { label: 'Zoom / pan', value: 'Scroll wheel / click + drag' },
             ],
             shortcuts: shortcuts,
-            repo: 'https://github.com/a9lim/biosim',
+            repo: 'https://github.com/a9lim/cyano',
         });
     }
 

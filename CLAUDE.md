@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Part of the **a9l.im** portfolio. See root `CLAUDE.md` for the shared design system, head loading order, CSS conventions, and shared code policy. Sibling projects: `physsim`, `finsim`, `gerry`.
+Part of the **a9l.im** portfolio. See root `CLAUDE.md` for the shared design system, head loading order, CSS conventions, and shared code policy. Sibling projects: `geon`, `shoals`, `gerry`.
 
 ## Shared Code Policy
 
@@ -283,7 +283,7 @@ Repeated per-variant CSS blocks are collapsed via custom property assignments + 
 
 ## Gotchas
 
-- **`data-theme` is on `<html>` (document.documentElement)** -- `src/theme.js` uses `document.documentElement.dataset.theme`, and `index.html` has `<html lang="en" data-theme="light">`. CSS selectors like `[data-theme="dark"]` target the root element. This is the same as physsim and gerry.
+- **`data-theme` is on `<html>` (document.documentElement)** -- `src/theme.js` uses `document.documentElement.dataset.theme`, and `index.html` has `<html lang="en" data-theme="light">`. CSS selectors like `[data-theme="dark"]` target the root element. This is the same as geon and gerry.
 - **No `@import` in CSS** -- fonts are loaded via `<link>` in HTML. Duplicate `@import` causes FOUC.
 - **Shared CSS at domain root** -- `shared-base.css` is loaded via `/shared-base.css` (absolute path). When serving locally, serve from the parent `a9lim.github.io/` directory or the shared file won't resolve.
 - **Intro card SVGs keep their attributes** -- `.tool-btn svg` defaults don't apply to intro cards. Those SVGs need explicit `fill="none" stroke="currentColor"` etc.

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   styles.css — Project-specific overrides for biosim.
+   styles.css — Project-specific overrides for cyano.
    Shared patterns (glass, tool-btn, layout tokens) in /shared-base.css.
    All colors via CSS vars injected by colors.js — no hardcoded values.
    ═══════════════════════════════════════════════════════════════ */
@@ -565,7 +565,7 @@ main {
 .organism-desc { font-size: 0.75rem; color: var(--text-muted); margin: 4px 0 0; }
 
 
-/* ───── Canvas Tooltip — uses shared-tooltip.js (sim-tooltip) with biosim overrides ───── */
+/* ───── Canvas Tooltip — uses shared-tooltip.js (sim-tooltip) with cyano overrides ───── */
 .sim-tooltip.canvas-tip {
   white-space: normal;
   max-width: 280px;
