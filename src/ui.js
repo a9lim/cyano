@@ -12,6 +12,9 @@ import { REFERENCE } from './reference.js';
 const _SIDEBAR_W = 374; // panel-w(350) + right gap(24)
 function _isMobile() { return window.innerWidth <= 900; }
 
+let reverseMode = false;
+window._cyanoReverseMode = () => reverseMode;
+
 /** Build the DOM element cache. Only IDs matter — class names/hierarchy can change freely. */
 export function cacheDOMElements() {
     return {
@@ -77,6 +80,15 @@ function toggleSidebar(dom, forceClose) {
 /** Wire all DOM events: toggles, presets, reset, theme, sidebar, shortcuts, info tips. */
 export function bindEvents(dom) {
     initDashboard(dom);
+
+    // ── Forward/reverse mode toggle ──
+    const modeBtn = document.getElementById('mode-btn');
+    modeBtn.addEventListener('click', () => {
+        reverseMode = !reverseMode;
+        modeBtn.setAttribute('aria-pressed', String(reverseMode));
+        modeBtn.setAttribute('aria-label', reverseMode ? 'Reverse mode' : 'Forward mode');
+        modeBtn.title = reverseMode ? 'Reverse mode (X)' : 'Forward mode (X)';
+    });
 
     // ── Pathway & environment toggles ──
     _forms.bindToggle(dom.lightToggle, v => { simState.lightOn = v; updateTheme(dom.themeBtn); });
@@ -242,7 +254,7 @@ export function bindEvents(dom) {
         { key: '5', label: 'Toggle beta oxidation', group: 'Pathways', action: () => {
             if (dom.betaoxToggle) toggleCheck(dom.betaoxToggle, v => simState.betaoxEnabled = v);
         }},
-        { key: 'X', label: 'Toggle forward/reverse', group: 'Simulation', action: () => {} },
+        { key: 'X', label: 'Toggle forward/reverse', group: 'Simulation', action: () => document.getElementById('mode-btn').click() },
         { key: 'T', label: 'Toggle theme', group: 'View', action: () => cycleTheme(dom.themeBtn) },
         { key: 'S', label: 'Toggle sidebar', group: 'View', action: () => toggleSidebar(dom) },
         { key: 'Escape', label: 'Close sidebar', group: 'View', action: () => toggleSidebar(dom, true) },
@@ -304,4 +316,10 @@ export function bindEvents(dom) {
         REFERENCE
     );
     bindReferenceTriggers(openReference);
+
+    // ── Mobile hint bar ──
+    if (window.matchMedia('(pointer: coarse)').matches) {
+        var hint = document.getElementById('hint-bar') || document.querySelector('.panel-hint');
+        if (hint) hint.textContent = 'Tap Enzyme to React \u00b7 Long-press for Info \u00b7 Pinch to Zoom';
+    }
 }
