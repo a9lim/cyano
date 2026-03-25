@@ -2,7 +2,7 @@
 
 An interactive simulation of cellular carbon metabolism, electron transport chains, and bioenergetics. Ten interconnected biochemical pathways mapped onto a shared metabolite grid, with allosteric regulation at 11 enzyme control points, five organism presets, reactive oxygen species, and real-time cofactor tracking -- all in zero-dependency vanilla JavaScript.
 
-**[Live Demo](https://a9l.im/biosim)** | Part of the [a9l.im](https://a9l.im) portfolio
+**[Live Demo](https://a9l.im/cyano)** | Part of the [a9l.im](https://a9l.im) portfolio
 
 ## Highlights
 
@@ -111,9 +111,9 @@ Uses the shared design system from [a9lim.github.io](https://github.com/a9lim/a9
 
 ## Sibling Projects
 
-- [Geon](https://github.com/a9lim/physsim) -- [a9l.im/physsim](https://a9l.im/physsim)
+- [Geon](https://github.com/a9lim/geon) -- [a9l.im/geon](https://a9l.im/geon)
 - [Gerry](https://github.com/a9lim/gerry) -- [a9l.im/gerry](https://a9l.im/gerry)
-- [Shoals](https://github.com/a9lim/finsim) -- [a9l.im/finsim](https://a9l.im/finsim)
+- [Shoals](https://github.com/a9lim/shoals) -- [a9l.im/shoals](https://a9l.im/shoals)
 
 ## License
 
