@@ -355,11 +355,47 @@ const Renderer = {
                 const w = this._screenToWorld(touch.clientX, touch.clientY);
                 const hb = this._hitTestEnzyme(w.x, w.y);
                 if (hb && this.onEnzymeClick) {
-                    this.onEnzymeClick(hb.pathway, hb.stepIndex, 'forward');
+                    var direction = (typeof _cyanoReverseMode === 'function' && _cyanoReverseMode()) ? 'reverse' : 'forward';
+                    this.onEnzymeClick(hb.pathway, hb.stepIndex, direction);
                 }
             }
             isTap = false;
         });
+
+        // ── Touch tooltip via shared-tooltip.js long-press ──
+        const self = this;
+        function tooltipHitTest(clientX, clientY) {
+            const w = self._screenToWorld(clientX, clientY);
+            const enzymeHit = self._hitTestEnzyme(w.x, w.y);
+            if (enzymeHit) {
+                const info = self._getEnzymeInfo(enzymeHit);
+                if (info) {
+                    let text = info.name;
+                    if (info.eq) text += '\n' + info.eq;
+                    text += '\n' + info.desc;
+                    return { text, screenX: clientX, screenY: clientY };
+                }
+            }
+            const metabHit = self._hitTestMetab(w.x, w.y);
+            if (metabHit) {
+                const info = METABOLITES[metabHit.key];
+                if (info) {
+                    let text = info.name;
+                    if (info.eq) text += '\n' + info.eq;
+                    text += '\n' + info.desc;
+                    return { text, screenX: clientX, screenY: clientY };
+                }
+            }
+            return null;
+        }
+
+        if (window.matchMedia('(pointer: coarse)').matches && typeof bindTooltipTouch === 'function') {
+            if (!this._tooltip) {
+                this._tooltip = createSimTooltip();
+                this._tooltip.el.classList.add('canvas-tip');
+            }
+            bindTooltipTouch(c, tooltipHitTest, this._tooltip);
+        }
     },
 
     _updateLayout() {
