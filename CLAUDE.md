@@ -263,9 +263,65 @@ JS binds via `getElementById` (~60 IDs cached in `cacheDOMElements()`). **Only I
 - Sparkline ring buffer (`createHistory()` in sparkline.js): fixed-size `Float32Array(300)`, circular write via `head` index, drawn as polyline with dashed "now" marker.
 - Sidebar inset animation in renderer.js matches the CSS transition (0.45s cubic-bezier(0.23, 1, 0.32, 1)) via `cubicBezier()` from shared-utils.js.
 
-### Keyboard Shortcuts, Info Tips, and Reference Pages
+### Keyboard Shortcuts
 
-- **Shortcuts** via `initShortcuts()` from `shared-shortcuts.js`: Space (autoplay), G (glucose), F (fatty acid), L (light), O (oxygen), 1-5 (pathway toggles: glycolysis/PPP/Calvin/Krebs/beta-ox), T (theme), S (sidebar). Groups: Simulation, Environment, Pathways, View.
+Registered via `initShortcuts()` from `shared-shortcuts.js`. The `?` key opens the shortcut help overlay (via `shared-about.js`).
+
+| Key | Action | Group |
+|-----|--------|-------|
+| Space | Toggle autoplay | Simulation |
+| , | Slow down (cycle 0.25/0.5/1/2/4x) | Simulation |
+| . | Speed up (cycle 0.25/0.5/1/2/4x) | Simulation |
+| R | Reset simulation | Simulation |
+| G | Add glucose | Simulation |
+| F | Add fatty acid | Simulation |
+| X | Toggle forward/reverse mode | Simulation |
+| L | Toggle light | Environment |
+| O | Toggle oxygen | Environment |
+| U | Toggle uncoupling | Environment |
+| 1 | Toggle glycolysis | Pathways |
+| 2 | Toggle PPP | Pathways |
+| 3 | Toggle Calvin | Pathways |
+| 4 | Toggle Krebs | Pathways |
+| 5 | Toggle beta oxidation | Pathways |
+| T | Toggle theme | View |
+| S | Toggle sidebar | View |
+| Escape | Close sidebar | View |
+| [ | Previous tab | View |
+| ] | Next tab | View |
+| = | Zoom in | View |
+| - | Zoom out | View |
+| 0 | Reset zoom | View |
+| ? | Open about/shortcuts overlay | View |
+
+### Forward/Reverse Toggle
+
+The `#mode-btn` toolbar button switches between forward and reverse enzyme-click mode:
+
+- **Forward mode** (default): tapping/clicking an enzyme fires the forward reaction.
+- **Reverse mode**: tapping/clicking a bidirectional enzyme fires the reverse reaction.
+- Toggled by clicking the button or pressing `X`. Button tracks state via `aria-pressed`.
+- Module-local `reverseMode` boolean is exported via `window._cyanoReverseMode()`, consumed by renderer.js to determine click direction.
+- Desktop right-click always fires the reverse reaction regardless of the current mode.
+
+### Touch Interactions
+
+- **Single-finger tap** on an enzyme: fires the reaction (forward or reverse per current mode).
+- **Two-finger pinch**: zoom in/out (via `shared-camera.js`).
+- **Two-finger drag**: pan the canvas.
+- **Long-press on canvas**: shows enzyme/metabolite tooltip via `bindTooltipTouch()` from `shared-tooltip.js` (bound in renderer.js for `(pointer: coarse)` devices).
+- **Hint bar**: on `(pointer: coarse)` devices, `#hint-bar` text is replaced with touch-appropriate instructions ("Tap Enzyme to React / Long-press for Info / Pinch to Zoom").
+
+### Accessibility
+
+- Organism `<select>` has `aria-label="Organism preset"`.
+- About panel and reference overlay use `trapFocus()` and `aria-modal="true"` for keyboard focus trapping.
+- `@media (pointer: coarse)` expands touch targets to 44px minimum (in `shared-base.css`).
+- `shared-tabs.js` provides arrow-key navigation between sidebar tabs.
+- Forward/reverse `#mode-btn` uses `aria-pressed` and `aria-label` to convey toggle state to screen readers.
+
+### Info Tips and Reference Pages
+
 - **Info tips** via `createInfoTip()` from `shared-info.js`: `?` buttons with `data-info` attribute matching keys in `infoData` object defined in `ui.js`. Short 1-sentence summaries. Topics: glycolysis, ppp, calvin, krebs, betaox, sunlight, oxygen, autoplay, protons, uncoupling, oxStress.
 - **Reference pages** via `REFERENCE` in `src/reference.js`: in-depth multi-section pages for each topic, opened via Shift+click (desktop) or long-press (mobile) on `?` buttons. Shown in a `.sim-overlay` modal (`#reference-overlay`). Same `data-info` keys as info tips.
 
