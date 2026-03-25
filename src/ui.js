@@ -178,10 +178,44 @@ export function bindEvents(dom) {
         setter(el.checked);
     };
 
+    const SPEEDS = [0.25, 0.5, 1, 2, 4];
+    let speedIdx = 2; // default 1×
+
+    const cycleSpeed = () => {
+        speedIdx = (speedIdx + 1) % SPEEDS.length;
+        simState.speed = SPEEDS[speedIdx];
+        showToast('Speed ' + SPEEDS[speedIdx] + '\u00d7');
+    };
+    const decycleSpeed = () => {
+        speedIdx = (speedIdx - 1 + SPEEDS.length) % SPEEDS.length;
+        simState.speed = SPEEDS[speedIdx];
+        showToast('Speed ' + SPEEDS[speedIdx] + '\u00d7');
+    };
+
+    function cycleTab(dir) {
+        var btns = document.querySelectorAll('.tab-btn');
+        var idx = 0;
+        btns.forEach(function(b, i) { if (b.classList.contains('active')) idx = i; });
+        var next = (idx + dir + btns.length) % btns.length;
+        btns[next].click();
+    }
+
+    const canvas = dom.canvas;
+    const zoomIn    = () => Renderer.camera.zoomBy(1.25, canvas.width / 2, canvas.height / 2);
+    const zoomOut   = () => Renderer.camera.zoomBy(0.8, canvas.width / 2, canvas.height / 2);
+    const zoomReset = () => {
+        Renderer._updateLayout();
+        const mz = Renderer._minZoom();
+        Renderer.camera.reset(Renderer.W / (2 * mz), Renderer.H / (2 * mz), mz);
+    };
+
     const shortcuts = [
         { key: 'Space', label: 'Toggle autoplay', group: 'Simulation', action: () => {
             if (dom.autoplayToggle) toggleCheck(dom.autoplayToggle, v => simState.autoPlay = v);
         }},
+        { key: ',', label: 'Slow down', group: 'Simulation', action: decycleSpeed },
+        { key: '.', label: 'Speed up', group: 'Simulation', action: cycleSpeed },
+        { key: 'R', label: 'Reset simulation', group: 'Simulation', action: () => dom.resetBtn.click() },
         { key: 'G', label: 'Add glucose', group: 'Simulation', action: () => { store.glucose++; updateDashboard(); } },
         { key: 'F', label: 'Add fatty acid', group: 'Simulation', action: () => { store.fattyAcid++; updateDashboard(); } },
         { key: 'L', label: 'Toggle light', group: 'Environment', action: () => {
@@ -189,6 +223,9 @@ export function bindEvents(dom) {
         }},
         { key: 'O', label: 'Toggle oxygen', group: 'Environment', action: () => {
             toggleCheck(dom.oxygenToggle, v => simState.oxygenAvailable = v);
+        }},
+        { key: 'U', label: 'Toggle uncoupling', group: 'Environment', action: () => {
+            if (dom.uncouplingToggle) toggleCheck(dom.uncouplingToggle, v => simState.uncouplingEnabled = v);
         }},
         { key: '1', label: 'Toggle glycolysis', group: 'Pathways', action: () => {
             toggleCheck(dom.glycToggle, v => simState.glycolysisEnabled = v);
@@ -205,8 +242,15 @@ export function bindEvents(dom) {
         { key: '5', label: 'Toggle beta oxidation', group: 'Pathways', action: () => {
             if (dom.betaoxToggle) toggleCheck(dom.betaoxToggle, v => simState.betaoxEnabled = v);
         }},
+        { key: 'X', label: 'Toggle forward/reverse', group: 'Simulation', action: () => {} },
         { key: 'T', label: 'Toggle theme', group: 'View', action: () => cycleTheme(dom.themeBtn) },
         { key: 'S', label: 'Toggle sidebar', group: 'View', action: () => toggleSidebar(dom) },
+        { key: 'Escape', label: 'Close sidebar', group: 'View', action: () => toggleSidebar(dom, true) },
+        { key: '[', label: 'Previous tab', group: 'View', action: () => cycleTab(-1) },
+        { key: ']', label: 'Next tab', group: 'View', action: () => cycleTab(1) },
+        { key: '=', label: 'Zoom in', group: 'View', action: zoomIn },
+        { key: '-', label: 'Zoom out', group: 'View', action: zoomOut },
+        { key: '0', label: 'Reset zoom', group: 'View', action: zoomReset },
     ];
 
     if (typeof initShortcuts === 'function') {
@@ -220,11 +264,14 @@ export function bindEvents(dom) {
             controls: [
                 { label: 'Advance reaction', value: 'Click enzyme label on canvas' },
                 { label: 'Reverse reaction', value: 'Right-click bidirectional enzyme' },
-                { label: 'Add substrate', value: 'Glucose / Fatty Acid buttons' },
+                { label: 'Add substrate', value: 'Glucose (G) / Fatty Acid (F)' },
                 { label: 'Toggle pathway', value: 'Sidebar toggles or keys 1\u20135' },
-                { label: 'Toggle environment', value: 'Sunlight (L) / Oxygen (O)' },
+                { label: 'Toggle environment', value: 'Light (L) / Oxygen (O) / Uncoupling (U)' },
                 { label: 'Auto-play', value: 'Space bar or sidebar toggle' },
-                { label: 'Zoom / pan', value: 'Scroll wheel / click + drag' },
+                { label: 'Speed', value: ', / . to decrease / increase' },
+                { label: 'Reset', value: 'R' },
+                { label: 'Zoom / pan', value: '= / - / 0, scroll wheel, drag' },
+                { label: 'Tabs', value: '[ / ] to cycle sidebar tabs' },
             ],
             shortcuts: shortcuts,
             repo: 'https://github.com/a9lim/cyano',
