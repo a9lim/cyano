@@ -151,11 +151,16 @@
     </div>
     <div class="header-tools sim-toolbar-actions">
       <button id="mode-btn" class="tool-btn" aria-label="Forward mode" aria-pressed="false" title="Forward mode (X)">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <svg class="mode-fwd" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <line x1="6" y1="12" x2="18" y2="12"/>
           <polyline points="14,8 18,12 14,16"/>
         </svg>
+        <svg class="mode-rev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="6" y1="12" x2="18" y2="12"/>
+          <polyline points="10,8 6,12 10,16"/>
+        </svg>
       </button>
+      <button id="play-btn" class="tool-btn" aria-label="Play simulation" title="Play"></button>
       <button id="reset-btn" class="tool-btn" aria-label="Reset simulation" title="Reset simulation">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path>
@@ -305,13 +310,6 @@
                 </div>
               </div>
               <div class="ctrl-row">
-                <label for="autoplay-toggle">Auto-Play <button class="info-trigger" data-info="autoplay" aria-label="Autoplay info">?</button></label>
-                <div class="tog-wrap">
-                  <input type="checkbox" id="autoplay-toggle">
-                  <label for="autoplay-toggle" class="tog tog-auto"><span class="tog-thumb"></span></label>
-                </div>
-              </div>
-              <div class="ctrl-row">
                 <label for="uncoupling-toggle">Uncoupling <button class="info-trigger" data-info="uncoupling" aria-label="Uncoupling info">?</button></label>
                 <div class="tog-wrap">
                   <input type="checkbox" id="uncoupling-toggle" role="switch">
@@ -385,26 +383,27 @@
               <div class="group-label">Proton Motive Force <button class="info-trigger" data-info="protons" aria-label="Proton gradient info">?</button></div>
               <div class="stat-row"><span class="stat-label">H&#x207A; Gradient (&#x0394;pH)</span><span class="stat-value" id="proton-gradient">0</span></div>
               <div class="stat-row">
-                <span>Protons Leaked</span>
+                <span class="stat-label">Protons Leaked</span>
                 <span class="stat-value" id="protons-leaked">0</span>
               </div>
               <canvas class="sparkline" id="spark-gradient" width="160" height="36"></canvas>
             </div>
             <div class="stat-group">
               <div class="group-label">Oxidative Stress <button class="info-trigger" data-info="oxStress" aria-label="Oxidative stress info">?</button></div>
-              <div class="mc"><div class="mc-bar-track"><div class="mc-bar-fill" id="health-bar" style="background:var(--ext-green)"></div></div><span class="mc-ratio" id="health-ratio">100%</span></div>
-              <div class="stat-row"><span>ROS Produced</span><span class="stat-value" id="ros-produced">0</span></div>
-              <div class="stat-row"><span>ROS Scavenged</span><span class="stat-value" id="ros-scavenged">0</span></div>
-              <div class="stat-row"><span>Active ROS</span><span class="stat-value" id="active-ros">0</span></div>
+              <div class="stat-row"><span class="stat-label">Cell Health</span><span class="stat-value" id="health-ratio">100%</span></div>
+              <div class="metab-track health-track"><div class="metab-fill" id="health-bar"></div></div>
+              <div class="stat-row"><span class="stat-label">ROS Produced</span><span class="stat-value" id="ros-produced">0</span></div>
+              <div class="stat-row"><span class="stat-label">ROS Scavenged</span><span class="stat-value" id="ros-scavenged">0</span></div>
+              <div class="stat-row"><span class="stat-label">Active ROS</span><span class="stat-value" id="active-ros">0</span></div>
             </div>
             <div class="stat-group">
               <div class="group-label">ATP Source</div>
               <div class="stat-row">
-                <span>Substrate-Level</span>
+                <span class="stat-label">Substrate-Level</span>
                 <span class="stat-value" id="atp-substrate">0</span>
               </div>
               <div class="stat-row">
-                <span>Oxidative</span>
+                <span class="stat-label">Oxidative</span>
                 <span class="stat-value" id="atp-oxidative">0</span>
               </div>
               <div class="stat-row" style="margin-top:4px">

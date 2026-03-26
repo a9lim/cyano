@@ -26,7 +26,7 @@ export function cacheDOMElements() {
         calvinToggle: document.getElementById('calvin-toggle'),
         krebsToggle: document.getElementById('krebs-toggle'),
         betaoxToggle: document.getElementById('betaox-toggle'),
-        autoplayToggle: document.getElementById('autoplay-toggle'),
+        playBtn: document.getElementById('play-btn'),
         uncouplingToggle: document.getElementById('uncoupling-toggle'),
         protonsLeaked: document.getElementById('protons-leaked'),
         resetBtn: document.getElementById('reset-btn'),
@@ -90,6 +90,16 @@ export function bindEvents(dom) {
         modeBtn.title = reverseMode ? 'Reverse mode (X)' : 'Forward mode (X)';
     });
 
+    // ── Play/pause button (toolbar) ──
+    if (dom.playBtn) {
+        _toolbar.updatePlayBtn(dom.playBtn, false);
+        dom.playBtn.addEventListener('click', () => {
+            simState.autoPlay = !simState.autoPlay;
+            _toolbar.updatePlayBtn(dom.playBtn, simState.autoPlay);
+            _haptics.trigger('light');
+        });
+    }
+
     // ── Pathway & environment toggles ──
     _forms.bindToggle(dom.lightToggle, v => { simState.lightOn = v; updateTheme(dom.themeBtn); });
     _forms.bindToggle(dom.oxygenToggle, v => { simState.oxygenAvailable = v; });
@@ -98,7 +108,6 @@ export function bindEvents(dom) {
     _forms.bindToggle(dom.calvinToggle, v => { simState.calvinEnabled = v; });
     _forms.bindToggle(dom.krebsToggle, v => { simState.krebsEnabled = v; });
     if (dom.betaoxToggle) _forms.bindToggle(dom.betaoxToggle, v => { simState.betaoxEnabled = v; });
-    if (dom.autoplayToggle) _forms.bindToggle(dom.autoplayToggle, v => { simState.autoPlay = v; });
     if (dom.uncouplingToggle) _forms.bindToggle(dom.uncouplingToggle, v => { simState.uncouplingEnabled = v; });
 
     // ── Organism preset selector ──
@@ -223,7 +232,7 @@ export function bindEvents(dom) {
 
     const shortcuts = [
         { key: 'Space', label: 'Toggle autoplay', group: 'Simulation', action: () => {
-            if (dom.autoplayToggle) toggleCheck(dom.autoplayToggle, v => simState.autoPlay = v);
+            if (dom.playBtn) dom.playBtn.click();
         }},
         { key: ',', label: 'Slow down', group: 'Simulation', action: decycleSpeed },
         { key: '.', label: 'Speed up', group: 'Simulation', action: cycleSpeed },
@@ -279,7 +288,7 @@ export function bindEvents(dom) {
                 { label: 'Add substrate', value: 'Glucose (G) / Fatty Acid (F)' },
                 { label: 'Toggle pathway', value: 'Sidebar toggles or keys 1\u20135' },
                 { label: 'Toggle environment', value: 'Light (L) / Oxygen (O) / Uncoupling (U)' },
-                { label: 'Auto-play', value: 'Space bar or sidebar toggle' },
+                { label: 'Play / Pause', value: 'Space bar or toolbar button' },
                 { label: 'Speed', value: ', / . to decrease / increase' },
                 { label: 'Reset', value: 'R' },
                 { label: 'Zoom / pan', value: '= / - / 0, scroll wheel, drag' },
@@ -298,7 +307,6 @@ export function bindEvents(dom) {
         krebs: { title: 'Krebs Cycle (TCA)', body: 'Oxidizes acetyl-CoA to CO\u2082, producing NADH, FADH\u2082, and GTP.' },
         sunlight: { title: 'Sunlight', body: 'Powers photosynthetic electron transport: water splitting, O\u2082 release, NADPH production.' },
         oxygen: { title: 'Ambient O\u2082', body: 'Enables aerobic respiration. Without it, fermentation regenerates NAD\u207A.' },
-        autoplay: { title: 'Auto-Play', body: 'Continuously fires reactions in priority order, mimicking cellular steady state.' },
         protons: { title: 'Proton Gradient', body: 'H\u207A gradient across the membrane drives ATP synthase (4 H\u207A per ATP).' },
         betaox: { title: 'Beta Oxidation', body: 'Breaks fatty acids into acetyl-CoA, yielding FADH\u2082 and NADH per round.' },
         uncoupling: { title: 'Uncoupling Proteins', body: 'Leak protons across the membrane, dissipating the gradient as heat.' },

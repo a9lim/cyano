@@ -49,6 +49,14 @@ body {
 #theme-btn[data-theme="dark"] .icon-moon { display: block; }
 
 
+/* ═══════════════════════════════════════
+   FORWARD / REVERSE MODE BUTTON
+   ═══════════════════════════════════════ */
+#mode-btn .mode-rev { display: none; }
+#mode-btn[aria-pressed="true"] .mode-fwd { display: none; }
+#mode-btn[aria-pressed="true"] .mode-rev { display: block; }
+
+
 
 
 /* ═══════════════════════════════════════
@@ -318,11 +326,18 @@ main {
 .tog-krebs  { --tog-color: var(--pw-krebs); }
 .tog-betaox { --tog-color: var(--pw-betaox); }
 .tog-uncoupling { --tog-color: var(--pw-ros); }
-.tog-auto       { --tog-color: var(--text); }
 
 /* Sunlight toggle gets extra glow to reinforce "light is on" */
 .tog-wrap input:checked + .tog-light {
   box-shadow: 0 0 12px color-mix(in srgb, var(--tog-color) 30%, transparent);
+}
+
+
+/* ═══════════════════════════════════════
+   HEALTH BAR — reuses .metab-track/.metab-fill
+   ═══════════════════════════════════════ */
+.health-track {
+  margin-bottom: 0.35rem;
 }
 
 
