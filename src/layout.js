@@ -15,7 +15,7 @@ export function computeLayout(W, H, sidebarInset, zoom = 1) {
 
     // ── Membrane ──
     // Positioned at 22% of content height; 60px tall phospholipid bilayer
-    const membraneY = LH * 0.22;
+    const membraneY = LH * 0.26;
     const membraneH = 60;
     const memMid = membraneY + membraneH / 2;
     const mPad = LW * 0.02, mW = LW - mPad * 2;
