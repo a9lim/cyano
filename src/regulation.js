@@ -139,8 +139,8 @@ export function getRegulationFactor(pathway, stepIndex, store, direction) {
  * Human-readable reason for current inhibition. Returns null when not inhibited.
  * Used for toast messages on blocked manual clicks.
  */
-export function getRegulationReason(pathway, stepIndex, store, precomputedFactor) {
-    const factor = precomputedFactor !== undefined ? precomputedFactor : getRegulationFactor(pathway, stepIndex, store);
+export function getRegulationReason(pathway, stepIndex, store, precomputedFactor, direction) {
+    const factor = precomputedFactor !== undefined ? precomputedFactor : getRegulationFactor(pathway, stepIndex, store, direction);
     if (factor >= 1) return null;
 
     const atpRatio = store.atp / store.totalAtpAdp;
@@ -166,6 +166,9 @@ export function getRegulationReason(pathway, stepIndex, store, precomputedFactor
         return 'RuBisCO activase limited by low ATP (' + Math.round(atpRatio * 100) + '%)';
     }
     if (pathway === 'betaox' || pathway === 'run_betaox') {
+        if (direction === 'reverse') {
+            return 'FA synthesis limited by low NADPH (' + Math.round(nadphRatio * 100) + '%)';
+        }
         const fadh2Ratio = store.fadh2 / store.totalFad;
         return 'ACAD inhibited by high FADH₂ (' + Math.round(fadh2Ratio * 100) + '%)';
     }

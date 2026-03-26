@@ -498,7 +498,7 @@ const Renderer = {
         ctx.textAlign = 'center';
         const cx = (this._LW || this.W) * 0.5;
 
-        const lightY = this.membraneY * 0.5;
+        const lightY = this.membraneY * 0.55;
         if (state.lightOn) {
             ctx.save();
             ctx.font = _F.body500_14; ctx.fillStyle = EnzymeStyles.roleColors.lightIndicator.stroke;
