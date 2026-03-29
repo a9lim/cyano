@@ -530,12 +530,13 @@ const Renderer = {
         const respC = R.respiratory.stroke, photoC = R.photosynthetic.stroke, sharedC = R.shared.stroke, cyclicC = R.cyclic.stroke, nntC = R.nnt.stroke, atpSynC = R.atpSynthase.stroke;
 
         // ── Respiratory arrows (blue) — NDH-1/SDH → PQ, PC → CytOx ──
+        // Source arrows start from shape edges, not centers
         if (rA > 0.01) {
             const prevAlpha = ctx.globalAlpha;
             ctx.globalAlpha = rA;
-            EnzymeStyles.drawArrow(ctx, c.ndh1.cx, c.ndh1.cy, c.pq.cx - 22, c.pq.cy, respC, rA);
-            EnzymeStyles.drawArrow(ctx, c.sdh.cx, c.sdh.cy, c.pq.cx - 22, c.pq.cy, respC, rA);
-            EnzymeStyles.drawArrow(ctx, c.pc.cx, c.pc.cy, c.cytOx.cx - 29, c.cytOx.cy, respC, rA);
+            EnzymeStyles.drawArrow(ctx, c.ndh1.cx + cxW / 2, c.ndh1.cy, c.pq.cx - 22, c.pq.cy, respC, rA);
+            EnzymeStyles.drawArrow(ctx, c.sdh.cx + 20, c.sdh.cy, c.pq.cx - 22, c.pq.cy, respC, rA);
+            EnzymeStyles.drawArrow(ctx, c.pc.cx + sR, c.pc.cy, c.cytOx.cx - 29, c.cytOx.cy, respC, rA);
             ctx.globalAlpha = prevAlpha;
         }
 
@@ -543,8 +544,8 @@ const Renderer = {
         if (shA > 0.01) {
             const prevAlpha = ctx.globalAlpha;
             ctx.globalAlpha = shA;
-            EnzymeStyles.drawArrow(ctx, c.pq.cx, c.pq.cy, c.cytb6f.cx - 20, c.cytb6f.cy, sharedC, shA);
-            EnzymeStyles.drawArrow(ctx, c.cytb6f.cx, c.cytb6f.cy, c.pc.cx - sR, c.pc.cy, sharedC, shA);
+            EnzymeStyles.drawArrow(ctx, c.pq.cx + 22, c.pq.cy, c.cytb6f.cx - 20, c.cytb6f.cy, sharedC, shA);
+            EnzymeStyles.drawArrow(ctx, c.cytb6f.cx + 20, c.cytb6f.cy, c.pc.cx - sR, c.pc.cy, sharedC, shA);
             ctx.globalAlpha = prevAlpha;
         }
 
@@ -552,11 +553,11 @@ const Renderer = {
         if (phA > 0.01) {
             const prevAlpha = ctx.globalAlpha;
             ctx.globalAlpha = phA;
-            EnzymeStyles.drawArrow(ctx, c.psii.cx, c.psii.cy, c.pq.cx - 22, c.pq.cy, photoC, phA);
-            EnzymeStyles.drawArrow(ctx, c.pc.cx, c.pc.cy, c.psi.cx - cxW / 2, c.psi.cy, photoC, phA);
-            EnzymeStyles.drawArrow(ctx, c.psi.cx, c.psi.cy, c.fd.cx - 18, c.fd.cy, photoC, phA);
-            if (state.linearLightEnabled) EnzymeStyles.drawArrow(ctx, c.fd.cx, c.fd.cy, c.fnr.cx - 26, c.fnr.cy, photoC, phA);
-            // Cyclic return path curves below membrane
+            EnzymeStyles.drawArrow(ctx, c.psii.cx + cxW / 2, c.psii.cy, c.pq.cx - 22, c.pq.cy, photoC, phA);
+            EnzymeStyles.drawArrow(ctx, c.pc.cx + sR, c.pc.cy, c.psi.cx - cxW / 2, c.psi.cy, photoC, phA);
+            EnzymeStyles.drawArrow(ctx, c.psi.cx + cxW / 2, c.psi.cy, c.fd.cx - 18, c.fd.cy, photoC, phA);
+            if (state.linearLightEnabled) EnzymeStyles.drawArrow(ctx, c.fd.cx + 18, c.fd.cy, c.fnr.cx - 26, c.fnr.cy, photoC, phA);
+            // Cyclic return path curves below membrane (kept from center per design)
             if (state.cyclicLightEnabled) {
                 const cStartX = c.fd.cx, cStartY = c.fd.cy + 18 + 2;
                 const cEndX = c.pq.cx, cEndY = c.pq.cy + 13 + 2;
@@ -586,9 +587,7 @@ const Renderer = {
             ctx.globalAlpha = prevAlpha;
         }
 
-        ctx.beginPath(); ctx.setLineDash([2, 2]);
-        ctx.moveTo(c.atpSyn.cx, this.membraneY - 2); ctx.lineTo(c.atpSyn.cx, this.membraneY + this.membraneH + 2);
-        ctx.strokeStyle = _respDashed; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
+        // (removed dashed ATP synthase line for flat design)
 
         {
             const prevAlpha = ctx.globalAlpha;
@@ -734,14 +733,14 @@ const Renderer = {
         // Arrowheads
         ctx.beginPath();
         ctx.moveTo(x2, y);
-        ctx.lineTo(x2 - headLen, y - headLen * 0.5);
-        ctx.lineTo(x2 - headLen, y + headLen * 0.5);
+        ctx.lineTo(x2 - headLen, y - headLen * 0.45);
+        ctx.lineTo(x2 - headLen, y + headLen * 0.45);
         ctx.fillStyle = color; ctx.fill();
         if (bidir) {
             ctx.beginPath();
             ctx.moveTo(x1, y);
-            ctx.lineTo(x1 + headLen, y - headLen * 0.5);
-            ctx.lineTo(x1 + headLen, y + headLen * 0.5);
+            ctx.lineTo(x1 + headLen, y - headLen * 0.45);
+            ctx.lineTo(x1 + headLen, y + headLen * 0.45);
             ctx.fill();
         }
         ctx.font = _F.mono700_12;
@@ -756,11 +755,11 @@ const Renderer = {
         ctx.font = _F.mono600_10; ctx.fillStyle = protonC; ctx.textAlign = 'center';
         if (dir === 'down') {
             ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 14); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(x, y + 17); ctx.lineTo(x - 5, y + 11); ctx.lineTo(x + 5, y + 11); ctx.closePath(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(x, y + 17); ctx.lineTo(x - 4, y + 12); ctx.lineTo(x + 4, y + 12); ctx.closePath(); ctx.fill();
             ctx.fillText(label, x, y + 28);
         } else {
             ctx.beginPath(); ctx.moveTo(x, y + 14); ctx.lineTo(x, y); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(x, y - 3); ctx.lineTo(x - 5, y + 3); ctx.lineTo(x + 5, y + 3); ctx.closePath(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(x, y - 3); ctx.lineTo(x - 4, y + 2); ctx.lineTo(x + 4, y + 2); ctx.closePath(); ctx.fill();
             ctx.fillText(label, x, y - 7);
         }
     },
