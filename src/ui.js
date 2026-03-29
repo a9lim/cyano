@@ -213,13 +213,6 @@ export function bindEvents(dom) {
         showToast('Speed ' + SPEEDS[speedIdx] + '\u00d7');
     };
 
-    function cycleTab(dir) {
-        var btns = document.querySelectorAll('.tab-btn');
-        var idx = 0;
-        btns.forEach(function(b, i) { if (b.classList.contains('active')) idx = i; });
-        var next = (idx + dir + btns.length) % btns.length;
-        btns[next].click();
-    }
 
     const canvas = dom.canvas;
     const zoomIn    = () => Renderer.camera.zoomBy(1.25, canvas.width / 2, canvas.height / 2);

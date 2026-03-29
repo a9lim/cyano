@@ -24,7 +24,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Noto+Sans+Mono:wght@300;400;500;600;700&family=Noto+Serif:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Fira+Code:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="/shared-base.css">
@@ -87,7 +87,7 @@
   </script>
 </head>
 
-<body>
+<body class="sim-body">
   <a href="#sim-canvas" class="skip-link">Skip to simulation</a>
   <!-- ═══ Intro Screen — full overlay, fades on CTA click ═══ -->
   <div id="intro-screen">
@@ -197,7 +197,7 @@
 
   <!-- ═══ Main Layout ═══ -->
   <main>
-    <div id="sim-container">
+    <div id="sim-container" class="canvas-container">
       <canvas id="sim-canvas"></canvas>
       <div id="canvas-controls" class="sim-controls glass">
         <button id="zoom-in-btn" class="tool-btn" title="Zoom in" aria-label="Zoom in">
@@ -476,15 +476,15 @@
 
     <!-- ─── Floating Substrate Bar (bottom) ─── -->
     <div id="glucose-bar" class="sim-bar glass">
-      <div class="substrate-pill-group">
-        <button id="add-glucose-btn" class="substrate-pill substrate-pill-left" title="Add glucose to the system (G)">
+      <div class="pill-group substrate-pill-group">
+        <button id="add-glucose-btn" class="pill-btn pill-btn-left substrate-pill substrate-pill-left" title="Add glucose to the system (G)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
             <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
           Glucose
         </button>
-        <span class="substrate-divider"></span>
-        <button id="add-fatty-acid-btn" class="substrate-pill substrate-pill-right" title="Add fatty acid to the system (F)">
+        <span class="divider substrate-divider"></span>
+        <button id="add-fatty-acid-btn" class="pill-btn pill-btn-right substrate-pill substrate-pill-right" title="Add fatty acid to the system (F)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
             <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>

@@ -29,11 +29,7 @@ _PALETTE.fadh2 = _PALETTE.extended.rose;
 
 _PALETTE.textOnAccent = _PALETTE.light.elevated;
 
-Object.freeze(_PALETTE.extended);
-Object.freeze(_PALETTE.light);
-Object.freeze(_PALETTE.dark);
-Object.freeze(_FONT);
-Object.freeze(_PALETTE);
+_freezeTokens();
 
 // ─── Color Math Helpers ───
 // (Uses shared _parseHex, _rgb2hsl, _hsl2hex, _darken from shared-tokens.js)
@@ -95,28 +91,19 @@ const _BASE = {
     `  --${name}: ${a != null ? _r(P[key], a) : P[key]};`
   ).join('\n');
 
-  const style = document.createElement('style');
-  style.id = 'project-vars';
-  style.textContent = `:root {
-${genShared()}
-
-  --bg-scrim:         ${_r(D.text, 0.2)};
+  _injectProjectVars(
+    genShared() + `\n  --bg-scrim: ${_r(D.text, 0.2)};
   --bg-track:         ${_r(L.text, 0.078)};
   --metab-card-bg:    ${_r(L.text, 0.02)};
-
   --tog-inset:        ${_r(L.text, 0.078)};
-  --track-shadow:     inset 0 1px 1px ${_r(L.text, 0.059)};
-}
-[data-theme="dark"] {
-  --bg-scrim:         ${_r(L.text, 0.149)};
+  --track-shadow:     inset 0 1px 1px ${_r(L.text, 0.059)};`,
+    `  --bg-scrim:         ${_r(L.text, 0.149)};
   --bg-track:         ${_r(D.text, 0.039)};
   --metab-card-bg:    transparent;
-
   --tog-inset:        ${_r(L.text, 0.349)};
   --tog-checked-extra: ${_r(L.text, 0.302)};
-  --track-shadow:     none;
-}`;
-  document.head.appendChild(style);
+  --track-shadow:     none;`
+  );
 })();
 
 // Expose on window so ES6 modules (strict mode) can access frozen objects

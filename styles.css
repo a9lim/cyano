@@ -21,17 +21,14 @@
 #reference-overlay { z-index: 9999; }
 
 /* ───── Base — full-viewport app shell ───── */
+/* .sim-body (shared-base.css) handles height, overflow, user-select */
 html {
   font-size: clamp(14px, 1.5vw, 16px);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  overflow: hidden;
 }
 
 body {
-  height: 100vh;
-  height: 100dvh;  /* iOS Safari dynamic viewport height */
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -72,15 +69,11 @@ main {
 
 /* ═══════════════════════════════════════
    CANVAS CONTAINER
+   .canvas-container (shared-base.css) handles size, overflow, position, touch-action
    ═══════════════════════════════════════ */
 #sim-container {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
   background: var(--bg-scrim);
-  position: relative;
   cursor: grab;
-  touch-action: none;
   transition: background 0.3s var(--ease-out);
 }
 
@@ -97,44 +90,17 @@ main {
 /* ═══════════════════════════════════════
    FLOATING SUBSTRATE BAR
    ═══════════════════════════════════════ */
-.substrate-pill-group {
-  display: flex;
-  align-items: center;
-}
+/* .pill-group (shared-base.css) handles flex layout */
+/* .pill-btn (shared-base.css) handles base pill button styles */
+/* .pill-btn-left / .pill-btn-right (shared-base.css) handle border-radius */
+/* .divider (shared-base.css) handles divider styles */
 
-.substrate-pill {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.7rem;
-  border: none;
-  background: transparent;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: clamp(0.72rem, 1vw, 0.82rem);
-  cursor: pointer;
-  transition: color 0.2s, background 0.2s;
-  white-space: nowrap;
-  outline: none;
-  -webkit-appearance: none;
-}
-
-.substrate-pill-left  { border-radius: var(--radius-pill) 0 0 var(--radius-pill); color: var(--pw-calvin); }
-.substrate-pill-right { border-radius: 0 var(--radius-pill) var(--radius-pill) 0; color: var(--pw-betaox); }
-
-.substrate-pill:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
-.substrate-pill:active { transform: scale(0.96); }
+.substrate-pill-left  { color: var(--pw-calvin); }
+.substrate-pill-right { color: var(--pw-betaox); }
 
 .substrate-pill svg {
   width: 13px;
   height: 13px;
-  flex-shrink: 0;
-}
-
-.substrate-divider {
-  width: 1px;
-  height: 20px;
-  background: var(--border);
   flex-shrink: 0;
 }
 
@@ -487,10 +453,7 @@ main {
    Canvas fills viewport; dashboard becomes bottom sheet
    ═══════════════════════════════════════ */
 @media (max-width: 900px) {
-  body {
-    overflow: hidden;
-  }
-
+  /* body overflow handled by .sim-body in shared-base.css */
   /* #top-bar positioning handled by shared-base.css (.sim-toolbar) */
 
   main {
@@ -506,23 +469,10 @@ main {
     height: 100%;
   }
 
-  /* Bottom sheet: slides up from bottom */
+  /* Bottom sheet handled by .sim-panel in shared-base.css */
+  /* Only override z-index (shared uses 90, cyano needs 95) */
   #dashboard {
-    position: fixed;
-    top: auto;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    max-height: 55vh;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    transform: translateY(100%);
     z-index: 95;
-    overflow: hidden;
-  }
-
-  #dashboard.open {
-    transform: translateY(0);
   }
 
   #glucose-bar {
@@ -604,7 +554,4 @@ main {
 }
 
 
-/* ═══════════════════════════════════════
-   SPARKLINE TIME SERIES
-   ═══════════════════════════════════════ */
-.sparkline { display: block; width: 100%; height: 36px; margin-top: 4px; border-radius: 4px; background: transparent; }
+/* Sparkline styles provided by .sparkline in shared-base.css */
