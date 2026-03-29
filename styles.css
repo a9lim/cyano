@@ -156,7 +156,6 @@ main {
   gap: 0.5rem;
   margin-top: 0.45rem;
   padding-top: 0.4rem;
-  border-top: 1px solid var(--border);
 }
 
 .counter {
@@ -232,7 +231,6 @@ main {
   background: var(--bg-track);
   border-radius: 2px;
   overflow: hidden;
-  box-shadow: var(--track-shadow);
 }
 
 .metab-fill {
@@ -255,7 +253,6 @@ main {
 .metab-card[class*="mc-"] .metab-pct { color: var(--mc-color); }
 .metab-card[class*="mc-"] .metab-fill {
   background: linear-gradient(90deg, color-mix(in srgb, var(--mc-color), black 20%), var(--mc-color));
-  box-shadow: 0 0 6px color-mix(in srgb, var(--mc-color) 35%, transparent);
 }
 
 
@@ -328,10 +325,7 @@ main {
 
 .equation {
   padding: 4px 0;
-  border-bottom: 1px solid var(--border);
 }
-
-.equation:last-child { border-bottom: none; }
 
 .eq-dot {
   display: inline-block;
@@ -426,7 +420,7 @@ main {
 .legend-dot[class] { background: var(--dot-color); }
 .legend-dot.electron,
 .legend-dot.proton,
-.legend-dot.photon { box-shadow: 0 0 5px color-mix(in srgb, var(--dot-color) 50%, transparent); }
+.legend-dot.photon { }
 
 
 /* ═══════════════════════════════════════
