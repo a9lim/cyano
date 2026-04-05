@@ -4,17 +4,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cyano | a9l.im</title>
+  <title>Cyano — a9l.im</title>
   <meta name="description"
-    content="Step through cellular metabolism reaction by reaction. This interactive simulator covers glycolysis, the Krebs cycle, the Calvin cycle, beta-oxidation, the pentose phosphate pathway, and a 14-complex electron transport chain with allosteric regulation, ROS production, and five organism presets.">
+    content="Learn how cells produce energy through twelve biochemical pathways. An interactive metabolism simulator with allosteric regulation, electron transport, and reactive oxygen species — all visualized in real time.">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
   <meta property="og:title" content="Cyano — Interactive Cellular Biochemistry Simulator">
-  <meta property="og:description" content="Explore glycolysis, Krebs, Calvin, beta-oxidation, and the electron transport chain in an interactive simulator with allosteric regulation and organism presets.">
+  <meta property="og:description" content="Learn how cells produce energy through twelve biochemical pathways. An interactive metabolism simulator running in your browser.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://a9l.im/cyano">
   <meta property="og:site_name" content="a9l.im">
   <meta name="twitter:card" content="summary_large_image">
   <meta property="og:image" content="https://a9l.im/cyano/og-image.webp">
   <meta name="twitter:image" content="https://a9l.im/cyano/og-image.webp">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/webp">
   <meta name="twitter:site" content="@a9_lim">
   <meta name="twitter:creator" content="@a9_lim">
   <meta name="author" content="a9lim">
@@ -55,17 +59,22 @@
     "name": "Cyano",
     "url": "https://a9l.im/cyano",
     "description": "Interactive cellular metabolism simulator covering 12 biochemical pathways including glycolysis, the Krebs cycle, the Calvin cycle, the pentose phosphate pathway, beta-oxidation, and fermentation. Features a 14-complex electron transport chain, allosteric enzyme regulation, reactive oxygen species production and scavenging, and five organism presets from cyanobacteria to animal cells.",
+    "speakable": {
+      "@type": "SpeakableSpecification",
+      "cssSelector": ["meta[name='description']"]
+    },
     "applicationCategory": "EducationalApplication",
     "educationalUse": "Interactive simulation for learning biochemistry, cellular respiration, photosynthesis, and metabolic regulation",
     "learningResourceType": "Simulation",
     "educationalLevel": "Undergraduate",
     "about": [
-      {"@type": "Thing", "name": "Cellular metabolism"},
+      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q514", "name": "Biochemistry"},
+      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q7141", "name": "Cell biology"},
+      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q131207", "name": "Metabolism"},
       {"@type": "Thing", "name": "Glycolysis"},
       {"@type": "Thing", "name": "Krebs cycle"},
       {"@type": "Thing", "name": "Electron transport chain"},
-      {"@type": "Thing", "name": "Photosynthesis"},
-      {"@type": "Thing", "name": "Biochemistry"}
+      {"@type": "Thing", "name": "Photosynthesis"}
     ],
     "keywords": "metabolism simulator, glycolysis, Krebs cycle, Calvin cycle, electron transport chain, biochemistry, cellular respiration, photosynthesis, educational",
     "operatingSystem": "Any (Web Browser)",
