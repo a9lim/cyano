@@ -40,6 +40,7 @@
   <script src="/shared-info.js"></script>
   <script src="/shared-shortcuts.js"></script>
   <script src="/shared-about.js"></script>
+  <script src="/shared-icons.js"></script>
   <script src="/shared-toolbar.js"></script>
   <script src="/shared-forms.js"></script>
 
@@ -102,48 +103,13 @@
       <h1 class="sim-brand">Cyano</h1>
     </div>
     <div class="header-tools sim-toolbar-actions">
-      <button id="mode-btn" class="tool-btn" aria-label="Forward mode" aria-pressed="false" title="Forward mode (X)">
-        <svg class="mode-fwd" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
-          <line x1="6" y1="12" x2="17" y2="12"/>
-          <polyline points="14,8 18,12 14,16"/>
-        </svg>
-        <svg class="mode-rev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
-          <line x1="7" y1="12" x2="18" y2="12"/>
-          <polyline points="10,8 6,12 10,16"/>
-        </svg>
-      </button>
+      <button id="mode-btn" class="tool-btn" aria-label="Forward mode" aria-pressed="false" title="Forward mode (X)" data-icon="modeCyano"></button>
       <button id="play-btn" class="tool-btn" aria-label="Play simulation" title="Play"></button>
-      <button id="reset-btn" class="tool-btn" aria-label="Reset simulation" title="Reset simulation">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
-          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3.7 7.3"></path><path d="M3 3v5h5"></path>
-        </svg>
-      </button>
+      <button id="reset-btn" class="tool-btn" aria-label="Reset simulation" title="Reset simulation" data-icon="reset"></button>
       <span class="tool-sep"></span>
-      <button id="theme-btn" class="tool-btn" data-theme="auto" aria-label="Toggle theme" title="Theme: Simulation">
-        <svg class="icon-auto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
-          <circle cx="12" cy="12" r="5"></circle><path d="M12 7v10"></path><path d="M12 7a5 5 0 0 0 0 10" fill="currentColor" opacity="0.25" stroke="none"></path>
-        </svg>
-        <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
-          <circle cx="12" cy="12" r="5"></circle>
-          <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-          <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-        </svg>
-        <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-        </svg>
-      </button>
-      <button id="about-btn" class="tool-btn" aria-label="About" title="About">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
-              <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
-      </button>
-      <button id="menu-btn" class="tool-btn active" aria-label="Toggle sidebar" aria-expanded="true" title="Toggle sidebar">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
-          <line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      </button>
+      <button id="theme-btn" class="tool-btn" data-theme="auto" aria-label="Toggle theme" title="Theme: Simulation" data-icon="themeAuto"></button>
+      <button id="about-btn" class="tool-btn" aria-label="About" title="About" data-icon="about"></button>
+      <button id="menu-btn" class="tool-btn active" aria-label="Toggle sidebar" aria-expanded="true" title="Toggle sidebar" data-icon="menu"></button>
     </div>
   </header>
 
@@ -152,17 +118,11 @@
     <div id="sim-container" class="canvas-container">
       <canvas id="sim-canvas"></canvas>
       <div id="canvas-controls" class="sim-controls glass">
-        <button id="zoom-in-btn" class="tool-btn" title="Zoom in" aria-label="Zoom in">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
+        <button id="zoom-in-btn" class="tool-btn" title="Zoom in" aria-label="Zoom in" data-icon="plus" data-icon-size="16"></button>
         <span id="zoom-indicator" class="zoom-level">100%</span>
-        <button id="zoom-out-btn" class="tool-btn" title="Zoom out" aria-label="Zoom out">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
+        <button id="zoom-out-btn" class="tool-btn" title="Zoom out" aria-label="Zoom out" data-icon="minus" data-icon-size="16"></button>
         <div class="ctrl-sep"></div>
-        <button id="zoom-reset-btn" class="tool-btn" title="Fit to view" aria-label="Reset zoom">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M20.3 3.7l-6.3 6.3"/><path d="M3.7 20.3l6.3-6.3"/></svg>
-        </button>
+        <button id="zoom-reset-btn" class="tool-btn" title="Fit to view" aria-label="Reset zoom" data-icon="fitView" data-icon-size="16"></button>
       </div>
     </div>
 
@@ -171,11 +131,7 @@
       <div class="sheet-handle"></div>
       <div class="stats-header">
         <h2 class="stats-title">Cyano</h2>
-        <button id="close-stats" class="tool-btn" title="Close" aria-label="Close panel">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square">
-            <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
+        <button id="close-stats" class="tool-btn" title="Close" aria-label="Close panel" data-icon="close" data-icon-size="16"></button>
       </div>
 
       <!-- Tab system: switching handled by inline script below (runs before module load) -->
@@ -418,9 +374,7 @@
         <div class="sim-overlay-panel glass">
             <div class="stats-header">
                 <h2 id="reference-title" class="stats-title">Reference</h2>
-                <button id="reference-close" class="tool-btn" aria-label="Close reference">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
+                <button id="reference-close" class="tool-btn" aria-label="Close reference" data-icon="close" data-icon-size="16"></button>
             </div>
             <div id="reference-body" class="sim-overlay-body scrollbar-thin"></div>
         </div>
@@ -429,17 +383,11 @@
     <!-- ─── Floating Substrate Bar (bottom) ─── -->
     <div id="glucose-bar" class="sim-bar glass">
       <div class="pill-group substrate-pill-group">
-        <button id="add-glucose-btn" class="pill-btn pill-btn-left substrate-pill substrate-pill-left" title="Add glucose to the system (G)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square">
-            <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
+        <button id="add-glucose-btn" class="pill-btn pill-btn-left substrate-pill substrate-pill-left" title="Add glucose to the system (G)" data-icon="plus" data-icon-size="14">
           Glucose
         </button>
         <span class="divider substrate-divider"></span>
-        <button id="add-fatty-acid-btn" class="pill-btn pill-btn-right substrate-pill substrate-pill-right" title="Add fatty acid to the system (F)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square">
-            <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
+        <button id="add-fatty-acid-btn" class="pill-btn pill-btn-right substrate-pill substrate-pill-right" title="Add fatty acid to the system (F)" data-icon="plus" data-icon-size="14">
           Fatty Acid
         </button>
       </div>
