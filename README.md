@@ -6,7 +6,7 @@ An interactive cellular metabolism simulator. Step through biochemical reactions
 
 ## What it covers
 
-Ten interconnected pathways mapped onto a shared metabolite grid: glycolysis/gluconeogenesis, the pentose phosphate pathway, the Calvin cycle, the Krebs cycle, beta-oxidation/fatty acid synthesis, linear and cyclic light reactions, oxidative phosphorylation, fermentation, and NNT transhydrogenation. Bidirectional pathways (glycolysis, beta-oxidation) reverse direction with distinct cofactor requirements.
+Twelve interconnected pathways mapped onto a shared metabolite grid: glycolysis/gluconeogenesis, the pentose phosphate pathway, the Calvin cycle, the Krebs cycle, beta-oxidation/fatty acid synthesis, PDH, pyruvate decarboxylase, ADH/ethanol salvage, ALDH, ACS, fermentation, plus three ETC chains (linear light reactions, cyclic light reactions, oxidative phosphorylation). Bidirectional pathways (glycolysis, beta-oxidation) reverse direction with distinct cofactor requirements.
 
 A 14-complex electron transport chain (PSII, NDH-1, SDH, PQ, Cyt b6f, PC, PSI, Fd, FNR, ATP synthase, Cyt c oxidase, bacteriorhodopsin, NNT, UCP) renders each complex with a unique visual silhouette.
 

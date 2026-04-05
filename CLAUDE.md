@@ -77,4 +77,5 @@ Three-state toggle: **Simulation** (follows sunlight), **Light**, **Dark**. Canv
 - **Intro card SVGs need explicit attributes** — `.tool-btn svg` defaults don't apply to intro cards
 - **Membrane extends `LW + 400`** — avoids cutoff behind translucent sidebar
 - **Conserved pools are enforced** — consuming NADH below 0 or producing ATP above the total is a bug. Always check availability before mutating `store`
+- **Sidebar uses `.sidebar-tabs` in `.stats-header`** — the main sidebar has no `<h2 class="stats-title">`. Tab buttons live directly inside `.stats-header`. The old title + separate `.tab-bar` pattern is gone for project sidebars
 - **Shared CSS at domain root** — `/shared-base.css` absolute path requires serving from parent directory

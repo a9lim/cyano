@@ -130,17 +130,16 @@
     <aside id="dashboard" class="sim-panel glass" role="complementary" aria-label="Cyano dashboard">
       <div class="sheet-handle"></div>
       <div class="stats-header">
-        <h2 class="stats-title">Cyano</h2>
+        <div class="sidebar-tabs" role="tablist" aria-label="Sidebar tabs">
+          <button class="tab-btn active" data-tab="controls" role="tab" aria-selected="true">Controls</button>
+          <button class="tab-btn" data-tab="stats" role="tab" aria-selected="false">Stats</button>
+          <button class="tab-btn" data-tab="reference" role="tab" aria-selected="false">Reference</button>
+        </div>
         <button id="close-stats" class="tool-btn" title="Close" aria-label="Close panel" data-icon="close" data-icon-size="16"></button>
       </div>
 
       <!-- Tab system: switching handled by inline script below (runs before module load) -->
       <div class="tabs-wrap">
-        <nav class="tab-bar" role="tablist">
-          <button class="tab-btn active" data-tab="controls" role="tab" aria-selected="true">Controls</button>
-          <button class="tab-btn" data-tab="stats" role="tab" aria-selected="false">Stats</button>
-          <button class="tab-btn" data-tab="reference" role="tab" aria-selected="false">Reference</button>
-        </nav>
 
         <div class="tab-panels scrollbar-thin">
           <!-- ── Controls: organism preset, pathway toggles, environment toggles ── -->
