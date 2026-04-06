@@ -28,6 +28,7 @@
   <link rel="icon" href="/favicon.ico">
   <meta name="theme-color" content="#C8553D">
   <link rel="canonical" href="https://a9l.im/cyano">
+  <link rel="alternate" hreflang="en" href="https://a9l.im/cyano">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="manifest" href="/manifest.json">
@@ -82,11 +83,13 @@
       {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q191235", "name": "Calvin cycle"},
       {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q210927", "name": "Beta-oxidation"},
       {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q218491", "name": "Reactive oxygen species"},
-      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q421527", "name": "Allosteric regulation"}
+      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q421527", "name": "Allosteric regulation"},
+      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q173711", "name": "ATP synthase"}
     ],
     "keywords": "metabolism simulator, glycolysis, Krebs cycle, Calvin cycle, electron transport chain, biochemistry, cellular respiration, photosynthesis, educational",
     "operatingSystem": "Any (Web Browser)",
     "browserRequirements": "Modern browser with Canvas support",
+    "sameAs": "https://github.com/a9lim/a9lim.github.io",
     "codeRepository": "https://github.com/a9lim/a9lim.github.io",
     "license": "https://www.gnu.org/licenses/agpl-3.0.html",
     "interactivityType": "active",
@@ -96,6 +99,10 @@
       "Photosynthesis and the Calvin cycle",
       "Allosteric enzyme regulation and feedback inhibition",
       "Reactive oxygen species production and scavenging"
+    ],
+    "educationalAlignment": [
+      {"@type": "AlignmentObject", "alignmentType": "educationalSubject", "targetName": "AP Biology"},
+      {"@type": "AlignmentObject", "alignmentType": "educationalSubject", "targetName": "NGSS HS-LS1: From Molecules to Organisms"}
     ],
     "datePublished": "2026-02-22",
     "dateModified": "2026-04-05",
@@ -113,6 +120,9 @@
       "name": "a9l.im",
       "url": "https://a9l.im"
     },
+    "isBasedOn": [
+      {"@type": "ScholarlyArticle", "name": "Coupling of phosphorylation to electron and hydrogen transfer by a chemi-osmotic type of mechanism", "author": "P. Mitchell", "datePublished": "1961", "sameAs": "https://doi.org/10.1038/191144a0"}
+    ],
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -196,6 +206,20 @@
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://a9l.im"},{"@type":"ListItem","position":2,"name":"Cyano","item":"https://a9l.im/cyano"}]}
   </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to explore cellular metabolism with Cyano",
+    "step": [
+      {"@type": "HowToStep", "position": 1, "name": "Choose an organism preset", "text": "Select from cyanobacteria, animal cells, plant cells, yeast, or obligate anaerobes — each has different pathway availability reflecting real biochemical constraints."},
+      {"@type": "HowToStep", "position": 2, "name": "Adjust substrate concentrations", "text": "Set glucose, oxygen, light, and fatty acid levels to control what fuels are available to the metabolic network."},
+      {"@type": "HowToStep", "position": 3, "name": "Run the simulation", "text": "Watch metabolite pools, ATP production, and cofactor levels change in real time as pathways process substrates."},
+      {"@type": "HowToStep", "position": 4, "name": "Observe the electron transport chain", "text": "Trace electrons through the 14-complex ETC model — see proton motive force, oxidative phosphorylation, and ROS generation at Complexes I and III."},
+      {"@type": "HowToStep", "position": 5, "name": "Analyze regulation", "text": "Toggle allosteric regulators and observe how feedback inhibition at phosphofructokinase, pyruvate dehydrogenase, and isocitrate dehydrogenase maintains homeostasis."}
+    ]
+  }
+  </script>
 </head>
 
 <body class="sim-body app-ready">
@@ -222,7 +246,7 @@
   <!-- ═══ Main Layout ═══ -->
   <main>
     <div id="sim-container" class="canvas-container">
-      <canvas id="sim-canvas"></canvas>
+      <canvas id="sim-canvas" aria-label="Cellular metabolism simulation canvas"></canvas>
       <div id="canvas-controls" class="sim-controls glass">
         <button id="zoom-in-btn" class="tool-btn" title="Zoom in" aria-label="Zoom in" data-icon="plus" data-icon-size="16"></button>
         <span id="zoom-indicator" class="zoom-level">100%</span>
@@ -515,6 +539,12 @@
     <h3>Organism Presets</h3>
     <p>Five organism presets configure the metabolic network for different cell types: a generic eukaryote, an obligate aerobe, an anaerobic fermenter, a photosynthetic cyanobacterium, and a cancer cell (Warburg effect). Each preset enables different pathway combinations and sets initial metabolite ratios.</p>
     <p><em>See also: <a href="/geon">Geon</a> for particle physics, <a href="/gerry">Gerry</a> for electoral fairness.</em></p>
+<h3>Learning Outcomes</h3>
+<p>After using Cyano, students should be able to: trace the flow of carbon from glucose through glycolysis, the Krebs cycle, and the electron transport chain to CO2 and ATP; explain how the proton motive force couples electron transport to ATP synthesis; describe how allosteric regulation at phosphofructokinase and pyruvate dehydrogenase maintains metabolic homeostasis; compare ATP yield between aerobic respiration (~30-32 ATP per glucose), anaerobic fermentation (2 ATP), and photosynthesis; and identify the sources and consequences of reactive oxygen species at ETC Complexes I and III.</p>
+<h3>Prerequisites</h3>
+<p>Basic chemistry (atoms, molecules, chemical bonds, redox reactions). Familiarity with cell structure (mitochondria, chloroplasts) is helpful but not required — the simulator introduces each organelle through its organism presets.</p>
+<h3>References</h3>
+<p>P. Mitchell, <a href="https://doi.org/10.1038/191144a0" target="_blank" rel="noopener">"Coupling of phosphorylation to electron and hydrogen transfer by a chemi-osmotic type of mechanism"</a> (1961). J. M. Berg, J. L. Tymoczko, and L. Stryer, <em>Biochemistry</em>, 9th ed. (W.H. Freeman, 2019).</p>
     </article>
   </details>
 
