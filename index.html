@@ -22,6 +22,7 @@
   <meta property="og:image:alt" content="Cyano cellular metabolism simulator">
   <meta name="twitter:site" content="@a9_lim">
   <meta name="twitter:creator" content="@a9_lim">
+  <meta property="og:locale" content="en_US">
   <meta name="twitter:title" content="Cyano — Interactive Cellular Biochemistry Simulator">
   <meta name="twitter:description" content="Learn how cells produce energy through twelve biochemical pathways with allosteric regulation, electron transport, and reactive oxygen species.">
   <meta name="author" content="a9lim">
@@ -84,7 +85,10 @@
       {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q210927", "name": "Beta-oxidation"},
       {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q218491", "name": "Reactive oxygen species"},
       {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q421527", "name": "Allosteric regulation"},
-      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q173711", "name": "ATP synthase"}
+      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q173711", "name": "ATP synthase"},
+      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q7250888", "name": "Proton gradient"},
+      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q425563", "name": "Uncoupling protein"},
+      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q899974", "name": "Warburg effect"}
     ],
     "keywords": "metabolism simulator, glycolysis, Krebs cycle, Calvin cycle, electron transport chain, biochemistry, cellular respiration, photosynthesis, educational",
     "operatingSystem": "Any (Web Browser)",
@@ -98,7 +102,8 @@
       "Electron transport chain and oxidative phosphorylation",
       "Photosynthesis and the Calvin cycle",
       "Allosteric enzyme regulation and feedback inhibition",
-      "Reactive oxygen species production and scavenging"
+      "Reactive oxygen species production and scavenging",
+      "Cancer cell metabolism and the Warburg effect (aerobic glycolysis)"
     ],
     "educationalAlignment": [
       {"@type": "AlignmentObject", "alignmentType": "educationalSubject", "targetName": "AP Biology", "targetUrl": "https://apcentral.collegeboard.org/courses/ap-biology"},
@@ -122,7 +127,9 @@
     },
     "isBasedOn": [
       {"@type": "ScholarlyArticle", "name": "Coupling of phosphorylation to electron and hydrogen transfer by a chemi-osmotic type of mechanism", "author": "P. Mitchell", "datePublished": "1961", "sameAs": "https://doi.org/10.1038/191144a0"},
-      {"@type": "Book", "name": "Biochemistry", "author": "J. M. Berg, J. L. Tymoczko, G. J. Gatto Jr., L. Stryer", "datePublished": "2019", "sameAs": "https://www.ncbi.nlm.nih.gov/books/NBK21154/"}
+      {"@type": "Book", "name": "Biochemistry", "author": "J. M. Berg, J. L. Tymoczko, G. J. Gatto Jr., L. Stryer", "datePublished": "2019", "sameAs": "https://www.ncbi.nlm.nih.gov/books/NBK21154/"},
+      {"@type": "ScholarlyArticle", "name": "Molecular Biology of the Cell", "author": "Alberts et al.", "datePublished": "2022", "url": "https://doi.org/10.1201/9781315735368"},
+      {"@type": "ScholarlyArticle", "name": "Structure of the Mitochondrial ATP Synthase", "author": "Abrahams et al.", "datePublished": "1994", "url": "https://doi.org/10.1038/370621a0"}
     ],
     "offers": {
       "@type": "Offer",
@@ -542,7 +549,7 @@
     <p>Beta-oxidation breaks fatty acids into acetyl-CoA units, generating FADH&#x2082; and NADH per cycle. The reverse pathway, fatty acid synthesis, consumes NADPH and ATP. Both pathways share the acetyl-CoA pool with the Krebs cycle, creating the metabolic intersection that determines whether a cell burns or stores fat.</p>
     <h3>Organism Presets</h3>
     <p>Five organism presets configure the metabolic network for different cell types: a generic eukaryote, an obligate aerobe, an anaerobic fermenter, a photosynthetic cyanobacterium, and a cancer cell (Warburg effect). Each preset enables different pathway combinations and sets initial metabolite ratios.</p>
-    <p><em>See also: <a href="/geon">Geon</a> for particle physics, <a href="/gerry">Gerry</a> for electoral fairness.</em></p>
+    <p><em>See also: <a href="/geon">Geon</a> for particle physics, <a href="/shoals">Shoals</a> for options trading, <a href="/gerry">Gerry</a> for electoral fairness.</em></p>
 <h3>Learning Outcomes</h3>
 <p>After using Cyano, students should be able to: trace the flow of carbon from glucose through glycolysis, the Krebs cycle, and the electron transport chain to CO2 and ATP; explain how the proton motive force couples electron transport to ATP synthesis; describe how allosteric regulation at phosphofructokinase and pyruvate dehydrogenase maintains metabolic homeostasis; compare ATP yield between aerobic respiration (~30-32 ATP per glucose), anaerobic fermentation (2 ATP), and photosynthesis; and identify the sources and consequences of reactive oxygen species at ETC Complexes I and III.</p>
 <h3>Prerequisites</h3>
@@ -553,7 +560,7 @@
   </details>
 
   <script defer src="/shared-tabs.js"></script>
-
+  <link rel="modulepreload" href="main.js">
   <script type="module" src="main.js"></script>
 </body>
 

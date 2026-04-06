@@ -16,7 +16,7 @@ Allosteric regulation gates every reaction. Key control points include phosphofr
 
 ## Organism Presets
 
-Five organism presets configure different pathway availability: cyanobacteria (photosynthesis + respiration), animal cells (respiration only), plant cells (both with Calvin cycle), yeast (fermentation-capable), and obligate anaerobes. Each preset reflects real biochemical constraints.
+Five organism presets configure different pathway availability: cyanobacteria (photosynthesis + respiration), animal cells (respiration only), plant cells (both with Calvin cycle), yeast (fermentation-capable), and obligate anaerobes. A cancer cell preset demonstrates the Warburg effect — aerobic glycolysis where cells ferment glucose to lactate even when oxygen is available, producing ATP less efficiently but at a faster rate to support rapid proliferation. Each preset reflects real biochemical constraints.
 
 ## Educational Use
 
