@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cyano — a9l.im</title>
+  <title>Cyano — Interactive Cellular Biochemistry Simulator | a9l.im</title>
   <meta name="description"
     content="Learn how cells produce energy through twelve biochemical pathways. An interactive metabolism simulator with allosteric regulation, electron transport, and reactive oxygen species — all visualized in real time.">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
@@ -22,6 +22,8 @@
   <meta property="og:image:alt" content="Cyano cellular metabolism simulator">
   <meta name="twitter:site" content="@a9_lim">
   <meta name="twitter:creator" content="@a9_lim">
+  <meta name="twitter:title" content="Cyano — Interactive Cellular Biochemistry Simulator">
+  <meta name="twitter:description" content="Learn how cells produce energy through twelve biochemical pathways with allosteric regulation, electron transport, and reactive oxygen species.">
   <meta name="author" content="a9lim">
   <link rel="icon" href="/favicon.ico">
   <meta name="theme-color" content="#C8553D">
@@ -67,6 +69,7 @@
     "educationalUse": "Interactive simulation for learning biochemistry, cellular respiration, photosynthesis, and metabolic regulation",
     "learningResourceType": "Simulation",
     "educationalLevel": "Undergraduate",
+    "inLanguage": "en",
     "about": [
       {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q514", "name": "Biochemistry"},
       {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q7141", "name": "Cell biology"},
@@ -74,7 +77,12 @@
       {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q26140", "name": "Glycolysis"},
       {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q71568", "name": "Krebs cycle"},
       {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q180959", "name": "Electron transport chain"},
-      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q11982", "name": "Photosynthesis"}
+      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q11982", "name": "Photosynthesis"},
+      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q165704", "name": "Oxidative phosphorylation"},
+      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q191235", "name": "Calvin cycle"},
+      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q210927", "name": "Beta-oxidation"},
+      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q218491", "name": "Reactive oxygen species"},
+      {"@type": "Thing", "@id": "https://www.wikidata.org/wiki/Q421527", "name": "Allosteric regulation"}
     ],
     "keywords": "metabolism simulator, glycolysis, Krebs cycle, Calvin cycle, electron transport chain, biochemistry, cellular respiration, photosynthesis, educational",
     "operatingSystem": "Any (Web Browser)",
@@ -109,7 +117,8 @@
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD"
-    }
+    },
+    "timeRequired": "PT30M"
   }
   </script>
   <script type="application/ld+json">
@@ -175,21 +184,22 @@
       },
       {
         "@type": "Question",
-        "name": "Does Cyano work on mobile devices?",
+        "name": "What is oxidative phosphorylation?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. Cyano is fully responsive with touch-optimized controls. The metabolic simulation runs on any modern browser with Canvas support."
+          "text": "Oxidative phosphorylation is the process by which cells produce the majority of their ATP. NADH and FADH2 donate electrons to the electron transport chain (Complexes I through IV), which pumps protons across the mitochondrial membrane. The resulting proton gradient drives ATP synthase to convert ADP into ATP. In Cyano, this process is visualized step by step across all ETC complexes."
         }
       }
     ]
   }
   </script>
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://a9l.im"},{"@type":"ListItem","position":2,"name":"Cyano"}]}
+  {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://a9l.im"},{"@type":"ListItem","position":2,"name":"Cyano","item":"https://a9l.im/cyano"}]}
   </script>
 </head>
 
 <body class="sim-body app-ready">
+    <a href="#dashboard" class="skip-link">Skip to controls</a>
   <a href="#sim-canvas" class="skip-link">Skip to simulation</a>
 
   <!-- ═══ Header ═══ -->
@@ -500,6 +510,11 @@
       <p>Every reaction is gated by allosteric regulation. Phosphofructokinase, the committed step of glycolysis, is inhibited by ATP and citrate &mdash; high energy charge slows glucose consumption. Pyruvate dehydrogenase is inhibited by its own products (acetyl-CoA and NADH). These feedback loops maintain homeostasis and prevent metabolic waste.</p>
       <h3>Reactive Oxygen Species</h3>
       <p>Complexes I and III of the electron transport chain leak electrons to molecular oxygen, forming superoxide radicals. The simulator tracks ROS accumulation and the enzymatic scavenging response (superoxide dismutase, catalase). Excessive ROS damages cell health, visible as declining cell integrity in the dashboard.</p>
+    <h3>Fatty Acid Metabolism</h3>
+    <p>Beta-oxidation breaks fatty acids into acetyl-CoA units, generating FADH&#x2082; and NADH per cycle. The reverse pathway, fatty acid synthesis, consumes NADPH and ATP. Both pathways share the acetyl-CoA pool with the Krebs cycle, creating the metabolic intersection that determines whether a cell burns or stores fat.</p>
+    <h3>Organism Presets</h3>
+    <p>Five organism presets configure the metabolic network for different cell types: a generic eukaryote, an obligate aerobe, an anaerobic fermenter, a photosynthetic cyanobacterium, and a cancer cell (Warburg effect). Each preset enables different pathway combinations and sets initial metabolite ratios.</p>
+    <p><em>See also: <a href="/geon">Geon</a> for particle physics, <a href="/gerry">Gerry</a> for electoral fairness.</em></p>
     </article>
   </details>
 
