@@ -488,10 +488,6 @@ main {
 
   /* .tool-btn sizing handled by shared-base.css (32x32 at 600px) */
 
-  .tab-panel {
-    padding: 0.5rem 0.65rem;
-  }
-
   .metab-grid {
     grid-template-columns: 1fr 1fr;
     gap: 0.25rem;
@@ -511,10 +507,6 @@ main {
    ACCESSIBILITY — coarse pointer touch targets
    ═══════════════════════════════════════ */
 @media (pointer: coarse) {
-  .ctrl-row {
-    padding: 0.4rem 0;
-  }
-
   .tab-btn {
     padding: 0.65rem 0.4rem 0.55rem;
   }
