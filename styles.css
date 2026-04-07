@@ -307,10 +307,6 @@ main {
 /* ═══════════════════════════════════════
    STATS — scale-bounce animation on value change
    ═══════════════════════════════════════ */
-.stat-value {
-  transition: transform 0.15s var(--ease-out);
-}
-
 .stat-value.bump, .metab-pct.bump { transform: scale(1.25); }
 
 
