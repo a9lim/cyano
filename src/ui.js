@@ -316,8 +316,5 @@ export function bindEvents(dom) {
     bindReferenceTriggers(openReference);
 
     // ── Mobile hint bar ──
-    if (window.matchMedia('(pointer: coarse)').matches) {
-        var hint = document.getElementById('hint-bar') || document.querySelector('.panel-hint');
-        if (hint) hint.textContent = 'Tap Enzyme to React \u00b7 Long-press for Info \u00b7 Pinch to Zoom';
-    }
+    setMobileHint('hint-bar', 'Tap Enzyme to React \u00b7 Long-press for Info \u00b7 Pinch to Zoom', '.panel-hint');
 }
