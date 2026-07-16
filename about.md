@@ -1,3 +1,10 @@
+---
+name: Cyano
+title: Cyano — Interactive Cellular Metabolism Simulator
+description: Explore twelve connected metabolic pathways, electron transport, enzyme regulation, cofactor conservation, and reactive oxygen species across five organism presets.
+updated: 2026-07-16
+---
+
 # Cyano — Interactive Cellular Metabolism Simulator
 
 Cyano simulates how cells produce and consume energy through biochemical pathways. It models twelve metabolic pathways with allosteric enzyme regulation, cofactor tracking, and reactive oxygen species.
@@ -16,7 +23,7 @@ Allosteric regulation gates every reaction. Key control points include phosphofr
 
 ## Organism Presets
 
-Five organism presets configure different pathway availability: cyanobacteria (photosynthesis + respiration), animal cells (respiration only), plant cells (both with Calvin cycle), yeast (fermentation-capable), and obligate anaerobes. A cancer cell preset demonstrates the Warburg effect — aerobic glycolysis where cells ferment glucose to lactate even when oxygen is available, producing ATP less efficiently but at a faster rate to support rapid proliferation. Each preset reflects real biochemical constraints.
+Five organism presets configure different pathway availability: cyanobacteria combine photosynthesis and respiration; animal cells emphasize mitochondrial respiration; plant chloroplasts expose the light reactions and Calvin cycle; obligate anaerobes rely on fermentation; and archaea use an alternative membrane and electron-transport setup. Each preset reflects a different set of biochemical constraints.
 
 ## Educational Use
 

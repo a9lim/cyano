@@ -270,7 +270,7 @@ export function bindEvents(dom) {
     if (typeof initAboutPanel === 'function') {
         initAboutPanel({
             title: 'Cyano',
-            lastUpdated: '2026-04-05',
+            lastUpdated: '2026-07-16',
             description: 'Explore how cells produce energy. Click enzyme labels to advance reactions step by step, toggle sunlight and oxygen to shift between photosynthesis, respiration, and fermentation, and watch cofactor pools and the proton gradient respond in real time.',
             controls: [
                 { label: 'Advance reaction', value: 'Click enzyme label on canvas' },
