@@ -6,9 +6,9 @@ An interactive cellular metabolism simulator. You step through biochemical react
 
 ## What it covers
 
-Interconnected pathways mapped onto a shared metabolite grid: glycolysis and gluconeogenesis, the pentose phosphate pathway, the Calvin cycle, the Krebs cycle, beta-oxidation and fatty acid synthesis, PDH, pyruvate decarboxylase, ADH (ethanol salvage), ALDH, ACS, lactate fermentation, plus three ETC chains (linear light reactions, cyclic light reactions, oxidative phosphorylation). Bidirectional pathways (glycolysis, beta-oxidation) reverse direction with distinct cofactor requirements.
+Interconnected pathways mapped onto a shared metabolite grid: glycolysis and gluconeogenesis, the pentose phosphate pathway, the Calvin cycle, the Krebs cycle, beta-oxidation and fatty acid synthesis, PDH, pyruvate decarboxylase, ADH (ethanol fermentation and salvage), ALDH, ACS, plus three ETC chains (linear light reactions, cyclic light reactions, oxidative phosphorylation). Bidirectional pathways (glycolysis, beta-oxidation) reverse direction with distinct cofactor requirements.
 
-A 14-complex electron transport chain (PSII, NDH-1, SDH, PQ, Cyt b6f, PC, PSI, Fd, FNR, ATP synthase, Cyt c oxidase, bacteriorhodopsin, NNT, UCP) renders each complex with a unique visual silhouette.
+A 14-component membrane chain (PSII, NDH-1, SDH, PQ, Cyt b6f, PC, PSI, Fd, FNR, ATP synthase, Cyt c oxidase, bacteriorhodopsin, NNT, UCP) renders its proteins and electron carriers with distinct visual silhouettes.
 
 Allosteric control points (PFK, PK-reverse, citrate synthase, isocitrate DH, PDH, G6PDH, RuBisCO activase, ACAD, FA synthesis) gate reactions based on ATP/ADP ratio, NADH/NAD+ balance, and cofactor availability. Reactive oxygen species accumulate from electron leak at Complex I and the Q-cycle; SOD, catalase, and GPx scavenge them.
 
@@ -16,7 +16,7 @@ Allosteric control points (PFK, PK-reverse, citrate synthase, isocitrate DH, PDH
 
 Click highlighted enzyme labels on the canvas to advance reactions. Available reactions depend on substrate levels and regulation state. Right-click bidirectional enzymes to run the reverse direction.
 
-Toggle sunlight and oxygen to shift the cell between photosynthesis, aerobic respiration, and fermentation. Choose from five organism presets (cyanobacterium, animal cell, obligate anaerobe, plant chloroplast, archaeon). Each one locks pathways and environment to match real biology.
+Toggle sunlight and oxygen to shift the network between photosynthesis, aerobic respiration, and fermentation. Choose from five stylized presets (cyanobacterium, animal cell, obligate anaerobe, plant chloroplast, archaeon); each locks a different pathway/environment subset and resets the initial cofactor ratios.
 
 Auto-play mode runs the full metabolic program with allosteric regulation gating reaction rates. Real-time sparklines track ATP, NADH, NADPH, and FADH2 ratios plus the proton gradient over a 60-second window.
 
@@ -28,11 +28,11 @@ Keyboard shortcuts: Space (auto-play), G (glucose), F (fatty acid), L (light), O
 cd path/to/a9lim.github.io && python -m http.server
 ```
 
-There's no build step and no dependencies. Shared design system files load from the root site via absolute paths, so please serve from the parent directory.
+There is no build or package-install step. Shared design modules load from the root site via absolute paths, and reference math loads KaTeX from the configured CDN, so serve from the parent directory.
 
 ## Architecture
 
-Vanilla JavaScript with no dependencies. ES6 modules loaded via `<script type="module">`. Canvas 2D rendering with `requestAnimationFrame`. Cofactor pools (ATP+ADP, NAD+NADH, NADP+NADPH, FAD+FADH2) are strictly conserved closed systems.
+Vanilla JavaScript with ES6 modules loaded via `<script type="module">`. Canvas 2D rendering uses `requestAnimationFrame`. Cofactor pools (ATP+ADP, NAD+NADH, NADP+NADPH, FAD+FADH2) are strictly conserved closed systems.
 
 ```
 main.js                 Entry point, render loop, sparkline sampling
@@ -59,7 +59,7 @@ src/
     calvin.js           Calvin cycle
     ppp.js              Pentose phosphate pathway
     etc.js              ETC complexes, ATP synthase, bacteriorhodopsin, NNT
-    fermentation.js     PDH, PDC, ADH, ALDH, ACS, lactate fermentation
+    fermentation.js     PDH, PDC, ADH, ALDH, ACS, ethanol fermentation
     betaoxidation.js    Beta-oxidation and fatty acid synthesis
     ros.js              ROS production and scavenging
 ```

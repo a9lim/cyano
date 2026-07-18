@@ -1,46 +1,46 @@
 ---
 name: Cyano
 title: Cyano — Interactive Cellular Metabolism Simulator
-description: Explore twelve connected metabolic pathways, electron transport, enzyme regulation, cofactor conservation, and reactive oxygen species across five organism presets.
-updated: 2026-07-16
+description: Trace connected carbon metabolism, electron transport, conserved cofactor pools, enzyme feedback, and reactive oxygen species across five stylized cell presets.
+updated: 2026-07-17
 ---
 
 # Cyano — Interactive Cellular Metabolism Simulator
 
-Cyano simulates how cells produce and consume energy through biochemical pathways. It models twelve metabolic pathways with allosteric enzyme regulation, cofactor tracking, and reactive oxygen species.
+Cyano is a browser-based cellular-metabolism model. Reactions share one mutable metabolite store, so carbon intermediates, redox cofactors, ATP, the proton gradient, and reactive oxygen species change together as the user advances enzymes or runs autoplay.
 
 ## Pathways
 
-The simulator covers glycolysis, gluconeogenesis, the pentose phosphate pathway, the Krebs (TCA) cycle, beta-oxidation, fatty acid synthesis, the Calvin cycle, the light reactions of photosynthesis, fermentation (both ethanol and lactate), the urea cycle, and amino acid catabolism. Each pathway is connected through shared metabolite pools — ATP, NADH, FADH2, acetyl-CoA, and others.
+The carbon network covers glycolysis and its reverse path, the pentose phosphate pathway, the Calvin cycle, the Krebs cycle, pyruvate dehydrogenase, ethanol fermentation and salvage, beta-oxidation, and a simplified reverse fatty-acid-synthesis path. Respiratory, linear-photosynthetic, and cyclic-photosynthetic electron flow connect those reactions to ATP synthesis, bacteriorhodopsin, nicotinamide nucleotide transhydrogenase, and ROS scavenging.
 
 ## Electron Transport Chain
 
-A 14-complex electron transport chain model traces electrons from NADH and FADH2 through Complexes I-IV and ATP synthase. Proton motive force drives oxidative phosphorylation. The model includes uncoupling, proton leak, and reactive oxygen species (ROS) generation at Complexes I and III.
+Fourteen rendered membrane components include photosystems, respiratory entry points, mobile carriers, cytochrome b6f, cytochrome c oxidase, ATP synthase, bacteriorhodopsin, NNT, and UCP. The model stores a single proton-gradient value rather than separate voltage and pH terms. ATP synthase consumes four gradient units per ATP; passive leak removes 2% every half-second, or 10% with uncoupling enabled.
 
 ## Regulation
 
-Allosteric regulation gates every reaction. Key control points include phosphofructokinase (inhibited by ATP and citrate), pyruvate dehydrogenase (inhibited by acetyl-CoA and NADH), and isocitrate dehydrogenase (activated by ADP). Students can observe how feedback inhibition maintains metabolic homeostasis.
+The dispatcher applies explicit feedback gates before substrate mutation. High ATP inhibits phosphofructokinase and slows citrate synthase; high NADH inhibits isocitrate dehydrogenase and, together with accumulated acetyl-CoA, blocks pyruvate dehydrogenase. NADPH controls the pentose phosphate pathway, FADH2 controls beta-oxidation, and low ATP limits the Calvin cycle.
 
 ## Organism Presets
 
-Five organism presets configure different pathway availability: cyanobacteria combine photosynthesis and respiration; animal cells emphasize mitochondrial respiration; plant chloroplasts expose the light reactions and Calvin cycle; obligate anaerobes rely on fermentation; and archaea use an alternative membrane and electron-transport setup. Each preset reflects a different set of biochemical constraints.
+Five stylized presets configure different pathway and environment subsets: cyanobacterium, animal cell, obligate anaerobe, plant chloroplast, and archaeon. Selecting one resets the shared pools, applies preset-specific ATP/NADH/NADPH/FADH2 ratios, toggles light and oxygen, and locks pathways marked unavailable by that preset.
 
 ## Educational Use
 
-Designed for undergraduate biochemistry. Students can manipulate substrate concentrations, toggle pathways, and observe flux changes through the metabolic network in real time.
+Users can add glucose or fatty acid, toggle five pathway groups plus light, oxygen, and uncoupling, then compare step-by-step reactions with the autoplay schedule. Sidebar readouts expose cofactor ratios, gas and water balances, ATP sources, ROS, cell health, and sixty-second sparklines.
 
 ## Proton Gradient and Chemiosmotic Coupling
 
-The electron transport chain model tracks the proton motive force (PMF) across the inner mitochondrial membrane as the sum of the membrane potential and the pH gradient. ATP synthase couples proton flow back through the membrane to ADP phosphorylation at a ratio of approximately 4 H+ per ATP. Uncoupling proteins dissipate the PMF as heat, reducing ATP yield. Proton leak occurs passively at a base rate of 2%, increasing to 10% when uncoupling is enabled, and is visible in real time through the dashboard.
+Respiratory NADH entry pumps four protons at NDH-1, the shared cytochrome-b6f step pumps four more, and the terminal oxidase pumps two. Photosynthetic flow starts at PSII and can run linearly to FNR or cycle back through the carrier chain. Electron leaks at NDH-1 and the Q-cycle produce ROS stochastically.
 
 ## Cofactor Conservation
 
-The model enforces strict conservation of NAD+/NADH, FAD/FADH2, CoA/acetyl-CoA, and ATP/ADP/AMP pools. Each reaction that consumes a cofactor must have a corresponding regeneration pathway active, or the pool depletes and the pathway stalls. This creates realistic metabolic bottlenecks.
+Four closed cofactor pairs are conserved by fixed totals: ATP/ADP, NAD+/NADH, NADP+/NADPH, and FAD/FADH2. The model does not track AMP or a closed CoA pool. Reactions check their substrates and available cofactor capacity before mutating state, so depleted oxidized or reduced pools can stall a path.
 
 ## Accessibility
 
-Cyano supports keyboard navigation for all controls, high-contrast mode via the theme toggle, and ARIA labels on toolbar buttons and enzyme labels. Metabolite levels are displayed as numerical values in the sidebar dashboard. Known hazards include continuous particle motion in the electron transport chain visualization; step-by-step mode is available as an alternative to autoplay.
+Cyano provides keyboard shortcuts, labeled controls, light/dark/simulation-following themes, and numerical sidebar readouts. Electron, proton, and photon particles create continuous motion during active reactions; step-by-step mode is available instead of autoplay.
 
 ## Fatty Acid Metabolism
 
-Beta-oxidation cleaves two-carbon units from fatty acyl-CoA chains, producing acetyl-CoA, NADH, and FADH2 per cycle. The simulator models chain lengths from C4 to C22 and tracks odd-chain fatty acids that produce propionyl-CoA requiring the methylmalonyl pathway. The reverse direction (fatty acid synthesis) consumes NADPH and ATP, coupling lipogenesis to the pentose phosphate pathway.
+The detailed beta-oxidation view advances four reaction stages. Its batch action models one palmitoyl-CoA-equivalent as eight acetyl-CoA, seven NADH, and seven FADH2; it does not store chain length or odd-chain intermediates. The simplified reverse batch consumes eight acetyl-CoA, fourteen NADPH, and fourteen ATP to restore one fatty-acid unit.

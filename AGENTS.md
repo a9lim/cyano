@@ -12,17 +12,17 @@ Part of the **a9l.im** portfolio. See root `AGENTS.md` for the shared design sys
 cd path/to/a9lim.github.io && python -m http.server
 ```
 
-Serve from root — shared files load via absolute paths. No build step.
+Serve from root — shared files load via absolute paths. There is no build step,
+test runner, or linter. Check module syntax after changes:
 
-Verify HTML-to-JS ID contract after restructuring:
 ```bash
-diff <(grep -rPoH "getElementById\('\K[^']*" src/ main.js | sed 's/.*://' | sort -u) \
-     <(grep -oP 'id="[^"]*"' index.html | sed 's/id="//;s/"//' | sort -u)
+for file in main.js colors.js src/*.js src/reactions/*.js; do node --check "$file"; done
+git diff --check
 ```
 
 ## Overview
 
-Interactive metabolism visualization. Click enzyme labels to advance reactions step-by-step, tracking metabolites and bioenergetics in real time. 12 pathways, 14 ETC complexes, allosteric regulation, particle system (electrons/protons/photons), ROS production/scavenging, 5 organism presets. Zero dependencies, vanilla ES6 modules.
+Interactive metabolism visualization. Click enzyme labels to advance reactions step-by-step, tracking metabolites and bioenergetics in real time. Connected carbon-metabolism pathways, a 14-component membrane chain, allosteric regulation, electron/proton/photon particles, ROS production/scavenging, and 5 stylized organism presets. Vanilla ES6 modules with no build or package-install step; KaTeX is loaded from the root site's allowed CDN.
 
 ## Architecture
 
