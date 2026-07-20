@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    styles.css — Project-specific overrides for cyano.
-   Shared patterns (glass, tool-btn, layout tokens) in /shared-base.css.
+   Shared patterns (glass, tool-btn, layout tokens) in /shared/base.css.
    All colors via CSS vars injected by colors.js — no hardcoded values.
    ═══════════════════════════════════════════════════════════════ */
 
