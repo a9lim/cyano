@@ -4,16 +4,15 @@ Part of the **a9l.im** portfolio. See root `AGENTS.md` for the shared design sys
 
 ## Rules
 
-- Always prefer shared modules over project-specific reimplementations. Check `shared-*.js` files before adding utility code.
+- Always prefer shared modules over project-specific reimplementations. Check the parent `shared/` directory before adding utility code.
 
 ## Running Locally
 
 ```bash
-cd path/to/a9lim.github.io && python -m http.server
+cd path/to/a9lim.github.io && npm run build && python -m http.server --directory dist
 ```
 
-Serve from root — shared files load via absolute paths. There is no build step,
-test runner, or linter. Check module syntax after changes:
+Build from the parent repository root and serve `dist/` — shared files load via absolute paths. The project itself has no compile step, test runner, or linter. Check module syntax after changes:
 
 ```bash
 for file in main.js colors.js src/*.js src/reactions/*.js; do node --check "$file"; done
@@ -22,13 +21,13 @@ git diff --check
 
 ## Overview
 
-Interactive metabolism visualization. Click enzyme labels to advance reactions step-by-step, tracking metabolites and bioenergetics in real time. Connected carbon-metabolism pathways, a 14-component membrane chain, allosteric regulation, electron/proton/photon particles, ROS production/scavenging, and 5 stylized organism presets. Vanilla ES6 modules with no build or package-install step; KaTeX is loaded from the root site's allowed CDN.
+Interactive metabolism visualization. Click enzyme labels to advance reactions step-by-step, tracking metabolites and bioenergetics in real time. Connected carbon-metabolism pathways, a 14-component membrane chain, allosteric regulation, electron/proton/photon particles, ROS production/scavenging, and 5 stylized organism presets. The project is vanilla ES6 modules; KaTeX is loaded from the root site's allowed CDN.
 
 ## Architecture
 
 **`main.js`**: entry point, wires `Renderer.onEnzymeClick = advanceStep`, runs rAF loop with sparkline sampling at 5 Hz.
 
-**Color pipeline**: `_PALETTE` (shared-tokens.js) → `_BASE` families (colors.js) → `_ROLE` semantics (enzymes.js) → `_pal()` palettes. `_F` is a frozen pre-computed font string cache. `_BASE` and `_darkFill` exposed on `window` for ES6 module access.
+**Color pipeline**: `_PALETTE` (shared/tokens.js) → `_BASE` families (colors.js) → `_ROLE` semantics (enzymes.js) → `_pal()` palettes. `_F` is a frozen pre-computed font string cache. `_BASE` and `_darkFill` exposed on `window` for ES6 module access.
 
 **Data flow**: Canvas click → `Renderer.enzymeHitboxes` hit test → `advanceStep(pathway, stepIndex, direction)` → regulation check → validate substrates → mutate `store` → spawn particles → `updateDashboard()`
 
@@ -72,7 +71,7 @@ Three-state toggle: **Simulation** (follows sunlight), **Light**, **Dark**. Canv
 - **`_BASE` must be on `window`** — colors.js exposes `window._BASE` and `window._darkFill` for ES6 module access. Read-only after `Object.freeze(_PALETTE)`
 - **Renderer uses minimum content dimensions** — `LW = max(rawLW, 900)`, `LH = max(H, 600)`. Zoom auto-fits to `_minZoom()` on first init. When vertical zoom < 1, `_updateLayout` does a two-pass to widen content for edge-to-edge fill
 - **Pan clamping left/top-aligns** — positions content at viewport origin when it fits, not centered
-- **Tab switching runs outside module scope** — `shared-tabs.js` (plain `<script>`) works even if the main module fails to load
+- **Tab switching runs outside module scope** — `shared/tabs.js` (plain `<script>`) works even if the main module fails to load
 - **Organism presets reset state** — calls `resetState()` then applies organism-specific ratios, dispatches `change` events on toggles
 - **Intro card SVGs need explicit attributes** — `.tool-btn svg` defaults don't apply to intro cards
 - **Membrane extends `LW + 400`** — avoids cutoff behind translucent sidebar

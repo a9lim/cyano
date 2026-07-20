@@ -25,10 +25,10 @@ Keyboard shortcuts: Space (auto-play), G (glucose), F (fatty acid), L (light), O
 ## Running locally
 
 ```bash
-cd path/to/a9lim.github.io && python -m http.server
+cd path/to/a9lim.github.io && npm run build && python -m http.server --directory dist
 ```
 
-There is no build or package-install step. Shared design modules load from the root site via absolute paths, and reference math loads KaTeX from the configured CDN, so serve from the parent directory.
+The project itself has no compile or package-install step; the parent staging build assembles shared assets. Shared design modules load from the root site via absolute paths, and reference math loads KaTeX from the configured CDN, so build from the parent repository root and serve `dist/`.
 
 ## Architecture
 
