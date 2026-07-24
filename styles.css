@@ -129,7 +129,8 @@ main {
 }
 
 .step-enzyme {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-variation-settings: var(--fvs-prose);
   font-weight: 700;
   font-size: clamp(0.82rem, 1.2vw, 0.92rem);
   color: var(--pw-ppp);
@@ -145,6 +146,7 @@ main {
 
 .step-yield {
   font-family: var(--font-mono);
+  font-variation-settings: var(--fvs-mono);
   font-size: clamp(0.64rem, 0.95vw, 0.72rem);
   color: var(--accent);
   margin-top: 0.08rem;
@@ -165,7 +167,8 @@ main {
 }
 
 .counter-lbl {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-variation-settings: var(--fvs-prose);
   font-size: clamp(0.56rem, 0.85vw, 0.62rem);
   color: var(--text-muted);
   text-transform: uppercase;
@@ -174,6 +177,7 @@ main {
 
 .counter-val {
   font-family: var(--font-mono);
+  font-variation-settings: var(--fvs-mono);
   font-weight: 700;
   font-size: clamp(0.72rem, 1.05vw, 0.82rem);
 }
@@ -209,7 +213,8 @@ main {
 }
 
 .metab-name {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-variation-settings: var(--fvs-prose);
   font-size: clamp(0.52rem, 0.8vw, 0.58rem);
   font-weight: 500;
   color: var(--text-muted);
@@ -219,6 +224,7 @@ main {
 
 .metab-pct {
   font-family: var(--font-mono);
+  font-variation-settings: var(--fvs-mono);
   font-weight: 700;
   font-size: clamp(0.82rem, 1.2vw, 0.95rem);
   transition: transform 0.2s var(--ease-out);
@@ -337,6 +343,7 @@ main {
 .eq-name {
   display: inline;
   font-family: var(--font-sans);
+  font-variation-settings: var(--fvs-prose);
   font-weight: 600;
   font-size: var(--font-sm);
 }
@@ -344,6 +351,7 @@ main {
 .eq-formula {
   display: block;
   font-family: var(--font-mono);
+  font-variation-settings: var(--fvs-mono);
   font-size: var(--font-sm);
   color: var(--text-muted);
   line-height: 1.4;
@@ -376,6 +384,7 @@ main {
 
 .legend-sub {
   font-family: var(--font-sans);
+  font-variation-settings: var(--fvs-prose);
   font-size: clamp(0.46rem, 0.7vw, 0.52rem);
   font-weight: 600;
   text-transform: uppercase;
@@ -517,6 +526,7 @@ main {
   white-space: normal;
   max-width: 280px;
   font: var(--font-base)/1.45 var(--font-sans);
+  font-variation-settings: var(--fvs-prose);
 }
 .sim-tooltip.canvas-tip strong {
   font-size: var(--font-base);
@@ -528,6 +538,7 @@ main {
 }
 .sim-tooltip.canvas-tip .ct-eq {
   font: var(--font-sm) var(--font-mono);
+  font-variation-settings: var(--fvs-mono);
   color: var(--accent);
 }
 .sim-tooltip.canvas-tip em {
