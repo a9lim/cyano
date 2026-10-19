@@ -27,7 +27,9 @@ Interactive metabolism visualization. Click enzyme labels to advance reactions s
 
 **`main.js`**: entry point, wires `Renderer.onEnzymeClick = advanceStep`, runs rAF loop with sparkline sampling at 5 Hz.
 
-**Color pipeline**: `_PALETTE` (shared/tokens.js) → `_BASE` families (colors.js) → `_ROLE` semantics (enzymes.js) → `_pal()` palettes. `_F` is a frozen pre-computed font string cache. `_BASE` and `_darkFill` exposed on `window` for ES6 module access.
+**Color pipeline**: `_PALETTE` (shared/tokens.js) → `_BASE` families (colors.js) → `_ROLE` semantics (enzymes.js) → `_pal()` palettes → `_THEME.light` / `_THEME.dark`. `_THEME` reads each theme's own entries (`_PALETTE.light.accent`, `_PALETTE.dark.accent`, …) and the canvas picks one by `simState.visualLightMode`, so a theme change needs no cache refresh. `_BASE` and `_darkFill` exposed on `window` for ES6 module access. Pathway hues are the shared `_PALETTE.extended` colors, deliberate data encoding that does not follow the accent.
+
+**Canvas text**: every face is `_FONT.text` (Newsreader) and nothing is smaller than 10px. `_F` in enzymes.js is the frozen font cache, named by role (`node`, `tag`, `yield`, `cycle`, …); `_labelFont(size)` covers ETC-complex labels. `_cachedMeasure` caches widths per `ctx.font`; it is cleared once `document.fonts.load` resolves for the text and emoji faces, so pills never keep fallback-font widths. The ☀/☾ glyphs use the shared `_FONT.emoji`. Sizes are canvas units, so the camera's fit-to-view zoom scales them.
 
 **Data flow**: Canvas click → `Renderer.enzymeHitboxes` hit test → `advanceStep(pathway, stepIndex, direction)` → regulation check → validate substrates → mutate `store` → spawn particles → `updateDashboard()`
 
@@ -45,7 +47,14 @@ Bidirectional enzymes check both directions. Beta-ox forward uses FADH₂/NADH; 
 
 ### Theme
 
-Three-state toggle: **Simulation** (follows sunlight), **Light**, **Dark**. Canvas reads `simState.visualLightMode` (decoupled from sim `lightOn`).
+Three-state toggle: **Simulation** (follows sunlight), **Light**, **Dark**. Canvas reads `simState.visualLightMode` (decoupled from sim `lightOn`). `theme.js` switches `data-theme` through the shared `_toolbar.toggleTheme()` (called only when the target differs), which also keeps `<meta name="theme-color">` on the active canvas color; the static meta in `index.html` is the light canvas `#FCFCFB`. The theme is not persisted and ignores `prefers-color-scheme`.
+
+### Label layout
+
+- Enzyme tags, yield texts and pool-count badges are queued while `drawCytoplasmNetwork` runs (`_deferTags`) and flushed after the metabolite pills, in that order: tags, texts, badges. Nothing is hidden under a pill, and a count is never hidden under a tag.
+- `_tagY` keeps a tag on its arrow, 6px up. A long tag (over 46px) on a horizontal arrow whose clear span between pills is more than 20px narrower than the tag rides 31px above the pill row instead. `drawBidirArrow` takes `{ noLift, dx }` to pin a tag or slide it off a cycle target's label.
+- `drawSideLabel` right-aligns a yield text beside a vertical arrow, clear of the tag that sits on it (width measured, not hand-offset).
+- Metabolite and tag hitboxes follow the measured pill widths.
 
 ### Shared Metabolite Nodes
 
@@ -74,7 +83,7 @@ Three-state toggle: **Simulation** (follows sunlight), **Light**, **Dark**. Canv
 - **Tab switching runs outside module scope** — `shared/tabs.js` (plain `<script>`) works even if the main module fails to load
 - **Organism presets reset state** — calls `resetState()` then applies organism-specific ratios, dispatches `change` events on toggles
 - **Intro card SVGs need explicit attributes** — `.tool-btn svg` defaults don't apply to intro cards
-- **Membrane extends `LW + 400`** — avoids cutoff behind translucent sidebar
+- **Membrane extends `LW + 400`** — keeps the band running under the sidebar panel
 - **Conserved pools are enforced** — consuming NADH below 0 or producing ATP above the total is a bug. Always check availability before mutating `store`
 - **Sidebar uses `.sidebar-tabs` in `.stats-header`** — the main sidebar has no `<h2 class="stats-title">`. Tab buttons live directly inside `.stats-header`. The old title + separate `.tab-bar` pattern is gone for project sidebars
 - **Shared CSS at domain root** — `/shared/base.css` absolute path requires serving from parent directory

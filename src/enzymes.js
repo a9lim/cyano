@@ -10,35 +10,46 @@ const _darkFill = window._darkFill;
 
 // ── Pre-computed Font Strings ──
 // Frozen cache eliminates per-frame template-literal allocation for ctx.font.
-// _labelFont() handles uncommon sizes on first use.
+// Every face is the shared text stack; nothing on the canvas is below 10px.
+// _labelFont() handles the uncommon ETC-complex label sizes on first use.
+const _TEXT = _FONT.text;
 export const _F = Object.freeze({
-  mono500_9:    `500 9px ${_FONT.mono}`,
-  mono500_10:   `500 10px ${_FONT.mono}`,
-  mono600_8:    `600 8px ${_FONT.mono}`,
-  mono600_9:    `600 9px ${_FONT.mono}`,
-  mono600_10:   `600 10px ${_FONT.mono}`,
-  mono700_8:    `700 8px ${_FONT.mono}`,
-  mono700_12:   `700 12px ${_FONT.mono}`,
-  mono700_13:   `700 13px ${_FONT.mono}`,
-  body300_9:    `300 9px ${_FONT.sans}`,
-  body400_8:    `400 8px ${_FONT.sans}`,
-  body500_14:   `500 14px ${_FONT.sans}`,
-  emoji38:      `38px ${_FONT.emoji}`,
-  tag500:       `500 8.5px ${_FONT.mono}`,
-  tag700:       `700 8.5px ${_FONT.mono}`,
+  node:        `600 11px ${_TEXT}`,         // metabolite pill label
+  nodeBadge:   `700 10px ${_TEXT}`,         // pool count on the pill's accent badge
+  nodeNote:    `500 10px ${_TEXT}`,         // "2x" marker and per-node yield badge
+  tag:         `500 10px ${_TEXT}`,         // enzyme tag, idle
+  tagActive:   `700 10px ${_TEXT}`,         // enzyme tag, next step
+  yield:       `500 11px ${_TEXT}`,         // +NADH / -ATP yield beside an arrow or complex
+  proton:      `600 11px ${_TEXT}`,         // 4H⁺ over a pumping complex
+  protonDot:   `600 10px ${_TEXT}`,         // "+" inside a travelling proton
+  cycle:       `600 13px ${_TEXT}`,         // batch cycle target and the long glycolysis arrows
+  complex:     `600 13px ${_TEXT}`,         // default ETC-complex label
+  section:     `italic 400 12px ${_TEXT}`,  // cytoplasm section label
+  indicator:   `italic 400 15px ${_TEXT}`,  // Light / Dark word above the sun
+  emoji:       `38px ${_FONT.emoji}`,       // ☀ / ☾
 });
 
 const _labelFonts = {};
-/** Returns cached font string for uncommon label sizes. */
+/** Returns cached font string for ETC-complex label sizes (≥10px). */
 export function _labelFont(size) {
-  return _labelFonts[size] || (_labelFonts[size] = `700 ${size}px ${_FONT.mono}`);
+  return _labelFonts[size] || (_labelFonts[size] = `600 ${size}px ${_TEXT}`);
 }
 
-const _measureCache = {};
+let _measureCache = {};
 export function _cachedMeasure(ctx, text) {
     const key = ctx.font + '|' + text;
     if (_measureCache[key] === undefined) _measureCache[key] = ctx.measureText(text).width;
     return _measureCache[key];
+}
+
+// Widths measured while a webfont is still loading belong to the fallback face;
+// drop them once the real faces are in so pills re-measure.
+if (document.fonts) {
+  Promise.all([
+    document.fonts.load(`500 10px ${_TEXT}`),
+    document.fonts.load(`italic 400 12px ${_TEXT}`),
+    document.fonts.load(`38px ${_FONT.emoji}`, '\u2600\u263E'),
+  ]).then(() => { _measureCache = {}; }, () => { _measureCache = {}; });
 }
 
 const _gradCache = {};
@@ -53,10 +64,9 @@ export const CFG = {
   cycleStrokeWidth: 5,
   cycleTipLen: 16,
   cycleFinLen: 10,
-  enzymeTagPad: 5,
-  enzymeTagFont: 8.5,
+  enzymeTagPad: 3,
   metabNodeHeight: 22,
-  metabBadgeRadius: 7,
+  metabBadgeRadius: 8,
   electronRadius: 4,
   protonRadius: 3.5,
   trailMaxLen: 10,
@@ -92,7 +102,8 @@ function _pal(b, fill, glowA) {
 }
 
 // ── Theme Colors ──
-// Mode-dependent canvas colors derived from _PALETTE.
+// Mode-dependent canvas colors derived from _PALETTE.light / _PALETTE.dark, so
+// the per-theme accent is read from the theme it belongs to.
 // EnzymeStyles.t(lightMode) returns the active set.
 export const _THEME = {
   protonText: _PALETTE.dark.text,
@@ -101,20 +112,16 @@ export const _THEME = {
     textPrimary:          _PALETTE.dark.text,
     textSecondary:        _PALETTE.dark.textSecondary,
     textMuted:            _PALETTE.dark.textMuted,
-    textOnAccent:         _PALETTE.textOnAccent,
+    textOnAccent:         _PALETTE.dark.elevated,
     surfacePrimary:       _r(_PALETTE.dark.panelSolid, 0.88),
     surfaceSecondary:     _r(_PALETTE.dark.panelSolid, 0.65),
     surfaceElevated:      _r(_PALETTE.dark.elevated, 0.92),
     surfaceMuted:         _r(_PALETTE.dark.panelSolid, 0.78),
-    accentBadge:          _r(_PALETTE.accent, 0.9),
-    accentGlow:           _r(_PALETTE.accent, 0.2),
+    accentBadge:          _r(_PALETTE.dark.accent, 0.9),
     metabActiveStroke:    _PALETTE.dark.text,
     metabInactiveStroke:  _r(_PALETTE.dark.textSecondary, 0.4),
     membraneHead:         _r(_PALETTE.dark.text, 0.15),
     membraneTail:         _r(_PALETTE.dark.text, 0.06),
-    sectionLabel:         _r(_PALETTE.accent, 0.25),
-    sectionLabelAlt:      _r(_PALETTE.accent, 0.2),
-    protonPoolLabel:      _r(_BASE.blue.stroke, 0.2),
     chromophoreAlpha:     0.5,
   },
 
@@ -122,20 +129,16 @@ export const _THEME = {
     textPrimary:          _PALETTE.light.text,
     textSecondary:        _PALETTE.light.textSecondary,
     textMuted:            _PALETTE.light.textMuted,
-    textOnAccent:         _PALETTE.textOnAccent,
+    textOnAccent:         _PALETTE.light.elevated,
     surfacePrimary:       _r(_PALETTE.light.panelSolid, 0.95),
     surfaceSecondary:     _r(_PALETTE.light.canvas, 0.85),
     surfaceElevated:      _r(_PALETTE.light.elevated, 0.95),
     surfaceMuted:         _r(_PALETTE.light.canvas, 0.9),
-    accentBadge:          _r(_PALETTE.accent, 0.85),
-    accentGlow:           _r(_PALETTE.accent, 0.2),
+    accentBadge:          _r(_PALETTE.light.accent, 0.85),
     metabActiveStroke:    _PALETTE.light.text,
     metabInactiveStroke:  _PALETTE.light.textSecondary,
     membraneHead:         _r(_PALETTE.light.textSecondary, 0.3),
     membraneTail:         _r(_PALETTE.light.textSecondary, 0.15),
-    sectionLabel:         _r(_PALETTE.accent, 0.25),
-    sectionLabelAlt:      _r(_PALETTE.accent, 0.2),
-    protonPoolLabel:      _r(_BASE.blue.strokeLight, 0.25),
     chromophoreAlpha:     0.6,
   },
 };
@@ -253,7 +256,7 @@ export const EnzymeStyles = {
   },
 
   drawLabel(ctx, text, cx, cy, color, fontSize) {
-    ctx.font = fontSize ? _labelFont(fontSize) : _F.mono700_13;
+    ctx.font = fontSize ? _labelFont(fontSize) : _F.complex;
     ctx.fillStyle = color || _THEME.dark.textPrimary;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -313,8 +316,8 @@ export const EnzymeStyles = {
     ctx.quadraticCurveTo(cx - botW / 2, cy + hh, cx - botW / 2, cy + hh - r);
     ctx.closePath();
     this.applyStyle(ctx, p, glow);
-    this.drawLabel(ctx, 'SDH', cx, cy - 4, p.stroke, 9);
-    this.drawLabel(ctx, 'CII', cx, cy + 8, p.stroke, 8);
+    this.drawLabel(ctx, 'SDH', cx, cy - 4, p.stroke, 10);
+    this.drawLabel(ctx, 'CII', cx, cy + 8, p.stroke, 10);
   },
 
   /** PSII — ellipse with P680 chromophore. */
@@ -325,7 +328,7 @@ export const EnzymeStyles = {
     this.applyStyle(ctx, p, glow);
     this._drawChromophore(ctx, cx, cy + 2, _ROLE.photosynthetic, lightMode);
     this.drawLabel(ctx, 'PSII', cx, cy - 14, p.stroke, 12);
-    this.drawLabel(ctx, 'P680', cx, cy + 16, p.stroke, 9);
+    this.drawLabel(ctx, 'P680', cx, cy + 16, p.stroke, 10);
   },
 
   /** PSI — ellipse with P700 chromophore. */
@@ -336,7 +339,7 @@ export const EnzymeStyles = {
     this.applyStyle(ctx, p, glow);
     this._drawChromophore(ctx, cx, cy + 2, _ROLE.photosynthetic, lightMode);
     this.drawLabel(ctx, 'PSI', cx, cy - 12, p.stroke, 12);
-    this.drawLabel(ctx, 'P700', cx, cy + 16, p.stroke, 9);
+    this.drawLabel(ctx, 'P700', cx, cy + 16, p.stroke, 10);
   },
 
   /** Cyt b6f — hourglass shape (bezier pinch). Shared between respiratory and photosynthetic chains. */
@@ -436,7 +439,7 @@ export const EnzymeStyles = {
     this.applyStyle(ctx, p, glow);
     this.drawLabel(ctx, 'Fo', cx, top + foH / 2, p.stroke, 10);
     this.drawLabel(ctx, 'ATP', cx, f1CY - 4, p.stroke, 11);
-    this.drawLabel(ctx, 'Syn', cx, f1CY + 9, p.stroke, 9);
+    this.drawLabel(ctx, 'Syn', cx, f1CY + 9, p.stroke, 10);
   },
 
   /** Bacteriorhodopsin — rounded rect with retinal chromophore. */
@@ -472,48 +475,61 @@ export const EnzymeStyles = {
      Metabolite Node
      ═══════════════════════════════════════ */
 
-  /** Pill-shaped metabolite with optional count badge and "2x" stoichiometry marker. */
-  drawMetaboliteNode(ctx, cx, cy, label, active, lightMode, show2x, count) {
-    const w = Math.max(_cachedMeasure(ctx, label) + 16, 32);
+  /** Width of a metabolite pill: measured label plus padding, never narrower than 32. */
+  nodeWidth(ctx, label) {
+    ctx.font = _F.node;
+    return Math.max(_cachedMeasure(ctx, label) + 16, 32);
+  },
+
+  /** Width of an enzyme tag pill: measured label plus padding, in the active or idle weight. */
+  tagWidth(ctx, label, active) {
+    ctx.font = active ? _F.tagActive : _F.tag;
+    return _cachedMeasure(ctx, label) + CFG.enzymeTagPad * 2;
+  },
+
+  /** Pill-shaped metabolite with optional "2x" stoichiometry marker. The pool-count badge is drawn separately (drawNodeBadge). */
+  drawMetaboliteNode(ctx, cx, cy, label, active, lightMode, show2x) {
+    const w = this.nodeWidth(ctx, label);
     const h = CFG.metabNodeHeight;
     this.pill(ctx, cx, cy, w, h);
     const th = this.t(lightMode);
     ctx.fillStyle = active ? th.surfaceElevated : th.surfaceMuted;
     ctx.fill();
-    ctx.font = _F.mono600_9;
+    ctx.font = _F.node;
     ctx.fillStyle = active ? th.textPrimary : th.textSecondary;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(label, cx, cy);
-    // Accent badge showing current pool count
-    if (count > 0) {
-      const badgeR = CFG.metabBadgeRadius;
-      const bx = cx + w / 2 - 2, by = cy - h / 2 - 4;
-      ctx.beginPath();
-      ctx.arc(bx, by, badgeR, 0, _TWO_PI);
-      ctx.fillStyle = th.accentBadge;
-      ctx.fill();
-      ctx.font = _F.mono700_8;
-      ctx.fillStyle = th.textOnAccent;
-      ctx.fillText(count, bx, by);
-    }
     // "2x" marker for metabolites produced in pairs (C6 -> 2x C3)
     if (show2x) {
-      ctx.font = _F.mono600_8;
+      ctx.font = _F.nodeNote;
       ctx.fillStyle = th.textMuted;
       ctx.fillText('2x', cx, cy + 18);
     }
   },
 
+  /** Accent badge on a pill's top-right corner showing the current pool count. */
+  drawNodeBadge(ctx, cx, cy, label, lightMode, count) {
+    const th = this.t(lightMode);
+    const bx = cx + this.nodeWidth(ctx, label) / 2 - 2, by = cy - CFG.metabNodeHeight / 2 - 4;
+    ctx.beginPath();
+    ctx.arc(bx, by, CFG.metabBadgeRadius, 0, _TWO_PI);
+    ctx.fillStyle = th.accentBadge;
+    ctx.fill();
+    ctx.font = _F.nodeBadge;
+    ctx.fillStyle = th.textOnAccent;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(count, bx, by);
+  },
+
   /**
    * Enzyme tag pill — clickable label on arrows.
    * Dual-color gradient when the enzyme serves two pathways (color vs color2).
+   * Returns the pill width (the hitbox follows it).
    */
   drawEnzymeTag(ctx, cx, cy, label, color, active, lightMode, color2) {
-    const pad = CFG.enzymeTagPad;
-    ctx.font = active ? _F.tag700 : _F.tag500;
-    const tw = _cachedMeasure(ctx, label);
-    const w = tw + pad * 2;
+    const w = this.tagWidth(ctx, label, active);
     const h = 15;
     ctx.beginPath();
     const r = h / 2;
@@ -560,6 +576,7 @@ export const EnzymeStyles = {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(label, cx, cy);
+    return w;
   },
 
   /* ═══════════════════════════════════════
@@ -606,7 +623,7 @@ export const EnzymeStyles = {
     ctx.fillStyle = _r(_ROLE.proton.stroke, 0.5 + 0.4 * intensity);
     ctx.fill();
     // "+" label centered on proton
-    ctx.font = _F.mono600_8;
+    ctx.font = _F.protonDot;
     ctx.fillStyle = _r(_THEME.protonText, a);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -731,7 +748,7 @@ export const EnzymeStyles = {
     }
 
     ctx.restore();
-    ctx.font = _F.mono700_12;
+    ctx.font = _F.cycle;
     ctx.fillStyle = color;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';

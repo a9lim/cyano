@@ -55,6 +55,10 @@ const _pwColor = {
     ros: '--pw-ros', sod: '--pw-ros', catalase: '--pw-ros', gpx: '--pw-ros', run_ros_scavenge: '--pw-ros',
 };
 
+// Display names for the yield keys reactions return (acronyms stay upper-case, the rest is prose).
+const _YIELD_NAME = { atp: 'ATP', nadh: 'NADH', nadph: 'NADPH', fadh2: 'FADH₂', co2Fixed: 'CO₂ fixed' };
+const _yieldName = (k) => _YIELD_NAME[k] || k;
+
 /** Update the active-step display with enzyme name, reaction, and yield summary. */
 export function showActiveStep(enzyme, reaction, yields, pathway) {
     _dom.krebsEnzyme.textContent = enzyme;
@@ -69,8 +73,8 @@ export function showActiveStep(enzyme, reaction, yields, pathway) {
             if (text) text += ' ';
             const v = yields[k];
             text += k.includes('Consume')
-                ? `-${v} ${k.replace('Consume', '').toUpperCase()}`
-                : `+${v} ${k.toUpperCase()}`;
+                ? `-${v} ${_yieldName(k.replace('Consume', ''))}`
+                : `+${v} ${_yieldName(k)}`;
         }
         _dom.krebsYield.textContent = text;
     }

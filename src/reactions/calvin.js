@@ -41,5 +41,5 @@ export function runCalvinCycle() {
     store.g3p += 2;
     store.co2Fixed += 6;
     counters.calvinTurns += 2;
-    return { enzyme: 'Calvin Cycle (×6)', reaction: '6 CO₂ + 18 ATP + 12 NADPH → 2 G3P', yields: { atpConsume: 18, nadphConsume: 12 } };
+    return { enzyme: 'Calvin cycle (×6)', reaction: '6 CO₂ + 18 ATP + 12 NADPH → 2 G3P', yields: { atpConsume: 18, nadphConsume: 12 } };
 }

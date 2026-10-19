@@ -264,7 +264,7 @@ export function bindEvents(dom) {
     ];
 
     if (typeof initShortcuts === 'function') {
-        initShortcuts(shortcuts, { helpTitle: 'Keyboard Shortcuts' });
+        initShortcuts(shortcuts, { helpTitle: 'Keyboard shortcuts' });
     }
 
     if (typeof initAboutPanel === 'function') {
@@ -275,10 +275,10 @@ export function bindEvents(dom) {
             controls: [
                 { label: 'Advance reaction', value: 'Click enzyme label on canvas' },
                 { label: 'Reverse reaction', value: 'Right-click bidirectional enzyme' },
-                { label: 'Add substrate', value: 'Glucose (G) / Fatty Acid (F)' },
+                { label: 'Add substrate', value: 'Glucose (G) / fatty acid (F)' },
                 { label: 'Toggle pathway', value: 'Sidebar toggles or keys 1\u20135' },
                 { label: 'Toggle environment', value: 'Light (L) / Oxygen (O) / Uncoupling (U)' },
-                { label: 'Play / Pause', value: 'Space bar or toolbar button' },
+                { label: 'Play / pause', value: 'Space bar or toolbar button' },
                 { label: 'Speed', value: ', / . to decrease / increase' },
                 { label: 'Reset', value: 'R' },
                 { label: 'Zoom / pan', value: '= / - / 0, scroll wheel, drag' },
@@ -292,15 +292,15 @@ export function bindEvents(dom) {
     // ── Info tips (via shared-info.js) — short summaries ──
     const infoData = {
         glycolysis: { title: 'Glycolysis', body: 'Splits glucose into 2 pyruvate, netting 2 ATP and 2 NADH.' },
-        ppp: { title: 'Pentose Phosphate Pathway', body: 'Produces NADPH for biosynthesis and antioxidant defense.' },
-        calvin: { title: 'Calvin Cycle', body: 'Fixes CO\u2082 into sugar using ATP and NADPH from the light reactions.' },
-        krebs: { title: 'Krebs Cycle (TCA)', body: 'Oxidizes acetyl-CoA to CO\u2082, producing NADH, FADH\u2082, and GTP.' },
+        ppp: { title: 'Pentose phosphate pathway', body: 'Produces NADPH for biosynthesis and antioxidant defense.' },
+        calvin: { title: 'Calvin cycle', body: 'Fixes CO\u2082 into sugar using ATP and NADPH from the light reactions.' },
+        krebs: { title: 'Krebs cycle (TCA)', body: 'Oxidizes acetyl-CoA to CO\u2082, producing NADH, FADH\u2082, and GTP.' },
         sunlight: { title: 'Sunlight', body: 'Powers photosynthetic electron transport: water splitting, O\u2082 release, NADPH production.' },
         oxygen: { title: 'Ambient O\u2082', body: 'Enables aerobic respiration. Without it, fermentation regenerates NAD\u207A.' },
-        protons: { title: 'Proton Gradient', body: 'H\u207A gradient across the membrane drives ATP synthase (4 H\u207A per ATP).' },
-        betaox: { title: 'Beta Oxidation', body: 'Breaks fatty acids into acetyl-CoA, yielding FADH\u2082 and NADH per round.' },
-        uncoupling: { title: 'Uncoupling Proteins', body: 'Leak protons across the membrane, dissipating the gradient as heat.' },
-        oxStress: { title: 'Oxidative Stress', body: 'ROS from electron leak damage cells; SOD, catalase, and GPx scavenge them.' },
+        protons: { title: 'Proton gradient', body: 'H\u207A gradient across the membrane drives ATP synthase (4 H\u207A per ATP).' },
+        betaox: { title: 'Beta oxidation', body: 'Breaks fatty acids into acetyl-CoA, yielding FADH\u2082 and NADH per round.' },
+        uncoupling: { title: 'Uncoupling proteins', body: 'Leak protons across the membrane, dissipating the gradient as heat.' },
+        oxStress: { title: 'Oxidative stress', body: 'ROS from electron leak damage cells; SOD, catalase, and GPx scavenge them.' },
     };
 
     registerInfoTips(infoData);
@@ -316,5 +316,5 @@ export function bindEvents(dom) {
     bindReferenceTriggers(openReference);
 
     // ── Mobile hint bar ──
-    setMobileHint('hint-bar', 'Tap Enzyme to React \u00b7 Long-press for Info \u00b7 Pinch to Zoom', '.panel-hint');
+    setMobileHint('hint-bar', 'Tap an enzyme to react \u00b7 long-press for info \u00b7 pinch to zoom', '.panel-hint');
 }

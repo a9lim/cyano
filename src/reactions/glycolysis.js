@@ -56,7 +56,7 @@ export function advanceGlycolysis(idx, direction) {
         } else if (rev && store.g3p >= 2) {
             let t = Math.floor(Math.min(store.g3p / 2, 2));
             store.g3p -= 2 * t; store.f16bp += t;
-            return { enzyme: 'Aldolase (Reverse)', reaction: '2 G3P → F1,6BP', yields: null };
+            return { enzyme: 'Aldolase (reverse)', reaction: '2 G3P → F1,6BP', yields: null };
         }
     }
     // Step 5: GAPDH — oxidative phosphorylation of G3P, produces NADH (fwd) or consumes NADPH (rev, Calvin)
@@ -66,7 +66,7 @@ export function advanceGlycolysis(idx, direction) {
             return { enzyme: 'GAPDH', reaction: '2 G3P + 2 NAD⁺ → 2 1,3-BPG', yields: { nadh: 2 } };
         } else if (rev && store.bpg >= 2 && store.nadph >= 2) {
             store.bpg -= 2; store.g3p += 2; store.nadph -= 2;
-            return { enzyme: 'GAPDH (Reverse)', reaction: '2 1,3-BPG + 2 NADPH → 2 G3P', yields: { nadphConsume: 2 } };
+            return { enzyme: 'GAPDH (reverse)', reaction: '2 1,3-BPG + 2 NADPH → 2 G3P', yields: { nadphConsume: 2 } };
         }
     }
     // Step 6: PGK — substrate-level phosphorylation (fwd) or ATP-consuming reverse (Calvin)
@@ -76,18 +76,18 @@ export function advanceGlycolysis(idx, direction) {
             return { enzyme: 'PGK', reaction: '2 1,3-BPG + 2 ADP → 2 3-PGA + 2 ATP', yields: { atp: 2 } };
         } else if (rev && store.pga3 >= 2 && store.atp >= 2) {
             store.pga3 -= 2; store.bpg += 2; store.atp -= 2;
-            return { enzyme: 'PGK (Reverse)', reaction: '2 3-PGA + 2 ATP → 2 1,3-BPG', yields: { atpConsume: 2 } };
+            return { enzyme: 'PGK (reverse)', reaction: '2 3-PGA + 2 ATP → 2 1,3-BPG', yields: { atpConsume: 2 } };
         }
     }
     // Step 7: Phosphoglycerate Mutase
     else if (idx === 7) {
         if (fwd && store.pga3 >= 2) { store.pga3 -= 2; store.pga2 += 2; return { enzyme: 'PGM', reaction: '2 3-PGA → 2 2-PGA', yields: null }; }
-        else if (rev && store.pga2 >= 2) { store.pga2 -= 2; store.pga3 += 2; return { enzyme: 'PGM (Reverse)', reaction: '2 2-PGA → 2 3-PGA', yields: null }; }
+        else if (rev && store.pga2 >= 2) { store.pga2 -= 2; store.pga3 += 2; return { enzyme: 'PGM (reverse)', reaction: '2 2-PGA → 2 3-PGA', yields: null }; }
     }
     // Step 8: Enolase — dehydration to PEP
     else if (idx === 8) {
         if (fwd && store.pga2 >= 2) { store.pga2 -= 2; store.pep += 2; return { enzyme: 'Enolase', reaction: '2 2-PGA → 2 PEP', yields: null }; }
-        else if (rev && store.pep >= 2) { store.pep -= 2; store.pga2 += 2; return { enzyme: 'Enolase (Reverse)', reaction: '2 PEP → 2 2-PGA', yields: null }; }
+        else if (rev && store.pep >= 2) { store.pep -= 2; store.pga2 += 2; return { enzyme: 'Enolase (reverse)', reaction: '2 PEP → 2 2-PGA', yields: null }; }
     }
     // Step 9: Pyruvate Kinase (fwd, substrate-level ATP) / PC+PEPCK gluconeogenesis bypass (rev)
     else if (idx === 9) {
@@ -119,7 +119,7 @@ export function runGlycolysisUpper() {
     store.glucose--;
     store.atp -= 2;
     store.g3p += 2;
-    return { enzyme: 'Glycolysis (Upper)', reaction: 'Glucose + 2 ATP → 2 G3P', yields: { atpConsume: 2 } };
+    return { enzyme: 'Glycolysis (upper)', reaction: 'Glucose + 2 ATP → 2 G3P', yields: { atpConsume: 2 } };
 }
 
 /** Batch: lower glycolysis (2 G3P → 2 Pyruvate + 4 ATP + 2 NADH) */
@@ -130,7 +130,7 @@ export function runGlycolysisLower() {
     store.atp += 4; store.atpSubstrate += 4;
     store.pyruvate += 2;
     counters.glycRuns++;
-    return { enzyme: 'Glycolysis (Lower)', reaction: '2 G3P → 2 Pyruvate + 4 ATP + 2 NADH', yields: { atp: 4, nadh: 2 } };
+    return { enzyme: 'Glycolysis (lower)', reaction: '2 G3P → 2 Pyruvate + 4 ATP + 2 NADH', yields: { atp: 4, nadh: 2 } };
 }
 
 /** Batch: gluconeogenesis lower bypass (2 Pyruvate + 2 ATP → 2 PEP) */
@@ -147,5 +147,5 @@ export function runGlycolysisUpperReverse() {
     if (!simState.glycolysisEnabled || store.g3p < 2) return false;
     store.g3p -= 2;
     store.glucose++;
-    return { enzyme: 'Gluconeogenesis (Upper)', reaction: '2 G3P → Glucose', yields: null };
+    return { enzyme: 'Gluconeogenesis (upper)', reaction: '2 G3P → Glucose', yields: null };
 }

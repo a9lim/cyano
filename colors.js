@@ -1,12 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════
-   colors.js — Biosim project-specific color tokens.
-   Extends _PALETTE (from shared-tokens.js) with pathway/cofactor
+   colors.js — Cyano project-specific color tokens.
+   Extends _PALETTE (from shared/tokens.js) with pathway/cofactor
    colors, builds _BASE families for canvas use, and injects
    CSS custom properties (--pw-*, --co-*).
    ═══════════════════════════════════════════════════════════════ */
-
-// ─── Font Extension ───
-_FONT.emoji = "sans-serif";
 
 // ─── Pathway / Particle Base Hues ───
 // Promote extended palette entries to top-level for convenience in enzymes.js
@@ -27,12 +24,10 @@ _PALETTE.nadh  = _PALETTE.extended.blue;
 _PALETTE.nadph = _PALETTE.extended.green;
 _PALETTE.fadh2 = _PALETTE.extended.rose;
 
-_PALETTE.textOnAccent = _PALETTE.light.elevated;
-
 _freezeTokens();
 
 // ─── Color Math Helpers ───
-// (Uses shared _parseHex, _rgb2hsl, _hsl2hex, _darken from shared-tokens.js)
+// (Uses shared _parseHex, _rgb2hsl, _hsl2hex, _darken from shared/tokens.js)
 
 /** Derive a dark-mode fill: same hue as the stroke, fixed saturation, custom lightness. */
 function _darkFill(base, lightness) {
@@ -69,7 +64,6 @@ const _BASE = {
 
   // [CSS var name, _PALETTE key, optional alpha]
   const shared = [
-    ['text-on-accent', 'textOnAccent'],
     ['pw-glyc',        'orange'],
     ['pw-krebs',       'blue'],
     ['pw-calvin',      'green'],
@@ -94,15 +88,10 @@ const _BASE = {
   _injectProjectVars(
     genShared() + `\n  --bg-scrim: ${_r(D.text, 0.2)};
   --bg-track:         ${_r(L.text, 0.078)};
-  --metab-card-bg:    ${_r(L.text, 0.02)};
-  --tog-inset:        ${_r(L.text, 0.078)};
-  --track-shadow:     inset 0 1px 1px ${_r(L.text, 0.059)};`,
+  --metab-card-bg:    ${_r(L.text, 0.02)};`,
     `  --bg-scrim:         ${_r(L.text, 0.149)};
   --bg-track:         ${_r(D.text, 0.039)};
-  --metab-card-bg:    transparent;
-  --tog-inset:        ${_r(L.text, 0.349)};
-  --tog-checked-extra: ${_r(L.text, 0.302)};
-  --track-shadow:     none;`
+  --metab-card-bg:    transparent;`
   );
 })();
 

@@ -73,7 +73,7 @@ export function computeLayout(W, H, sidebarInset, zoom = 1) {
 
         // Row 2-3: Krebs cycle (orthogonal loop under Pyruvate)
         acetylCoA:  { cx: col(10), cy: r[2], label: 'Acetyl-CoA' },
-        aceticAcid: { cx: col(11), cy: r[2], label: 'Acetic Acid' },
+        aceticAcid: { cx: col(11), cy: r[2], label: 'Acetic acid' },
         citrate:    { cx: col(9),  cy: r[2], label: 'Citrate' },
         isocitrate: { cx: col(8),  cy: r[2], label: 'Isocitrate' },
         akg:        { cx: col(7),  cy: r[2], label: 'α-KG' },
@@ -84,7 +84,7 @@ export function computeLayout(W, H, sidebarInset, zoom = 1) {
         oaa:        { cx: col(9),  cy: r[3], label: 'OAA' },
 
         // Beta-oxidation: 2x2 grid below Acetyl-CoA
-        fattyAcid:  { cx: col(10), cy: r[3], label: 'Fatty Acid' },
+        fattyAcid:  { cx: col(10), cy: r[3], label: 'Fatty acid' },
         enoylCoA:   { cx: col(11), cy: r[3], label: 'Enoyl-CoA' },
         hydroxyCoA: { cx: col(11), cy: r[3] + rowH * 0.85, label: 'OH-CoA' },
         ketoCoA:    { cx: col(10), cy: r[3] + rowH * 0.85, label: 'Keto-CoA' },

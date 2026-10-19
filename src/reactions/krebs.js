@@ -14,7 +14,7 @@ export function advanceKrebs(idx, direction) {
         if (fwd && store.acetylCoA > 0 && store.oaa > 0) {
             let t = Math.min(store.acetylCoA, store.oaa, 2);
             store.acetylCoA -= t; store.oaa -= t; store.citrate += t;
-            return { enzyme: 'Citrate Synthase', reaction: 'Acetyl-CoA + OAA → Citrate', yields: null };
+            return { enzyme: 'Citrate synthase', reaction: 'Acetyl-CoA + OAA → Citrate', yields: null };
         }
     }
     // Step 1: Aconitase — isomerization (citrate → isocitrate)
@@ -46,7 +46,7 @@ export function advanceKrebs(idx, direction) {
         } else if (rev && store.succinate > 0 && store.atp > 0) {
             let t = Math.min(store.succinate, store.atp, 2);
             store.succinate -= t; store.succoa += t; store.atp -= t;
-            return { enzyme: 'SCS (Reverse)', reaction: 'Succinate + ATP → Succinyl-CoA', yields: { atpConsume: t } };
+            return { enzyme: 'SCS (reverse)', reaction: 'Succinate + ATP → Succinyl-CoA', yields: { atpConsume: t } };
         }
     }
     // Step 5: Succinate DH (Complex II) — FAD-linked oxidation, feeds electrons directly to ETC
@@ -58,7 +58,7 @@ export function advanceKrebs(idx, direction) {
         } else if (rev && store.fumarate > 0 && store.fadh2 > 0) {
             let t = Math.min(store.fumarate, store.fadh2, 2);
             store.fumarate -= t; store.succinate += t; store.fadh2 -= t;
-            return { enzyme: 'SDH (Reverse)', reaction: 'Fumarate + FADH₂ → Succinate', yields: null };
+            return { enzyme: 'SDH (reverse)', reaction: 'Fumarate + FADH₂ → Succinate', yields: null };
         }
     }
     // Step 6: Fumarase — hydration (fumarate → malate)
@@ -75,7 +75,7 @@ export function advanceKrebs(idx, direction) {
         } else if (rev && store.oaa > 0 && store.nadh > 0) {
             let t = Math.min(store.oaa, store.nadh, 2);
             store.oaa -= t; store.malate += t; store.nadh -= t;
-            return { enzyme: 'Malate DH (Reverse)', reaction: 'OAA + NADH → Malate', yields: { nadhConsume: t } };
+            return { enzyme: 'Malate DH (reverse)', reaction: 'OAA + NADH → Malate', yields: { nadhConsume: t } };
         }
     }
     return false;
@@ -90,5 +90,5 @@ export function runKrebsCycle() {
     store.atp += 2; store.atpSubstrate += 2;
     store.co2Produced += 4;
     counters.krebsTurns += 2;
-    return { enzyme: 'Krebs Cycle (×2)', reaction: '2 AcCoA → 4 CO₂ + 6 NADH + 2 FADH₂ + 2 ATP', yields: { nadh: 6, fadh2: 2, atp: 2 } };
+    return { enzyme: 'Krebs cycle (×2)', reaction: '2 AcCoA → 4 CO₂ + 6 NADH + 2 FADH₂ + 2 ATP', yields: { nadh: 6, fadh2: 2, atp: 2 } };
 }

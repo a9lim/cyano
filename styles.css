@@ -4,16 +4,10 @@
    All colors via CSS vars injected by colors.js — no hardcoded values.
    ═══════════════════════════════════════════════════════════════ */
 
-/* ───── Design Tokens ───── */
-:root {
-  --tog-shadow:       inset 0 1px 2px var(--tog-inset);
-}
-
-
 /* ───── Keyframes ───── */
 @keyframes pulse-dot {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50%      { opacity: 1; transform: scale(1.6); }
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 1; }
 }
 
 
@@ -129,25 +123,21 @@ main {
 }
 
 .step-enzyme {
-  font-family: var(--font-sans);
-  font-variation-settings: var(--fvs-prose);
-  font-weight: 700;
-  font-size: clamp(0.82rem, 1.2vw, 0.92rem);
-  color: var(--pw-ppp);
+  font-weight: 600;
+  font-size: var(--font-lg);
+  color: var(--text);
   line-height: 1.3;
 }
 
 .step-reaction {
-  font-size: clamp(0.68rem, 1vw, 0.76rem);
+  font-size: var(--font-sm);
   color: var(--text-secondary);
   line-height: 1.4;
   margin-top: 0.1rem;
 }
 
 .step-yield {
-  font-family: var(--font-mono);
-  font-variation-settings: var(--fvs-mono);
-  font-size: clamp(0.64rem, 0.95vw, 0.72rem);
+  font-size: var(--font-sm);
   color: var(--accent);
   margin-top: 0.08rem;
 }
@@ -167,19 +157,15 @@ main {
 }
 
 .counter-lbl {
-  font-family: var(--font-sans);
-  font-variation-settings: var(--fvs-prose);
-  font-size: clamp(0.56rem, 0.85vw, 0.62rem);
+  font-style: italic;
+  font-size: var(--font-sm);
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .counter-val {
-  font-family: var(--font-mono);
-  font-variation-settings: var(--fvs-mono);
-  font-weight: 700;
-  font-size: clamp(0.72rem, 1.05vw, 0.82rem);
+  font-weight: 600;
+  font-size: var(--font-base);
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .cv-krebs { color: var(--pw-krebs); }
@@ -213,21 +199,15 @@ main {
 }
 
 .metab-name {
-  font-family: var(--font-sans);
-  font-variation-settings: var(--fvs-prose);
-  font-size: clamp(0.52rem, 0.8vw, 0.58rem);
-  font-weight: 500;
+  font-size: var(--font-sm);
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .metab-pct {
-  font-family: var(--font-mono);
-  font-variation-settings: var(--fvs-mono);
-  font-weight: 700;
-  font-size: clamp(0.82rem, 1.2vw, 0.95rem);
-  transition: transform 0.2s var(--ease-out);
+  font-weight: 600;
+  font-size: var(--font-lg);
+  font-variant-numeric: lining-nums tabular-nums;
+  transition: opacity 0.3s var(--ease-out);
   display: inline-block;
 }
 
@@ -255,11 +235,8 @@ main {
 .metab-card[class*="mc-"] {
   background: color-mix(in srgb, var(--mc-color) 8%, transparent);
 }
-.metab-card[class*="mc-"]:hover { box-shadow: 0 0 16px color-mix(in srgb, var(--mc-color) 6%, transparent); }
 .metab-card[class*="mc-"] .metab-pct { color: var(--mc-color); }
-.metab-card[class*="mc-"] .metab-fill {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--mc-color), black 20%), var(--mc-color));
-}
+.metab-card[class*="mc-"] .metab-fill { background: var(--mc-color); }
 
 
 #atp-source-bar {
@@ -296,11 +273,6 @@ main {
 .tog-betaox { --tog-color: var(--pw-betaox); }
 .tog-uncoupling { --tog-color: var(--pw-ros); }
 
-/* Sunlight toggle gets extra glow to reinforce "light is on" */
-.tog-wrap input:checked + .tog-light {
-  box-shadow: 0 0 12px color-mix(in srgb, var(--tog-color) 30%, transparent);
-}
-
 
 /* ═══════════════════════════════════════
    HEALTH BAR — reuses .metab-track/.metab-fill
@@ -311,9 +283,10 @@ main {
 
 
 /* ═══════════════════════════════════════
-   STATS — scale-bounce animation on value change
+   STATS — opacity dip on value change (dashboard.js adds .bump for 150ms)
    ═══════════════════════════════════════ */
-.stat-value.bump, .metab-pct.bump { transform: scale(1.25); }
+.stat-value { transition: opacity 0.3s var(--ease-out); }
+.stat-value.bump, .metab-pct.bump { opacity: 0.45; }
 
 
 /* ═══════════════════════════════════════
@@ -342,16 +315,12 @@ main {
 
 .eq-name {
   display: inline;
-  font-family: var(--font-sans);
-  font-variation-settings: var(--fvs-prose);
   font-weight: 600;
-  font-size: var(--font-sm);
+  font-size: var(--font-base);
 }
 
 .eq-formula {
   display: block;
-  font-family: var(--font-mono);
-  font-variation-settings: var(--fvs-mono);
   font-size: var(--font-sm);
   color: var(--text-muted);
   line-height: 1.4;
@@ -383,15 +352,10 @@ main {
 }
 
 .legend-sub {
-  font-family: var(--font-sans);
-  font-variation-settings: var(--fvs-prose);
-  font-size: clamp(0.46rem, 0.7vw, 0.52rem);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  font-style: italic;
+  font-size: var(--font-sm);
   color: var(--text-muted);
   margin-top: 0.25rem;
-  opacity: 0.6;
 }
 
 .legend-sub:first-child { margin-top: 0; }
@@ -400,7 +364,7 @@ main {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: clamp(0.58rem, 0.88vw, 0.66rem);
+  font-size: var(--font-sm);
   color: var(--text-secondary);
 }
 
@@ -429,21 +393,8 @@ main {
 
 
 /* ═══════════════════════════════════════
-   DARK MODE — deeper toggle shadow + adjusted card/toggle opacity
+   DARK MODE — quieter gauge card tint
    ═══════════════════════════════════════ */
-[data-theme="dark"] {
-  --tog-shadow:       inset 0 1px 3px var(--tog-inset);
-}
-
-/* Sunlight toggle glow more prominent in dark mode */
-[data-theme="dark"] .tog-wrap input:checked + .tog-light {
-  border-color: color-mix(in srgb, var(--tog-color) 35%, transparent);
-  box-shadow: 0 0 14px color-mix(in srgb, var(--tog-color) 12%, transparent);
-}
-[data-theme="dark"] .tog-wrap input:checked + .tog-light .tog-thumb {
-  box-shadow: 0 0 14px color-mix(in srgb, var(--tog-color) 65%, transparent), 0 0 4px var(--tog-color);
-}
-
 [data-theme="dark"] .metab-card[class*="mc-"] { background: color-mix(in srgb, var(--mc-color) 5%, transparent); }
 
 
@@ -525,8 +476,7 @@ main {
 .sim-tooltip.canvas-tip {
   white-space: normal;
   max-width: 280px;
-  font: var(--font-base)/1.45 var(--font-sans);
-  font-variation-settings: var(--fvs-prose);
+  font: var(--font-base)/1.45 var(--font-text);
 }
 .sim-tooltip.canvas-tip strong {
   font-size: var(--font-base);
@@ -537,8 +487,7 @@ main {
   color: var(--text-secondary);
 }
 .sim-tooltip.canvas-tip .ct-eq {
-  font: var(--font-sm) var(--font-mono);
-  font-variation-settings: var(--fvs-mono);
+  font-size: var(--font-sm);
   color: var(--accent);
 }
 .sim-tooltip.canvas-tip em {

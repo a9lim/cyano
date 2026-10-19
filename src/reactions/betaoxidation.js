@@ -78,5 +78,5 @@ export function runBetaOxReverse() {
     store.nadph -= 14;
     store.atp -= 14;
     store.fattyAcid++;
-    return { enzyme: 'FA Synthesis (×7)', reaction: '8 Acetyl-CoA + 14 NADPH + 14 ATP → Palmitoyl-CoA', yields: { nadphConsume: 14, atpConsume: 14 } };
+    return { enzyme: 'FA synthesis (×7)', reaction: '8 Acetyl-CoA + 14 NADPH + 14 ATP → Palmitoyl-CoA', yields: { nadphConsume: 14, atpConsume: 14 } };
 }
