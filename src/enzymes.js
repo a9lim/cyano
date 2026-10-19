@@ -43,13 +43,14 @@ export function _cachedMeasure(ctx, text) {
 }
 
 // Widths measured while a webfont is still loading belong to the fallback face;
-// drop them once the real faces are in so pills re-measure.
+// drop them once the real faces (Newsreader, STIX Two for subscripts and
+// Greek, the emoji face) are in so pills re-measure.
 if (document.fonts) {
+  const reset = () => { _measureCache = {}; };
   Promise.all([
-    document.fonts.load(`500 10px ${_TEXT}`),
-    document.fonts.load(`italic 400 12px ${_TEXT}`),
+    window._loadTextFonts(),
     document.fonts.load(`38px ${_FONT.emoji}`, '\u2600\u263E'),
-  ]).then(() => { _measureCache = {}; }, () => { _measureCache = {}; });
+  ]).then(reset, reset);
 }
 
 const _gradCache = {};
