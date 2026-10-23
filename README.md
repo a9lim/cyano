@@ -1,75 +1,39 @@
 # Cyano
 
-An interactive cellular metabolism simulator. You step through biochemical reactions one at a time. Cofactor pools shift in real time, and you can see how glycolysis, the Krebs cycle, photosynthesis, and the electron transport chain all connect through shared metabolites.
+An interactive cellular-metabolism simulator. Step through glycolysis, the Krebs and Calvin cycles, the pentose phosphate pathway, fermentation, beta-oxidation, and a membrane electron transport chain one enzyme at a time, and watch the shared cofactor pools, the proton gradient, and reactive oxygen species respond.
 
-**[Try it](https://a9l.im/cyano)** | Part of the [a9l.im](https://a9l.im) portfolio
+**[Open it](https://a9l.im/cyano)** · part of [a9l.im](https://a9l.im)
 
-## What it covers
+## What's in it
 
-Interconnected pathways mapped onto a shared metabolite grid: glycolysis and gluconeogenesis, the pentose phosphate pathway, the Calvin cycle, the Krebs cycle, beta-oxidation and fatty acid synthesis, PDH, pyruvate decarboxylase, ADH (ethanol fermentation and salvage), ALDH, ACS, plus three ETC chains (linear light reactions, cyclic light reactions, oxidative phosphorylation). Bidirectional pathways (glycolysis, beta-oxidation) reverse direction with distinct cofactor requirements.
+- Connected carbon pathways on one metabolite grid: glycolysis and gluconeogenesis, the pentose phosphate pathway, the Calvin and Krebs cycles, pyruvate dehydrogenase, ethanol fermentation and aerobic ethanol salvage (PDC, ADH, ALDH, ACS), beta-oxidation, and a simplified fatty-acid synthesis. Reversible steps run backwards with their own cofactors.
+- A 14-component membrane carrying respiratory, linear photosynthetic, and cyclic electron flow: PSII, NDH-1 (Complex I), SDH (Complex II), plastoquinone, cytochrome b6f, plastocyanin, cytochrome c oxidase, PSI, ferredoxin, FNR, ATP synthase, bacteriorhodopsin, NNT, and an uncoupling protein, with animated electrons, protons, and photons.
+- Four conserved cofactor pools (ATP/ADP, NAD⁺/NADH, NADP⁺/NADPH, FAD/FADH₂) and a single proton gradient. ATP synthase spends four gradient units per ATP, and the gradient leaks faster with uncoupling on.
+- Allosteric control at PFK, PK/PEPCK, citrate synthase, isocitrate dehydrogenase, PDH, G6PDH, RuBisCO activase, ACAD, and fatty-acid synthesis. Inhibited enzymes dim, and a blocked click says why.
+- Reactive oxygen species from electron leak at Complex I and the Q-cycle, cleared by SOD and catalase or by NADPH-consuming glutathione peroxidase. Uncleared ROS lowers cell health.
+- Five stylized presets (cyanobacterium, animal cell, obligate anaerobe, plant chloroplast, archaeon) that set and lock pathways, set light and oxygen, and reset the starting cofactor ratios, plus a custom mode that unlocks everything.
+- Autoplay that runs the whole network under regulation; a sidebar with cofactor bars, 60-second sparklines, gas and water balances, ATP by source, ROS, and cell health; hover tooltips for enzymes and metabolites; and reference pages with the net equations.
 
-A 14-component membrane chain (PSII, NDH-1, SDH, PQ, Cyt b6f, PC, PSI, Fd, FNR, ATP synthase, Cyt c oxidase, bacteriorhodopsin, NNT, UCP) renders its proteins and electron carriers with distinct visual silhouettes.
+## Controls
 
-Allosteric control points (PFK, PK-reverse, citrate synthase, isocitrate DH, PDH, G6PDH, RuBisCO activase, ACAD, FA synthesis) gate reactions based on ATP/ADP ratio, NADH/NAD+ balance, and cofactor availability. Reactive oxygen species accumulate from electron leak at Complex I and the Q-cycle; SOD, catalase, and GPx scavenge them.
-
-## How to use it
-
-Click highlighted enzyme labels on the canvas to advance reactions. Available reactions depend on substrate levels and regulation state. Right-click bidirectional enzymes to run the reverse direction.
-
-Toggle sunlight and oxygen to shift the network between photosynthesis, aerobic respiration, and fermentation. Choose from five stylized presets (cyanobacterium, animal cell, obligate anaerobe, plant chloroplast, archaeon); each locks a different pathway/environment subset and resets the initial cofactor ratios.
-
-Auto-play mode runs the full metabolic program with allosteric regulation gating reaction rates. Real-time sparklines track ATP, NADH, NADPH, and FADH2 ratios plus the proton gradient over a 60-second window.
-
-Keyboard shortcuts: Space (auto-play), G (glucose), F (fatty acid), L (light), O (oxygen), U (uncoupling), 1-5 (pathway toggles), X (forward/reverse mode), R (reset), T (theme), S (sidebar).
+- Click an enzyme label to run it forward; right-click a reversible one to run it backwards. On touch, tap, and pick the direction with the forward/reverse button (X).
+- Space autoplay · `,` / `.` animation speed · R reset · G / F add glucose / fatty acid
+- L light · O oxygen · U uncoupling · 1–5 glycolysis, PPP, Calvin, Krebs, beta-oxidation
+- T theme (simulation / light / dark) · S sidebar · `[` / `]` sidebar tabs · `=` / `-` / `0` zoom; drag to pan, scroll to zoom
+- Shift+click (or long-press) an info button for its reference page.
 
 ## Running locally
 
-```bash
-cd path/to/a9lim.github.io && npm run build && python -m http.server --directory dist
-```
+The project has no build step of its own; it loads the shared design system from
+the parent site by absolute path. From a checkout of
+[a9lim.github.io](https://github.com/a9lim/a9lim.github.io) with submodules:
 
-The project itself has no compile or package-install step; the parent staging build assembles shared assets. Shared design modules load from the root site via absolute paths, and reference math loads KaTeX from the configured CDN, so build from the parent repository root and serve `dist/`.
+    npm install && npm run build
+    python3 -m http.server --directory dist 8000   # http://localhost:8000/cyano/
 
-## Architecture
+## How it's built
 
-Vanilla JavaScript with ES6 modules loaded via `<script type="module">`. Canvas 2D rendering uses `requestAnimationFrame`. Cofactor pools (ATP+ADP, NAD+NADH, NADP+NADPH, FAD+FADH2) are strictly conserved closed systems.
-
-```
-main.js                 Entry point, render loop, sparkline sampling
-colors.js               Pathway color palette extending shared tokens
-src/
-  state.js              Simulation state, conserved cofactor pools
-  renderer.js           Canvas 2D engine: layout, zoom, hit detection
-  enzymes.js            ETC complex shapes, metabolite nodes, enzyme tags
-  layout.js             Membrane and metabolite position computation
-  dashboard.js          Stat bars, sparklines, active step display
-  particles.js          Electron, proton, and photon animations
-  autoplay.js           Automated pathway cycling, proton leak, ROS damage
-  regulation.js         Allosteric regulation factors
-  organisms.js          Five organism preset configurations
-  anim.js               Fade and rotation accumulator helpers
-  theme.js              Three-state theme toggle
-  ui.js                 DOM cache, event binding, keyboard shortcuts
-  info.js               Metabolite info-tip data
-  reference.js          Reference-overlay content (net equations, notes)
-  reactions/
-    dispatch.js         Unified reaction dispatcher
-    glycolysis.js       Glycolysis and gluconeogenesis
-    krebs.js            Krebs cycle
-    calvin.js           Calvin cycle
-    ppp.js              Pentose phosphate pathway
-    etc.js              ETC complexes, ATP synthase, bacteriorhodopsin, NNT
-    fermentation.js     PDH, PDC, ADH, ALDH, ACS, ethanol fermentation
-    betaoxidation.js    Beta-oxidation and fatty acid synthesis
-    ros.js              ROS production and scavenging
-```
-
-## Sibling projects
-
-- [Geon](https://github.com/a9lim/geon) ([a9l.im/geon](https://a9l.im/geon))
-- [Gerry](https://github.com/a9lim/gerry) ([a9l.im/gerry](https://a9l.im/gerry))
-- [Shoals](https://github.com/a9lim/shoals) ([a9l.im/shoals](https://a9l.im/shoals))
-- [Scripture](https://github.com/a9lim/scripture) ([a9l.im/scripture](https://a9l.im/scripture))
+Vanilla JavaScript ES modules drawing on a Canvas 2D context, with no dependencies of its own; KaTeX renders the math on the reference pages. Every reaction mutates one shared store and passes through a single dispatcher that applies allosteric regulation first. A layout module places the membrane complexes and the metabolite grid, and the renderer redraws pathways, hitboxes, and particles each frame. [AGENTS.md](AGENTS.md) has the file map and the mechanics.
 
 ## License
 

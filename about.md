@@ -31,7 +31,7 @@ Users can add glucose or fatty acid, toggle five pathway groups plus light, oxyg
 
 ## Proton Gradient and Chemiosmotic Coupling
 
-Respiratory NADH entry pumps four protons at NDH-1, the shared cytochrome-b6f step pumps four more, and the terminal oxidase pumps two. Photosynthetic flow starts at PSII and can run linearly to FNR or cycle back through the carrier chain. Electron leaks at NDH-1 and the Q-cycle produce ROS stochastically.
+Respiratory NADH entry pumps four protons at NDH-1, the shared cytochrome-b6f step pumps four more, and the terminal oxidase pumps two. Linear photosynthetic flow runs from PSII to FNR; cyclic flow starts at PSI and returns through ferredoxin and the carrier chain. Electron leaks at NDH-1 and the Q-cycle produce ROS stochastically.
 
 ## Cofactor Conservation
 
