@@ -4,8 +4,8 @@
 import { simState, store } from './state.js';
 import { markDashboardDirty } from './dashboard.js';
 import { advanceStep } from './reactions/dispatch.js';
-import Particles from './particles.js';
 import Renderer from './renderer.js';
+import { SPECIMENS } from './specimens.js';
 
 let etcTimer = 0;
 let metabolicTimer = 0;
@@ -45,7 +45,11 @@ export function autoplayTick(dt) {
         advanceStep('atp_syn');
         advanceStep('etc_resp');
         advanceStep('etc_photo');
-        advanceStep('nnt');
+        // The specimen's membrane decides the rest: NNT only where it has one,
+        // and in the halophile's purple membrane bacteriorhodopsin pumps in the light
+        const can = (SPECIMENS[simState.specimen] || SPECIMENS.composite).can;
+        if (can.nnt) advanceStep('nnt');
+        if (can.brAuto && simState.lightOn) for (let i = 0; i < 4; i++) advanceStep('br');
     }
 
     // ── Metabolic slow tick (800ms) — round-robin one pathway per tick ──
@@ -104,7 +108,7 @@ export function protonLeakTick(dt) {
                 const count = Math.min(leaked, 3);
                 for (let i = 0; i < count; i++) {
                     setTimeout(() => {
-                        Particles.spawnProton(Renderer.membraneY, Renderer.membraneH, Renderer.etcComplexes.ucp.cx, 'down');
+                        if (Renderer.etcComplexes.ucp) Renderer.spawnProton(Renderer.etcComplexes.ucp.cx, 'down');
                     }, i * 120);
                 }
             }

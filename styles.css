@@ -1,499 +1,326 @@
-/* ═══════════════════════════════════════════════════════════════
-   styles.css — Project-specific overrides for lumen.
-   Shared patterns (glass, tool-btn, layout tokens) in /shared/base.css.
-   All colors via CSS vars injected by colors.js — no hardcoded values.
-   ═══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════
+   Lumen — the figure and its margin.
+   One scene (canvas) with a live caption under it, and a margin to the
+   right ruled off by a hairline: no cards, shadows or rounded panels. On
+   phones the margin becomes a sheet over the lower scene.
+   ═══════════════════════════════════════════════ */
 
-/* ───── Keyframes ───── */
-@keyframes pulse-dot {
-  0%, 100% { opacity: 0.35; }
-  50%      { opacity: 1; }
-}
-
-
-/* ───── Reference Overlay — above all other layers ───── */
 #reference-overlay { z-index: 9999; }
 
-/* ───── Base — full-viewport app shell ───── */
-/* .sim-body (shared-base.css) handles height, overflow, user-select */
-html {
-  font-size: clamp(14px, 1.5vw, 16px);
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
+/* ─── Stage ─── */
+.lu-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    height: 100vh;
+    height: 100dvh;
+}
+.lu-closed .lu-stage { grid-template-columns: minmax(0, 1fr) 0; }
+
+.lu-figure {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
 }
 
-body {
-  display: flex;
-  flex-direction: column;
+.lu-scene {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    touch-action: none;
 }
 
+#sim-canvas { display: block; }
 
-/* ═══════════════════════════════════════
-   THEME TOGGLE ICONS
-   ═══════════════════════════════════════ */
-#theme-btn .icon-auto,
-#theme-btn .icon-sun,
-#theme-btn .icon-moon { display: none; }
+.lu-capbar {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 9px 20px 12px;
+    border-top: 1px solid var(--border);
+}
+.lu-capbar .caption { flex: 1; min-width: 0; margin: 0; }
 
-#theme-btn[data-theme="auto"] .icon-auto { display: block; }
-#theme-btn[data-theme="light"] .icon-sun { display: block; }
-#theme-btn[data-theme="dark"] .icon-moon { display: block; }
-
-
-/* ═══════════════════════════════════════
-   FORWARD / REVERSE MODE BUTTON
-   ═══════════════════════════════════════ */
-#mode-btn .mode-rev { display: none; }
-#mode-btn[aria-pressed="true"] .mode-fwd { display: none; }
-#mode-btn[aria-pressed="true"] .mode-rev { display: block; }
-
-
-
-
-/* ═══════════════════════════════════════
-   MAIN LAYOUT
-   ═══════════════════════════════════════ */
-main {
-  flex: 1;
-  min-height: 0;
-  position: relative;
-  z-index: 1;
+.lu-zoom { display: flex; align-items: baseline; gap: 2px; flex-shrink: 0; }
+.lu-zoom-level {
+    min-width: 3.2em;
+    text-align: center;
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    font-variant-numeric: lining-nums tabular-nums;
 }
 
+/* ─── Buttons: text on the ground, a hairline underline on hover ─── */
+.lu-btn {
+    padding: 2px 6px;
+    border: 0;
+    background: none;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: var(--font-base);
+    cursor: pointer;
+    text-decoration: underline transparent;
+    text-underline-offset: 0.22em;
+    text-decoration-thickness: 1px;
+    transition: color 0.15s var(--ease-out), text-decoration-color 0.15s var(--ease-out);
+}
+.lu-btn:hover { color: var(--text); text-decoration-color: var(--border-strong); }
+.lu-btn[aria-pressed="true"] { color: var(--text); text-decoration-color: var(--text); }
 
-/* ═══════════════════════════════════════
-   CANVAS CONTAINER
-   .canvas-container (shared-base.css) handles size, overflow, position, touch-action
-   ═══════════════════════════════════════ */
-#sim-container {
-  background: var(--bg-scrim);
-  cursor: grab;
-  transition: background 0.3s var(--ease-out);
+.lu-open {
+    position: absolute;
+    top: 16px;
+    right: 18px;
+    z-index: 5;
+    padding: 4px 2px;
+    border: 0;
+    border-bottom: 1px solid var(--border-strong);
+    background: none;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: var(--font-base);
+    cursor: pointer;
+    display: none;
+}
+.lu-open:hover { color: var(--text); border-bottom-color: var(--text); }
+.lu-closed .lu-open { display: block; }
+
+/* ─── Margin ─── */
+.lu-margin {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    border-left: 1px solid var(--border);
+    background: var(--bg-canvas);
+    user-select: text;
+}
+.lu-closed .lu-margin { visibility: hidden; border-left: 0; }
+
+.lu-margin-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 0 20px;
+    border-bottom: 1px solid var(--border);
 }
 
-#sim-container:active { cursor: grabbing; }
+.lu-tabs { display: flex; gap: 18px; }
+.lu-tabs .tab-btn {
+    padding: 6px 0 9px;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    margin-bottom: -1px;
+    background: none;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: var(--font-lg);
+    cursor: pointer;
+    transition: color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+.lu-tabs .tab-btn:hover { color: var(--text); }
+.lu-tabs .tab-btn.active { color: var(--text); border-bottom-color: var(--text); }
+.lu-close { font-size: 1.25rem; line-height: 1; color: var(--text-muted); }
 
-#sim-canvas {
-  display: block;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-  touch-action: none;
+.lu-panels { flex: 1; overflow-y: auto; padding: 4px 20px 24px; scrollbar-width: thin; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.lu-group { padding: 14px 0 12px; border-bottom: 1px solid var(--border); }
+.lu-group:last-of-type { border-bottom: 0; }
+.lu-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0 0 8px;
+    font-size: var(--font-base);
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-muted);
 }
 
+.lu-desc { margin: 8px 0 0; font-size: var(--font-sm); line-height: 1.45; color: var(--text-secondary); }
 
-/* ═══════════════════════════════════════
-   FLOATING SUBSTRATE BAR
-   ═══════════════════════════════════════ */
-/* .pill-group (shared-base.css) handles flex layout */
-/* .pill-btn (shared-base.css) handles base pill button styles */
-/* .pill-btn-left / .pill-btn-right (shared-base.css) handle border-radius */
-/* .divider (shared-base.css) handles divider styles */
-
-.substrate-pill-left  { color: var(--pw-calvin); }
-.substrate-pill-right { color: var(--pw-betaox); }
-
-.substrate-pill svg {
-  width: 13px;
-  height: 13px;
-  flex-shrink: 0;
+/* Specimens: a list, the chosen one in ink with a rule beside it */
+.lu-specimens { display: flex; flex-direction: column; align-items: flex-start; }
+.lu-specimens button {
+    position: relative;
+    padding: 3px 0 3px 14px;
+    border: 0;
+    background: none;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: var(--font-lg);
+    text-align: left;
+    cursor: pointer;
+    transition: color 0.15s var(--ease-out);
+}
+.lu-specimens button:hover { color: var(--text); }
+.lu-specimens button[aria-checked="true"] { color: var(--text); }
+.lu-specimens button[aria-checked="true"]::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 50%;
+    width: 8px;
+    border-top: 1px solid var(--text);
 }
 
+/* Rows: a hairline box, a swatch of the line's ink, the name */
+.lu-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 30px;
+    font-size: var(--font-base);
+    color: var(--text);
+    cursor: pointer;
+}
+.lu-row .lu-name { flex: 1; }
+.lu-row kbd {
+    font: inherit;
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    min-width: 1.2em;
+    text-align: right;
+}
+.lu-row input[type="checkbox"] {
+    appearance: none;
+    flex-shrink: 0;
+    width: 13px;
+    height: 13px;
+    margin: 0;
+    border: 1px solid var(--text-muted);
+    background: none;
+    cursor: pointer;
+    display: grid;
+    place-content: center;
+}
+.lu-row input[type="checkbox"]::after {
+    content: '';
+    width: 7px; height: 7px;
+    background: var(--line, var(--text));
+    transform: scale(0);
+    transition: transform 0.12s var(--ease-out);
+}
+.lu-row input[type="checkbox"]:checked { border-color: var(--line, var(--text)); }
+.lu-row input[type="checkbox"]:checked::after { transform: scale(1); }
+.lu-row input[type="checkbox"]:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 
-/* ═══════════════════════════════════════
-   PULSE DOT
-   ═══════════════════════════════════════ */
-.pulse-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  animation: pulse-dot 2.5s var(--ease-in-out) infinite;
-  flex-shrink: 0;
-  vertical-align: middle;
-  margin-right: 0.35rem;
+.lu-swatch { width: 22px; border-top: 3px solid var(--line); flex-shrink: 0; }
+.lu-row input:not(:checked) ~ .lu-swatch { border-top: 1px dashed var(--line); }
+.lu-row.locked { color: var(--text-muted); cursor: not-allowed; }
+.lu-row.locked .lu-name { text-decoration: line-through; text-decoration-thickness: 1px; }
+.lu-row.locked .lu-swatch { opacity: 0.4; }
+
+.lu-actions { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 0 0 6px -6px; }
+.lu-seg .lu-btn { padding: 2px 4px; }
+.lu-val { font-size: var(--font-sm); color: var(--text-secondary); font-variant-numeric: lining-nums tabular-nums; min-width: 2.2em; text-align: center; }
+
+.panel-hint { margin: 14px 0 0; font-size: var(--font-sm); font-style: italic; line-height: 1.45; color: var(--text-muted); }
+
+/* ─── Stats ─── */
+.lu-step .step-enzyme { font-size: var(--font-lg); }
+.lu-step .step-reaction { margin-top: 2px; font-size: var(--font-sm); color: var(--text-secondary); }
+.lu-step .step-yield { margin-top: 2px; font-size: var(--font-sm); font-style: italic; color: var(--text-muted); }
+.lu-counters { display: flex; flex-wrap: wrap; gap: 2px 14px; margin-top: 10px; font-size: var(--font-sm); font-variant-numeric: lining-nums tabular-nums; }
+.lu-counters .lu-name { color: var(--text-muted); font-style: italic; }
+
+.lu-pool { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 3px 8px; margin-bottom: 12px; font-size: var(--font-sm); }
+.lu-pool .lu-name { color: var(--text-secondary); }
+.lu-pool .lu-val { color: var(--text); text-align: right; }
+.lu-bar { display: block; grid-column: 1 / -1; height: 4px; border: 1px solid var(--border-strong); }
+.lu-bar > span { display: block; height: 100%; width: 0; background: var(--line, var(--text)); transition: width 0.3s var(--ease-out); }
+.lu-spark { display: block; grid-column: 1 / -1; width: 100%; height: 26px; }
+.lu-spark-red { margin-top: 6px; }
+
+.lu-stat { display: flex; justify-content: space-between; align-items: baseline; min-height: 24px; font-size: var(--font-sm); }
+.lu-stat .lu-name { color: var(--text-secondary); }
+.lu-stat .lu-val { color: var(--text); text-align: right; }
+.lu-health { margin: 2px 0 6px; }
+.lu-health > span { background: var(--ink-viridian); }
+.lu-health > span[data-level="low"] { background: var(--ink-sienna); }
+/* Critical health is drawn hatched as well as red, so it reads without colour */
+.lu-health > span[data-level="critical"] { background: repeating-linear-gradient(135deg, var(--accent) 0 2px, transparent 2px 4px); }
+
+.lu-split { display: flex; height: 4px; margin-top: 6px; border: 1px solid var(--border-strong); }
+.lu-split > span { display: block; height: 100%; width: 0; transition: width 0.3s var(--ease-out); }
+#atp-source-sub { background: var(--ink-sienna); }
+#atp-source-ox { background: repeating-linear-gradient(90deg, var(--ink-mulberry) 0 2px, transparent 2px 3px); }
+
+/* ─── Reference ─── */
+.lu-eqs, .lu-legend { margin: 0; font-size: var(--font-sm); line-height: 1.4; }
+.lu-eqs dt { margin-top: 8px; color: var(--text); padding-left: 30px; position: relative; }
+.lu-eqs dt::before { content: ''; position: absolute; left: 0; top: 0.7em; width: 22px; border-top: 3px solid var(--line, var(--text-muted)); }
+.lu-eqs dt:first-child { margin-top: 0; }
+.lu-eqs dd { margin: 1px 0 0 30px; color: var(--text-secondary); }
+
+.lu-legend { display: grid; grid-template-columns: 30px 1fr; gap: 7px 8px; align-items: start; }
+.lu-legend dd { margin: 0; color: var(--text-secondary); }
+.lg { display: block; margin-top: 0.35em; }
+.lg-proton { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-left: 8px; }
+.lg-electron { width: 6px; height: 6px; border-radius: 50%; border: 1.2px solid var(--text); margin-left: 8px; }
+.lg-photon { width: 22px; height: 6px; background: linear-gradient(90deg, transparent 0 0) ; border-top: 1.4px dotted var(--ink-ochre); }
+.lg-line { width: 22px; border-top: 4px solid var(--ink-prussian); }
+.lg-off { width: 22px; border-top: 1px dashed var(--ink-prussian); margin-top: 0.6em; }
+.lg-hub { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--text); margin-left: 6px; }
+.lg-bar { width: 22px; height: 11px; background: linear-gradient(var(--text), var(--text)) center / 1.5px 100% no-repeat, linear-gradient(var(--ink-sienna), var(--ink-sienna)) center / 100% 3px no-repeat; }
+
+.lu-ref-title { margin: 0; padding: 6px 0 9px; font-size: var(--font-lg); font-weight: 400; }
+#reference-overlay .sim-overlay-panel {
+    width: min(640px, calc(100vw - 32px));
+    max-height: min(80vh, 760px);
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-canvas);
+    border: 1px solid var(--border-strong);
+}
+#reference-overlay .sim-overlay-body { overflow-y: auto; padding: 12px 20px 20px; }
+
+/* ─── Theme button: sun, moon, or the half-disc for "follows sunlight" ─── */
+#theme-btn .icon-auto { display: none; }
+#theme-btn[data-mode="sun"] .icon-auto { display: block; }
+#theme-btn[data-mode="sun"] .icon-sun, #theme-btn[data-mode="sun"] .icon-moon { display: none !important; }
+
+/* ─── Canvas tooltip ─── */
+.sim-tooltip.canvas-tip { white-space: normal; max-width: 280px; font: var(--font-base)/1.45 var(--font-text); }
+.sim-tooltip.canvas-tip strong { font-size: var(--font-base); font-weight: 500; color: var(--text); }
+.sim-tooltip.canvas-tip .ct-full { font-size: var(--font-sm); color: var(--text-secondary); }
+.sim-tooltip.canvas-tip .ct-eq { font-size: var(--font-sm); color: var(--text); }
+.sim-tooltip.canvas-tip em { font-size: var(--font-sm); color: var(--text-muted); }
+
+/* ─── Phones: the margin is a sheet ─── */
+@media (max-width: 760px) {
+    .lu-stage, .lu-closed .lu-stage { grid-template-columns: minmax(0, 1fr); }
+    .lu-capbar { padding: 8px 12px 10px; gap: 8px; }
+    .lu-capbar .caption { font-size: 0.86rem; line-height: 1.4; }
+    .lu-zoom .lu-zoom-level, #zoom-reset-btn { display: none; }
+    /* The scene starts under the colophon, so a panned map never runs beneath it */
+    .lu-figure { padding-top: 54px; }
+    .lu-open { display: block; position: fixed; top: 16px; right: 12px; }
+    .lu-margin {
+        position: fixed;
+        left: 0; right: 0; bottom: 0;
+        z-index: 200;
+        max-height: 64vh;
+        border-left: 0;
+        border-top: 1px solid var(--border-strong);
+        transition: transform 0.35s var(--ease-out), visibility 0s;
+    }
+    .lu-closed .lu-margin { visibility: hidden; transform: translateY(100%); transition: transform 0.35s var(--ease-out), visibility 0s 0.35s; }
+    .lu-margin-head { padding: 8px 12px 0 16px; }
+    .lu-panels { padding: 2px 16px 20px; }
+    .lu-tabs .tab-btn { font-size: var(--font-base); }
+    .lu-specimens { flex-direction: row; flex-wrap: wrap; gap: 0 14px; }
+    .lu-specimens button { font-size: var(--font-base); }
+    .lu-row { min-height: 40px; }
 }
 
-
-/* ═══════════════════════════════════════
-   ACTIVE STEP
-   ═══════════════════════════════════════ */
-.active-step-body {
-  min-height: 2.8rem;
-}
-
-.step-enzyme {
-  font-weight: 600;
-  font-size: var(--font-lg);
-  color: var(--text);
-  line-height: 1.3;
-}
-
-.step-reaction {
-  font-size: var(--font-sm);
-  color: var(--text-secondary);
-  line-height: 1.4;
-  margin-top: 0.1rem;
-}
-
-.step-yield {
-  font-size: var(--font-sm);
-  color: var(--accent);
-  margin-top: 0.08rem;
-}
-
-.turn-counters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.45rem;
-  padding-top: 0.4rem;
-}
-
-.counter {
-  display: flex;
-  align-items: baseline;
-  gap: 0.25rem;
-}
-
-.counter-lbl {
-  font-style: italic;
-  font-size: var(--font-sm);
-  color: var(--text-muted);
-}
-
-.counter-val {
-  font-weight: 600;
-  font-size: var(--font-base);
-  font-variant-numeric: lining-nums tabular-nums;
-}
-
-.cv-krebs { color: var(--pw-krebs); }
-.cv-calvin { color: var(--pw-calvin); }
-.cv-glyc { color: var(--pw-glyc); }
-.cv-ppp { color: var(--pw-ppp); }
-.cv-betaox { color: var(--pw-betaox); }
-
-
-/* ═══════════════════════════════════════
-   METABOLITE GAUGES
-   ═══════════════════════════════════════ */
-.metab-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.35rem;
-}
-
-.metab-card {
-  background: var(--metab-card-bg);
-  border-radius: var(--radius);
-  padding: 0.4rem 0.5rem;
-  transition: background 0.28s var(--ease-smooth);
-}
-
-.metab-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 0.25rem;
-}
-
-.metab-name {
-  font-size: var(--font-sm);
-  color: var(--text-muted);
-}
-
-.metab-pct {
-  font-weight: 600;
-  font-size: var(--font-lg);
-  font-variant-numeric: lining-nums tabular-nums;
-  transition: opacity 0.3s var(--ease-out);
-  display: inline-block;
-}
-
-.metab-track {
-  width: 100%;
-  height: 4px;
-  background: var(--bg-track);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.metab-fill {
-  height: 100%;
-  width: 0%;
-  border-radius: var(--radius);
-  transition: width 0.4s var(--ease-smooth);
-}
-
-/* Per-card --mc-color assignments; one generic rule styles all variants */
-.mc-atp   { --mc-color: var(--co-atp); }
-.mc-nadh  { --mc-color: var(--co-nadh); }
-.mc-nadph { --mc-color: var(--co-nadph); }
-.mc-fadh2 { --mc-color: var(--co-fadh2); }
-
-.metab-card[class*="mc-"] {
-  background: color-mix(in srgb, var(--mc-color) 8%, transparent);
-}
-.metab-card[class*="mc-"] .metab-pct { color: var(--mc-color); }
-.metab-card[class*="mc-"] .metab-fill { background: var(--mc-color); }
-
-
-#atp-source-bar {
-  display: flex;
-  height: 6px;
-  border-radius: var(--radius);
-  overflow: hidden;
-  width: 100%;
-}
-
-#atp-source-sub {
-  background: var(--pw-glyc);
-  height: 100%;
-  transition: width 0.3s;
-}
-
-#atp-source-ox {
-  background: var(--pw-krebs);
-  height: 100%;
-  transition: width 0.3s;
-}
-
-
-/* ═══════════════════════════════════════
-   TOGGLE SWITCHES — --tog-color per pathway
-   Generic toggle mechanics in shared-base.css
-   ═══════════════════════════════════════ */
-.tog-light  { --tog-color: var(--co-atp); }
-.tog-o2     { --tog-color: var(--co-nadh); }
-.tog-glyc   { --tog-color: var(--pw-glyc); }
-.tog-ppp    { --tog-color: var(--pw-ppp); }
-.tog-calvin { --tog-color: var(--pw-calvin); }
-.tog-krebs  { --tog-color: var(--pw-krebs); }
-.tog-betaox { --tog-color: var(--pw-betaox); }
-.tog-uncoupling { --tog-color: var(--pw-ros); }
-
-
-/* ═══════════════════════════════════════
-   HEALTH BAR — reuses .metab-track/.metab-fill
-   ═══════════════════════════════════════ */
-.health-track {
-  margin-bottom: 0.35rem;
-}
-
-
-/* ═══════════════════════════════════════
-   STATS — opacity dip on value change (dashboard.js adds .bump for 150ms)
-   ═══════════════════════════════════════ */
-.stat-value { transition: opacity 0.3s var(--ease-out); }
-.stat-value.bump, .metab-pct.bump { opacity: 0.45; }
-
-
-/* ═══════════════════════════════════════
-   REFERENCE: EQUATIONS
-   ═══════════════════════════════════════ */
-.ref-group {
-  margin-bottom: 0.6rem;
-}
-
-.ref-group:last-child { margin-bottom: 0; }
-
-.equation {
-  padding: 4px 0;
-}
-
-.eq-dot {
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: currentColor;
-  margin-right: 0.4em;
-  vertical-align: middle;
-  opacity: 0.65;
-}
-
-.eq-name {
-  display: inline;
-  font-weight: 600;
-  font-size: var(--font-base);
-}
-
-.eq-formula {
-  display: block;
-  font-size: var(--font-sm);
-  color: var(--text-muted);
-  line-height: 1.4;
-  padding-left: calc(5px + 0.4em);
-  margin-top: 2px;
-}
-
-/* --eq-color per pathway; one generic rule colors .eq-name + .eq-dot */
-.eq-glycolysis { --eq-color: var(--pw-glyc); }
-.eq-calvin     { --eq-color: var(--pw-calvin); }
-.eq-krebs      { --eq-color: var(--pw-krebs); }
-.eq-ppp        { --eq-color: var(--pw-ppp); }
-.eq-oxphos     { --eq-color: var(--pw-krebs); }
-.eq-light      { --eq-color: var(--pw-calvin); }
-.eq-cyclic     { --eq-color: var(--pw-cyclic); }
-.eq-ferment    { --eq-color: var(--pw-ferment); }
-.eq-betaox     { --eq-color: var(--pw-betaox); }
-.equation[class*="eq-"] .eq-name,
-.equation[class*="eq-"] .eq-dot { color: var(--eq-color); }
-
-
-/* ═══════════════════════════════════════
-   REFERENCE: LEGEND
-   ═══════════════════════════════════════ */
-.legend-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.12rem;
-}
-
-.legend-sub {
-  font-style: italic;
-  font-size: var(--font-sm);
-  color: var(--text-muted);
-  margin-top: 0.25rem;
-}
-
-.legend-sub:first-child { margin-top: 0; }
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: var(--font-sm);
-  color: var(--text-secondary);
-}
-
-.legend-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.legend-dot.respiratory    { --dot-color: var(--pw-krebs); }
-.legend-dot.photosynthetic { --dot-color: var(--pw-calvin); }
-.legend-dot.shared         { --dot-color: var(--pw-glyc); }
-.legend-dot.ppp-dot        { --dot-color: var(--pw-ppp); }
-.legend-dot.cyclic-dot     { --dot-color: var(--pw-cyclic); }
-.legend-dot.ferment-dot    { --dot-color: var(--pw-ferment); }
-.legend-dot.betaox-dot     { --dot-color: var(--pw-betaox); }
-.legend-dot.electron       { --dot-color: var(--pw-electron); }
-.legend-dot.proton         { --dot-color: var(--pw-proton); }
-.legend-dot.photon         { --dot-color: var(--pw-photon); }
-
-.legend-dot[class] { background: var(--dot-color); }
-.legend-dot.electron,
-.legend-dot.proton,
-.legend-dot.photon { }
-
-
-/* ═══════════════════════════════════════
-   DARK MODE — quieter gauge card tint
-   ═══════════════════════════════════════ */
-[data-theme="dark"] .metab-card[class*="mc-"] { background: color-mix(in srgb, var(--mc-color) 5%, transparent); }
-
-
-/* ═══════════════════════════════════════
-   RESPONSIVE — Tablet (≤ 900px)
-   Canvas fills viewport; dashboard becomes bottom sheet
-   ═══════════════════════════════════════ */
-@media (max-width: 900px) {
-  /* body overflow handled by .sim-body in shared-base.css */
-  /* #top-bar positioning handled by shared-base.css (.sim-toolbar) */
-
-  main {
-    position: fixed;
-    inset: 0;
-    height: 100%;
-  }
-
-  #sim-container {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  /* Bottom sheet handled by .sim-panel in shared-base.css */
-  /* Only override z-index (shared uses 90, lumen needs 95) */
-  #dashboard {
-    z-index: 95;
-  }
-
-  #glucose-bar {
-    bottom: 6px;
-    gap: 3px;
-    padding: 4px 6px;
-  }
-
-}
-
-
-/* ═══════════════════════════════════════
-   RESPONSIVE — Phone (≤ 600px)
-   ═══════════════════════════════════════ */
-@media (max-width: 600px) {
-  #top-bar {
-    gap: 0.4rem;
-  }
-
-  /* .tool-btn sizing handled by shared-base.css (32x32 at 600px) */
-
-  .metab-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 0.25rem;
-  }
-
-  .metab-card {
-    padding: 0.3rem 0.4rem;
-  }
-
-  .turn-counters {
-    gap: 0.35rem;
-  }
-}
-
-
-/* ═══════════════════════════════════════
-   ACCESSIBILITY — coarse pointer touch targets
-   ═══════════════════════════════════════ */
 @media (pointer: coarse) {
-  .tab-btn {
-    padding: 0.65rem 0.4rem 0.55rem;
-  }
+    .lu-row kbd { display: none; }
 }
 
-
-.organism-desc { font-size: var(--font-base); color: var(--text-muted); margin: 4px 0 0; }
-
-
-/* ───── Canvas Tooltip — uses shared-tooltip.js (sim-tooltip) with lumen overrides ───── */
-.sim-tooltip.canvas-tip {
-  white-space: normal;
-  max-width: 280px;
-  font: var(--font-base)/1.45 var(--font-text);
+@media (prefers-reduced-motion: reduce) {
+    .lu-margin, .lu-closed .lu-margin { transition: none; }
 }
-.sim-tooltip.canvas-tip strong {
-  font-size: var(--font-base);
-  color: var(--text);
-}
-.sim-tooltip.canvas-tip .ct-full {
-  font-size: var(--font-sm);
-  color: var(--text-secondary);
-}
-.sim-tooltip.canvas-tip .ct-eq {
-  font-size: var(--font-sm);
-  color: var(--accent);
-}
-.sim-tooltip.canvas-tip em {
-  font-size: var(--font-sm);
-  color: var(--text-muted);
-}
-
-
-/* Sparkline styles provided by .sparkline in shared-base.css */

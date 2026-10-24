@@ -2,7 +2,7 @@
 name: Lumen
 title: Lumen — Interactive Cellular Metabolism Simulator
 description: Trace connected carbon metabolism, electron transport, conserved cofactor pools, enzyme feedback, and reactive oxygen species across five stylized cell presets.
-updated: 2026-07-17
+updated: 2026-10-24
 ---
 
 # Lumen — Interactive Cellular Metabolism Simulator
@@ -15,7 +15,7 @@ The carbon network covers glycolysis and its reverse path, the pentose phosphate
 
 ## Electron Transport Chain
 
-Fourteen rendered membrane components include photosystems, respiratory entry points, mobile carriers, cytochrome b6f, cytochrome c oxidase, ATP synthase, bacteriorhodopsin, NNT, and UCP. The model stores a single proton-gradient value rather than separate voltage and pH terms. ATP synthase consumes four gradient units per ATP; passive leak removes 2% every half-second, or 10% with uncoupling enabled.
+The membrane is drawn in cross-section, with lipids, complexes, and carriers at roughly true relative size. The model knows fourteen membrane components: photosystems, respiratory entry points, mobile carriers, cytochrome b6f, cytochrome c oxidase, ATP synthase, bacteriorhodopsin, NNT, and UCP. The model stores a single proton-gradient value rather than separate voltage and pH terms, and the figure draws one proton for each unit of it. ATP synthase consumes four gradient units per ATP, drawn as a third of a turn of its twelve-subunit rotor; passive leak removes 2% every half-second, or 10% with uncoupling enabled.
 
 ## Regulation
 
@@ -25,9 +25,11 @@ The dispatcher applies explicit feedback gates before substrate mutation. High A
 
 Five stylized presets configure different pathway and environment subsets: cyanobacterium, animal cell, obligate anaerobe, plant chloroplast, and archaeon. Selecting one resets the shared pools, applies preset-specific ATP/NADH/NADPH/FADH2 ratios, toggles light and oxygen, and locks pathways marked unavailable by that preset.
 
+Each preset also shows its own membrane, which carries only the complexes that organism has: a cyanobacterial thylakoid with phycobilisomes, where respiration and photosynthesis share plastoquinone and plastocyanin; a chloroplast thylakoid with photosystem II in a stacked granum and photosystem I and ATP synthase in the stroma lamella; a mitochondrial crista with ATP synthase dimers at its tip; an anaerobe's plasma membrane under a peptidoglycan wall, with no chain at all; and a halophile's purple membrane, where bacteriorhodopsin pumps one proton per photon under autoplay. A membrane reaction runs only where its complexes are present, so mitochondria ignore light and the chloroplast has no respiratory chain. Custom shows a composite membrane with every complex.
+
 ## Educational Use
 
-Users can add glucose or fatty acid, toggle five pathway groups plus light, oxygen, and uncoupling, then compare step-by-step reactions with the autoplay schedule. Sidebar readouts expose cofactor ratios, gas and water balances, ATP sources, ROS, cell health, and sixty-second sparklines.
+Users can add glucose or fatty acid, toggle five pathway groups plus light, oxygen, and uncoupling, then compare step-by-step reactions with the autoplay schedule. The carbon network is drawn as a transit map: clicking an enzyme's segment runs it, line weight and train speed show recent flux, and trains run backward when a pathway reverses. Readouts in the margin expose cofactor ratios, gas and water balances, ATP sources, ROS, cell health, and sixty-second sparklines.
 
 ## Proton Gradient and Chemiosmotic Coupling
 
@@ -39,7 +41,7 @@ Four closed cofactor pairs are conserved by fixed totals: ATP/ADP, NAD+/NADH, NA
 
 ## Accessibility
 
-Lumen provides keyboard shortcuts, labeled controls, light/dark/simulation-following themes, and numerical sidebar readouts. Electron, proton, and photon particles create continuous motion during active reactions; step-by-step mode is available instead of autoplay.
+Lumen provides keyboard shortcuts, labeled controls, light, dark, and sunlight-following themes, and numerical readouts in the margin. Line states carry patterns as well as color: switched-off lines are dashed, blocked enzymes carry a bar, and trains are chevrons that point the way carbon runs. Electron, proton, and photon particles create continuous motion during active reactions; with reduced motion requested, Lumen opens on a still frame and moves only after the first interaction, and step-by-step mode is available instead of autoplay.
 
 ## Fatty Acid Metabolism
 

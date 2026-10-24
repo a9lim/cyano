@@ -46,7 +46,11 @@ const _dispatch = {
     run_ros_scavenge:       ()     => runROSScavenging(),
 };
 
-const _rosColor = '--pw-ros';
+// ─── Reaction Observers ───
+// Called after every reaction that fires, with the same arguments plus its
+// result. The renderer listens here to bind line weight and train speed to flux.
+const _observers = [];
+export function onReaction(fn) { _observers.push(fn); }
 
 // ─── Reverse-Direction Color Map ───
 // Shared glycolysis enzymes that serve a different pathway in reverse.
@@ -113,6 +117,7 @@ export function advanceStep(pathway, stepIndex, direction) {
         if (result.enzyme) showActiveStep(result.enzyme, result.reaction, result.yields, colorPw);
         const nudge = _rotNudge[pathway];
         if (nudge) simState[nudge.rot].targetAngle += direction === 'reverse' ? -nudge.delta : nudge.delta;
+        for (let i = 0; i < _observers.length; i++) _observers[i](pathway, stepIndex, direction, result);
     }
 
     markDashboardDirty();

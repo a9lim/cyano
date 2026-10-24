@@ -1,320 +1,244 @@
-// UI wiring — DOM cache, event binding, sidebar, organism presets,
-// intro screen, keyboard shortcuts, and info tip registration.
+// UI wiring — the colophon, the margin (specimen, lines, conditions, feed),
+// organism presets and their specimens, keyboard shortcuts, the about panel,
+// info tips and the reference overlay.
 import { simState, store, resetState } from './state.js';
-import { updateTheme, cycleTheme } from './theme.js';
+import { updateTheme, cycleTheme, systemTheme } from './theme.js';
 import { initDashboard, updateDashboard } from './dashboard.js';
 import { resetAutoplayTimers } from './autoplay.js';
+import { resetFlux } from './flux.js';
+import { mapTags } from './mapdraw.js';
 import Renderer from './renderer.js';
 import Particles from './particles.js';
 import { ORGANISMS } from './organisms.js';
+import { SPECIMENS, SPECIMEN_OF } from './specimens.js';
 import { REFERENCE } from './reference.js';
 
-const _SIDEBAR_W = 374; // panel-w(350) + right gap(24)
-function _isMobile() { return window.innerWidth <= 900; }
+const _isPhone = () => window.matchMedia('(max-width: 760px)').matches;
+const _buzz = (k) => { if (typeof _haptics !== 'undefined') _haptics.trigger(k); };
 
 let reverseMode = false;
 window._lumenReverseMode = () => reverseMode;
 
-/** Build the DOM element cache. Only IDs matter — class names/hierarchy can change freely. */
+/** The DOM cache. Only IDs matter. */
 export function cacheDOMElements() {
+    const $ = (id) => document.getElementById(id);
     return {
-        canvas: document.getElementById('sim-canvas'),
-        lightToggle: document.getElementById('light-toggle'),
-        oxygenToggle: document.getElementById('oxygen-toggle'),
-        glycToggle: document.getElementById('glyc-toggle'),
-        pppToggle: document.getElementById('ppp-toggle'),
-        calvinToggle: document.getElementById('calvin-toggle'),
-        krebsToggle: document.getElementById('krebs-toggle'),
-        betaoxToggle: document.getElementById('betaox-toggle'),
-        playBtn: document.getElementById('play-btn'),
-        uncouplingToggle: document.getElementById('uncoupling-toggle'),
-        protonsLeaked: document.getElementById('protons-leaked'),
-        resetBtn: document.getElementById('reset-btn'),
-        addGlucoseBtn: document.getElementById('add-glucose-btn'),
-        addFattyAcidBtn: document.getElementById('add-fatty-acid-btn'),
-        themeBtn: document.getElementById('theme-btn'),
-        menuBtn: document.getElementById('menu-btn'),
-        closeStats: document.getElementById('close-stats'),
-        dashboard: document.getElementById('dashboard'),
-
-        atpBar: document.getElementById('atp-bar'), atpRatio: document.getElementById('atp-ratio'),
-        nadhBar: document.getElementById('nadh-bar'), nadhRatio: document.getElementById('nadh-ratio'),
-        nadphBar: document.getElementById('nadph-bar'), nadphRatio: document.getElementById('nadph-ratio'),
-        fadh2Bar: document.getElementById('fadh2-bar'), fadh2Ratio: document.getElementById('fadh2-ratio'),
-        protonGradient: document.getElementById('proton-gradient'),
-        co2Net: document.getElementById('co2-net'),
-        o2Net: document.getElementById('o2-net'),
-        h2oNet: document.getElementById('h2o-net'),
-        krebsEnzyme: document.getElementById('krebs-enzyme'), krebsReaction: document.getElementById('krebs-reaction'),
-        krebsYield: document.getElementById('krebs-yield'), krebsTurn: document.getElementById('krebs-turn'),
-        calvinTurn: document.getElementById('calvin-turn'), glycolysisRun: document.getElementById('glycolysis-run'),
-        pppRun: document.getElementById('ppp-run'),
-        betaoxRun: document.getElementById('betaox-run'),
-        atpSubstrate: document.getElementById('atp-substrate'),
-        atpOxidative: document.getElementById('atp-oxidative'),
-        atpSourceSub: document.getElementById('atp-source-sub'),
-        atpSourceOx: document.getElementById('atp-source-ox'),
-        organismSelect: document.getElementById('organism-select'),
-        organismDesc: document.getElementById('organism-desc'),
-        rosProduced: document.getElementById('ros-produced'),
-        rosScavenged: document.getElementById('ros-scavenged'),
-        activeROS: document.getElementById('active-ros'),
-        healthBar: document.getElementById('health-bar'),
-        healthRatio: document.getElementById('health-ratio'),
+        canvas: $('sim-canvas'), caption: $('lu-caption'),
+        lightToggle: $('light-toggle'), oxygenToggle: $('oxygen-toggle'), uncouplingToggle: $('uncoupling-toggle'),
+        glycToggle: $('glyc-toggle'), pppToggle: $('ppp-toggle'), calvinToggle: $('calvin-toggle'),
+        krebsToggle: $('krebs-toggle'), betaoxToggle: $('betaox-toggle'),
+        resetBtn: $('reset-btn'), addGlucoseBtn: $('add-glucose-btn'), addFattyAcidBtn: $('add-fatty-acid-btn'),
+        themeBtn: $('theme-btn'), menuBtn: $('menu-btn'), closeStats: $('close-stats'), dashboard: $('dashboard'),
+        modeBtn: $('mode-btn'), speedUp: $('speed-up'), speedDown: $('speed-down'), speedVal: $('speed-val'),
+        organismGroup: $('organism-group'), organismDesc: $('organism-desc'),
+        protonsLeaked: $('protons-leaked'), protonGradient: $('proton-gradient'),
+        atpBar: $('atp-bar'), atpRatio: $('atp-ratio'), nadhBar: $('nadh-bar'), nadhRatio: $('nadh-ratio'),
+        nadphBar: $('nadph-bar'), nadphRatio: $('nadph-ratio'), fadh2Bar: $('fadh2-bar'), fadh2Ratio: $('fadh2-ratio'),
+        co2Net: $('co2-net'), o2Net: $('o2-net'), h2oNet: $('h2o-net'),
+        krebsEnzyme: $('krebs-enzyme'), krebsReaction: $('krebs-reaction'), krebsYield: $('krebs-yield'),
+        krebsTurn: $('krebs-turn'), calvinTurn: $('calvin-turn'), glycolysisRun: $('glycolysis-run'),
+        pppRun: $('ppp-run'), betaoxRun: $('betaox-run'),
+        atpSubstrate: $('atp-substrate'), atpOxidative: $('atp-oxidative'), atpSourceSub: $('atp-source-sub'), atpSourceOx: $('atp-source-ox'),
+        rosProduced: $('ros-produced'), rosScavenged: $('ros-scavenged'), activeROS: $('active-ros'),
+        healthBar: $('health-bar'), healthRatio: $('health-ratio'),
+        statsVisible: () => document.getElementById('tab-stats').classList.contains('active') && !document.body.classList.contains('lu-closed'),
     };
 }
 
-function toggleSidebar(dom, forceClose) {
-    var isOpen;
-    if (forceClose) {
-        _toolbar.closeSidebar(dom.menuBtn, dom.dashboard);
-        isOpen = false;
-    } else {
-        isOpen = _toolbar.toggleSidebar(dom.menuBtn, dom.dashboard);
-    }
-    // Push canvas layout on desktop; mobile uses bottom sheet overlay
-    Renderer.sidebarInset = (isOpen && !_isMobile()) ? _SIDEBAR_W : 0;
+/** Put the specimen's membrane under the microscope and set what it can run. */
+function setSpecimen(id) {
+    const can = SPECIMENS[id].can;
+    simState.specimen = id;
+    simState.linearLightEnabled = can.photo;
+    simState.cyclicLightEnabled = can.cyclic;
+    simState.oxphosEnabled = can.resp;
+    Renderer.setSpecimen(id);
 }
 
-/** Wire all DOM events: toggles, presets, reset, theme, sidebar, shortcuts, info tips. */
-export function bindEvents(dom) {
+/** Open or close the margin (a bottom sheet on phones). */
+function setMargin(dom, open) {
+    document.body.classList.toggle('lu-closed', !open);
+    dom.menuBtn.setAttribute('aria-expanded', String(open));
+}
+
+export function bindEvents(dom, hooks) {
     initDashboard(dom);
+    const touched = () => hooks.onInteract && hooks.onInteract();
+    const pathwayRows = { glycolysis: dom.glycToggle, ppp: dom.pppToggle, calvin: dom.calvinToggle, krebs: dom.krebsToggle, betaox: dom.betaoxToggle };
 
-    // ── Forward/reverse mode toggle ──
-    const modeBtn = document.getElementById('mode-btn');
-    modeBtn.addEventListener('click', () => {
-        reverseMode = !reverseMode;
-        modeBtn.setAttribute('aria-pressed', String(reverseMode));
-        modeBtn.setAttribute('aria-label', reverseMode ? 'Reverse mode' : 'Forward mode');
-        modeBtn.title = reverseMode ? 'Reverse mode (X)' : 'Forward mode (X)';
-    });
-
-    // ── Play/pause button (toolbar) ──
-    if (dom.playBtn) {
-        _toolbar.updatePlayBtn(dom.playBtn, false);
-        dom.playBtn.addEventListener('click', () => {
-            simState.autoPlay = !simState.autoPlay;
-            _toolbar.updatePlayBtn(dom.playBtn, simState.autoPlay);
-            _haptics.trigger('light');
-        });
-    }
-
-    // ── Pathway & environment toggles ──
-    _forms.bindToggle(dom.lightToggle, v => { simState.lightOn = v; updateTheme(dom.themeBtn); });
-    _forms.bindToggle(dom.oxygenToggle, v => { simState.oxygenAvailable = v; });
-    _forms.bindToggle(dom.glycToggle, v => { simState.glycolysisEnabled = v; });
-    _forms.bindToggle(dom.pppToggle, v => { simState.pppEnabled = v; });
-    _forms.bindToggle(dom.calvinToggle, v => { simState.calvinEnabled = v; });
-    _forms.bindToggle(dom.krebsToggle, v => { simState.krebsEnabled = v; });
-    if (dom.betaoxToggle) _forms.bindToggle(dom.betaoxToggle, v => { simState.betaoxEnabled = v; });
-    if (dom.uncouplingToggle) _forms.bindToggle(dom.uncouplingToggle, v => { simState.uncouplingEnabled = v; });
-
-    // ── Organism preset selector ──
-    dom.organismSelect?.addEventListener('change', e => {
-        const key = e.target.value;
+    // ── Organism presets: switches, pools and the specimen ──
+    const applyOrganism = (key, quiet) => {
+        for (const b of dom.organismGroup.querySelectorAll('[data-org]')) {
+            const on = b.dataset.org === key;
+            b.setAttribute('aria-checked', String(on)); b.tabIndex = on ? 0 : -1;
+        }
+        setSpecimen(SPECIMEN_OF[key]);
         if (key === 'custom') {
             simState.lockedPathways = {};
-            const pathwayMap = {
-                glycolysis: dom.glycToggle,
-                ppp: dom.pppToggle,
-                calvin: dom.calvinToggle,
-                krebs: dom.krebsToggle,
-                betaox: dom.betaoxToggle,
-            };
-            for (const [pw, toggle] of Object.entries(pathwayMap)) {
-                toggle.disabled = false;
-                toggle.closest('.ctrl-row')?.classList.remove('locked');
-            }
-            dom.organismDesc.textContent = 'Manual control of all pathways';
+            for (const t of Object.values(pathwayRows)) { t.disabled = false; t.closest('.lu-row').classList.remove('locked'); t.closest('.lu-row').title = ''; }
+            dom.organismDesc.textContent = 'Manual control of all pathways, on a membrane with every complex';
             return;
         }
         const org = ORGANISMS[key];
-        if (!org) return;
-
         simState.activeOrganism = key;
         simState.lockedPathways = org.lockedReason || {};
-
-        // Apply pathway enables + lock state
-        const pathwayMap = {
-            glycolysis: dom.glycToggle,
-            ppp: dom.pppToggle,
-            calvin: dom.calvinToggle,
-            krebs: dom.krebsToggle,
-            betaox: dom.betaoxToggle,
-        };
-        for (const [pw, toggle] of Object.entries(pathwayMap)) {
-            const enabled = org.pathways[pw];
-            toggle.checked = enabled;
-            toggle.dispatchEvent(new Event('change'));
-            toggle.disabled = !enabled && !!org.lockedReason?.[pw];
-            toggle.closest('.ctrl-row')?.classList.toggle('locked', !!org.lockedReason?.[pw]);
+        for (const [pw, t] of Object.entries(pathwayRows)) {
+            const reason = org.lockedReason?.[pw];
+            t.checked = org.pathways[pw];
+            t.dispatchEvent(new Event('change'));
+            t.disabled = !org.pathways[pw] && !!reason;
+            t.closest('.lu-row').classList.toggle('locked', !!reason);
+            t.closest('.lu-row').title = reason || '';
         }
-
-        dom.lightToggle.checked = org.environment.light;
-        dom.lightToggle.dispatchEvent(new Event('change'));
-        dom.oxygenToggle.checked = org.environment.oxygen;
-        dom.oxygenToggle.dispatchEvent(new Event('change'));
-
-        // Reset pools to organism-specific initial ratios
+        dom.lightToggle.checked = org.environment.light; dom.lightToggle.dispatchEvent(new Event('change'));
+        dom.oxygenToggle.checked = org.environment.oxygen; dom.oxygenToggle.dispatchEvent(new Event('change'));
         resetState();
         store.atp = Math.round(store.totalAtpAdp * org.initialRatios.atp);
         store.nadh = Math.round(store.totalNad * org.initialRatios.nadh);
         store.nadph = Math.round(store.totalNadp * org.initialRatios.nadph);
         store.fadh2 = Math.round(store.totalFad * org.initialRatios.fadh2);
-
+        resetFlux(); Particles.clear(); mapTags.length = 0;
         dom.organismDesc.textContent = org.desc;
-        _haptics.trigger('medium');
-    });
-
-    // ── Reset ──
-    dom.resetBtn.addEventListener('click', () => {
-        resetState();
-        resetAutoplayTimers();
-        Particles.electrons.length = 0; Particles.protons.length = 0; Particles.photons.length = 0; Renderer.metabPulse = {};
         updateDashboard();
-        _haptics.trigger('warning');
-    });
-
-    // ── Add substrates ──
-    if (dom.addGlucoseBtn) dom.addGlucoseBtn.addEventListener('click', () => { store.glucose++; updateDashboard(); _haptics.trigger('light'); });
-    if (dom.addFattyAcidBtn) dom.addFattyAcidBtn.addEventListener('click', () => { store.fattyAcid++; updateDashboard(); _haptics.trigger('light'); });
-
-    // ── Theme ──
-    if (dom.themeBtn) dom.themeBtn.addEventListener('click', () => { cycleTheme(dom.themeBtn); _haptics.trigger('selection'); });
-
-    // ── Sidebar ──
-    _toolbar.initSidebar(dom.menuBtn, dom.dashboard, dom.closeStats, {
-        onToggle(isOpen) {
-            Renderer.sidebarInset = (isOpen && !_isMobile()) ? _SIDEBAR_W : 0;
-        }
-    });
-
-    // ── Keyboard shortcuts (via shared-shortcuts.js) ──
-    const toggleCheck = (el, setter) => {
-        el.checked = !el.checked;
-        setter(el.checked);
+        if (!quiet) _buzz('medium');
     };
+    hooks.applyOrganism = applyOrganism;
+    dom.organismGroup.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-org]');
+        if (b) { touched(); applyOrganism(b.dataset.org); }
+    });
+    dom.organismGroup.addEventListener('keydown', (e) => {
+        const bs = [...dom.organismGroup.querySelectorAll('[data-org]')], i = bs.indexOf(document.activeElement);
+        const d = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? -1 : 0;
+        if (!d || i < 0) return;
+        e.preventDefault(); const n = bs[(i + d + bs.length) % bs.length]; n.focus(); n.click();
+    });
 
+    // ── Switches ──
+    _forms.bindToggle(dom.lightToggle, v => { simState.lightOn = v; updateTheme(dom.themeBtn); touched(); });
+    _forms.bindToggle(dom.oxygenToggle, v => { simState.oxygenAvailable = v; touched(); });
+    _forms.bindToggle(dom.glycToggle, v => { simState.glycolysisEnabled = v; touched(); });
+    _forms.bindToggle(dom.pppToggle, v => { simState.pppEnabled = v; touched(); });
+    _forms.bindToggle(dom.calvinToggle, v => { simState.calvinEnabled = v; touched(); });
+    _forms.bindToggle(dom.krebsToggle, v => { simState.krebsEnabled = v; touched(); });
+    _forms.bindToggle(dom.betaoxToggle, v => { simState.betaoxEnabled = v; touched(); });
+    _forms.bindToggle(dom.uncouplingToggle, v => { simState.uncouplingEnabled = v; touched(); });
+    const flip = (el) => { if (el.disabled) return; el.checked = !el.checked; el.dispatchEvent(new Event('change')); };
+
+    // ── Taps run forward or backward ──
+    const syncMode = () => {
+        dom.modeBtn.textContent = reverseMode ? 'backward' : 'forward';
+        dom.modeBtn.setAttribute('aria-pressed', String(reverseMode));
+        dom.modeBtn.setAttribute('aria-label', reverseMode ? 'Reverse mode' : 'Forward mode');
+        dom.modeBtn.title = (reverseMode ? 'Reverse mode' : 'Forward mode') + ' (X)';
+    };
+    dom.modeBtn.addEventListener('click', () => { reverseMode = !reverseMode; syncMode(); });
+    syncMode();
+
+    // ── Particle speed ──
     const SPEEDS = [0.25, 0.5, 1, 2, 4];
-    let speedIdx = 2; // default 1×
-
-    const cycleSpeed = () => {
-        speedIdx = (speedIdx + 1) % SPEEDS.length;
+    let speedIdx = 2;
+    const setSpeed = (d) => {
+        speedIdx = Math.max(0, Math.min(SPEEDS.length - 1, speedIdx + d));
         simState.speed = SPEEDS[speedIdx];
-        showToast('Speed ' + SPEEDS[speedIdx] + '\u00d7');
+        dom.speedVal.textContent = SPEEDS[speedIdx] + '×';
+        showToast('Speed ' + SPEEDS[speedIdx] + '×');
     };
-    const decycleSpeed = () => {
-        speedIdx = (speedIdx - 1 + SPEEDS.length) % SPEEDS.length;
-        simState.speed = SPEEDS[speedIdx];
-        showToast('Speed ' + SPEEDS[speedIdx] + '\u00d7');
-    };
+    dom.speedUp.addEventListener('click', () => setSpeed(1));
+    dom.speedDown.addEventListener('click', () => setSpeed(-1));
 
+    // ── Reset and feed ──
+    dom.resetBtn.addEventListener('click', () => {
+        touched();
+        resetState(); resetAutoplayTimers(); resetFlux(); Particles.clear(); mapTags.length = 0;
+        updateDashboard(); _buzz('warning');
+    });
+    const addGlucose = () => { touched(); store.glucose++; updateDashboard(); _buzz('light'); };
+    const addFat = () => { touched(); store.fattyAcid++; updateDashboard(); _buzz('light'); };
+    dom.addGlucoseBtn.addEventListener('click', addGlucose);
+    dom.addFattyAcidBtn.addEventListener('click', addFat);
 
-    const canvas = dom.canvas;
-    const zoomIn    = () => Renderer.camera.zoomBy(1.25, canvas.width / 2, canvas.height / 2);
-    const zoomOut   = () => Renderer.camera.zoomBy(0.8, canvas.width / 2, canvas.height / 2);
-    const zoomReset = () => {
-        Renderer._updateLayout();
-        const mz = Renderer._minZoom();
-        Renderer.camera.reset(Renderer.W / (2 * mz), Renderer.H / (2 * mz), mz);
-    };
+    // ── Margin ──
+    setMargin(dom, !_isPhone());
+    dom.menuBtn.addEventListener('click', () => setMargin(dom, document.body.classList.contains('lu-closed')));
+    dom.closeStats.addEventListener('click', () => setMargin(dom, false));
+    const toggleMargin = (force) => setMargin(dom, force === false ? false : document.body.classList.contains('lu-closed'));
 
+    // ── Keyboard ──
+    const zoomAt = (f) => Renderer.camera.zoomBy(f, Renderer.W / 2, Renderer.H / 2);
     const shortcuts = [
-        { key: 'Space', label: 'Toggle autoplay', group: 'Simulation', action: () => {
-            if (dom.playBtn) dom.playBtn.click();
-        }},
-        { key: ',', label: 'Slow down', group: 'Simulation', action: decycleSpeed },
-        { key: '.', label: 'Speed up', group: 'Simulation', action: cycleSpeed },
-        { key: 'R', label: 'Reset simulation', group: 'Simulation', action: () => dom.resetBtn.click() },
-        { key: 'G', label: 'Add glucose', group: 'Simulation', action: () => { store.glucose++; updateDashboard(); } },
-        { key: 'F', label: 'Add fatty acid', group: 'Simulation', action: () => { store.fattyAcid++; updateDashboard(); } },
-        { key: 'L', label: 'Toggle light', group: 'Environment', action: () => {
-            toggleCheck(dom.lightToggle, v => { simState.lightOn = v; updateTheme(dom.themeBtn); });
-        }},
-        { key: 'O', label: 'Toggle oxygen', group: 'Environment', action: () => {
-            toggleCheck(dom.oxygenToggle, v => simState.oxygenAvailable = v);
-        }},
-        { key: 'U', label: 'Toggle uncoupling', group: 'Environment', action: () => {
-            if (dom.uncouplingToggle) toggleCheck(dom.uncouplingToggle, v => simState.uncouplingEnabled = v);
-        }},
-        { key: '1', label: 'Toggle glycolysis', group: 'Pathways', action: () => {
-            toggleCheck(dom.glycToggle, v => simState.glycolysisEnabled = v);
-        }},
-        { key: '2', label: 'Toggle PPP', group: 'Pathways', action: () => {
-            toggleCheck(dom.pppToggle, v => simState.pppEnabled = v);
-        }},
-        { key: '3', label: 'Toggle Calvin', group: 'Pathways', action: () => {
-            toggleCheck(dom.calvinToggle, v => simState.calvinEnabled = v);
-        }},
-        { key: '4', label: 'Toggle Krebs', group: 'Pathways', action: () => {
-            toggleCheck(dom.krebsToggle, v => simState.krebsEnabled = v);
-        }},
-        { key: '5', label: 'Toggle beta oxidation', group: 'Pathways', action: () => {
-            if (dom.betaoxToggle) toggleCheck(dom.betaoxToggle, v => simState.betaoxEnabled = v);
-        }},
-        { key: 'X', label: 'Toggle forward/reverse', group: 'Simulation', action: () => document.getElementById('mode-btn').click() },
-        { key: 'T', label: 'Toggle theme', group: 'View', action: () => cycleTheme(dom.themeBtn) },
-        { key: 'S', label: 'Toggle sidebar', group: 'View', action: () => toggleSidebar(dom) },
-        { key: 'Escape', label: 'Close sidebar', group: 'View', action: () => toggleSidebar(dom, true) },
+        { key: 'Space', label: 'Play or pause', group: 'Simulation', action: () => document.querySelector('[data-colophon="play"]')?.click() },
+        { key: ',', label: 'Slower particles', group: 'Simulation', action: () => setSpeed(-1) },
+        { key: '.', label: 'Faster particles', group: 'Simulation', action: () => setSpeed(1) },
+        { key: 'R', label: 'Reset', group: 'Simulation', action: () => dom.resetBtn.click() },
+        { key: 'G', label: 'Add glucose', group: 'Simulation', action: addGlucose },
+        { key: 'F', label: 'Add fatty acid', group: 'Simulation', action: addFat },
+        { key: 'X', label: 'Taps run forward or backward', group: 'Simulation', action: () => dom.modeBtn.click() },
+        { key: 'L', label: 'Toggle light', group: 'Conditions', action: () => flip(dom.lightToggle) },
+        { key: 'O', label: 'Toggle oxygen', group: 'Conditions', action: () => flip(dom.oxygenToggle) },
+        { key: 'U', label: 'Toggle uncoupling', group: 'Conditions', action: () => flip(dom.uncouplingToggle) },
+        { key: '1', label: 'Toggle glycolysis', group: 'Lines', action: () => flip(dom.glycToggle) },
+        { key: '2', label: 'Toggle pentose phosphate', group: 'Lines', action: () => flip(dom.pppToggle) },
+        { key: '3', label: 'Toggle Calvin cycle', group: 'Lines', action: () => flip(dom.calvinToggle) },
+        { key: '4', label: 'Toggle Krebs cycle', group: 'Lines', action: () => flip(dom.krebsToggle) },
+        { key: '5', label: 'Toggle β-oxidation', group: 'Lines', action: () => flip(dom.betaoxToggle) },
+        { key: 'T', label: 'Cycle theme', group: 'View', action: () => cycleTheme(dom.themeBtn) },
+        { key: 'S', label: 'Toggle the margin', group: 'View', action: () => toggleMargin() },
+        { key: 'Escape', label: 'Close the margin', group: 'View', action: () => toggleMargin(false) },
         { key: '[', label: 'Previous tab', group: 'View', action: () => cycleTab(-1) },
         { key: ']', label: 'Next tab', group: 'View', action: () => cycleTab(1) },
-        { key: '=', label: 'Zoom in', group: 'View', action: zoomIn },
-        { key: '-', label: 'Zoom out', group: 'View', action: zoomOut },
-        { key: '0', label: 'Reset zoom', group: 'View', action: zoomReset },
+        { key: '=', label: 'Zoom in', group: 'View', action: () => zoomAt(1.25) },
+        { key: '-', label: 'Zoom out', group: 'View', action: () => zoomAt(0.8) },
+        { key: '0', label: 'Fit', group: 'View', action: () => Renderer.resetView() },
     ];
+    initShortcuts(shortcuts, { helpTitle: 'Keyboard shortcuts' });
 
-    if (typeof initShortcuts === 'function') {
-        initShortcuts(shortcuts, { helpTitle: 'Keyboard shortcuts' });
-    }
+    // ── Colophon: play, theme, help ──
+    const about = initAboutPanel({
+        title: 'Lumen',
+        lastUpdated: '2026-10-24',
+        description: 'Explore how cells make energy. A membrane in cross-section sits above the cell’s carbon network, drawn as a transit map. Each organism puts its own membrane under the microscope. Click an enzyme on the map or a complex in the membrane to run it, or let it play, and watch protons pile up, ATP synthase turn, and the busiest lines thicken.',
+        controls: [
+            { label: 'Run a reaction', value: 'Click an enzyme on the map or a complex' },
+            { label: 'Run it backward', value: 'Right-click (or X on touch)' },
+            { label: 'A whole turn', value: 'Click a loop’s name' },
+            { label: 'Add substrate', value: 'Glucose (G) / fatty acid (F)' },
+            { label: 'Toggle a line', value: 'Margin or keys 1–5' },
+            { label: 'Conditions', value: 'Light (L) / oxygen (O) / uncoupling (U)' },
+            { label: 'Play / pause', value: 'Space' },
+            { label: 'Particle speed', value: ', and .' },
+            { label: 'Zoom / pan', value: '= / - / 0, scroll, drag' },
+            { label: 'Margin', value: 'S, Esc, and [ / ] for tabs' },
+        ],
+        shortcuts: shortcuts,
+        repo: 'https://github.com/a9lim/lumen',
+    });
+    const col = _colophon.mount({
+        playing: simState.autoPlay,
+        onPlay: () => { touched(); simState.autoPlay = !simState.autoPlay; return simState.autoPlay; },
+        onHelp: () => about.show(),
+        onTheme: (t) => systemTheme(t, dom.themeBtn),
+    });
+    hooks.setPlaying = (p) => col.setPlaying(p);
+    dom.themeBtn.addEventListener('click', () => { cycleTheme(dom.themeBtn); _buzz('selection'); });
+    updateTheme(dom.themeBtn);
 
-    if (typeof initAboutPanel === 'function') {
-        initAboutPanel({
-            title: 'Lumen',
-            lastUpdated: '2026-07-17',
-            description: 'Explore how cells produce energy. Click enzyme labels to advance reactions step by step, toggle sunlight and oxygen to shift between photosynthesis, respiration, and fermentation, and watch cofactor pools and the proton gradient respond in real time.',
-            controls: [
-                { label: 'Advance reaction', value: 'Click enzyme label on canvas' },
-                { label: 'Reverse reaction', value: 'Right-click bidirectional enzyme' },
-                { label: 'Add substrate', value: 'Glucose (G) / fatty acid (F)' },
-                { label: 'Toggle pathway', value: 'Sidebar toggles or keys 1\u20135' },
-                { label: 'Toggle environment', value: 'Light (L) / Oxygen (O) / Uncoupling (U)' },
-                { label: 'Play / pause', value: 'Space bar or toolbar button' },
-                { label: 'Speed', value: ', / . to decrease / increase' },
-                { label: 'Reset', value: 'R' },
-                { label: 'Zoom / pan', value: '= / - / 0, scroll wheel, drag' },
-                { label: 'Tabs', value: '[ / ] to cycle sidebar tabs' },
-            ],
-            shortcuts: shortcuts,
-            repo: 'https://github.com/a9lim/lumen',
-        });
-    }
 
-    // ── Info tips (via shared-info.js) — short summaries ──
-    const infoData = {
-        glycolysis: { title: 'Glycolysis', body: 'Splits glucose into 2 pyruvate, netting 2 ATP and 2 NADH.' },
+    // ── Info tips and the reference overlay ──
+    registerInfoTips({
+        glycolysis: { title: 'Glycolysis', body: 'Splits glucose into 2 pyruvate, netting 2 ATP and 2 NADH. Run backward it is gluconeogenesis.' },
         ppp: { title: 'Pentose phosphate pathway', body: 'Produces NADPH for biosynthesis and antioxidant defense.' },
-        calvin: { title: 'Calvin cycle', body: 'Fixes CO\u2082 into sugar using ATP and NADPH from the light reactions.' },
-        krebs: { title: 'Krebs cycle (TCA)', body: 'Oxidizes acetyl-CoA to CO\u2082, producing NADH, FADH\u2082, and GTP.' },
-        sunlight: { title: 'Sunlight', body: 'Powers photosynthetic electron transport: water splitting, O\u2082 release, NADPH production.' },
-        oxygen: { title: 'Ambient O\u2082', body: 'Enables aerobic respiration. Without it, fermentation regenerates NAD\u207A.' },
-        protons: { title: 'Proton gradient', body: 'H\u207A gradient across the membrane drives ATP synthase (4 H\u207A per ATP).' },
-        betaox: { title: 'Beta oxidation', body: 'Breaks fatty acids into acetyl-CoA, yielding FADH\u2082 and NADH per round.' },
-        uncoupling: { title: 'Uncoupling proteins', body: 'Leak protons across the membrane, dissipating the gradient as heat.' },
+        calvin: { title: 'Calvin cycle', body: 'Fixes CO₂ into sugar using ATP and NADPH from the light reactions. It runs back along the glycolysis corridor on its own track.' },
+        krebs: { title: 'Krebs cycle (TCA)', body: 'Oxidizes acetyl-CoA to CO₂, producing NADH, FADH₂, and GTP. Needs oxygen.' },
+        sunlight: { title: 'Sunlight', body: 'Powers photosynthetic electron transport where the membrane has photosystems, and bacteriorhodopsin in the archaeon.' },
+        oxygen: { title: 'Ambient O₂', body: 'Enables aerobic respiration. Without it, fermentation regenerates NAD⁺.' },
+        protons: { title: 'Proton gradient', body: 'Protons pumped across the membrane drive ATP synthase: four per ATP, twelve per turn.' },
+        betaox: { title: 'Beta oxidation', body: 'Breaks fatty acids into acetyl-CoA, yielding FADH₂ and NADH per round. Backward, it is fatty-acid synthesis.' },
+        uncoupling: { title: 'Uncoupling', body: 'Leaks protons back across the membrane, dissipating the gradient as heat.' },
         oxStress: { title: 'Oxidative stress', body: 'ROS from electron leak damage cells; SOD, catalase, and GPx scavenge them.' },
-    };
-
-    registerInfoTips(infoData);
-
-    // ── Reference overlay (Shift+click / long-press on info buttons) ──
-    const openReference = initReferenceOverlay(
-        document.getElementById('reference-overlay'),
-        document.getElementById('reference-title'),
-        document.getElementById('reference-body'),
-        document.getElementById('reference-close'),
-        REFERENCE
-    );
+    });
+    const openReference = initReferenceOverlay(document.getElementById('reference-overlay'), document.getElementById('reference-title'),
+        document.getElementById('reference-body'), document.getElementById('reference-close'), REFERENCE);
     bindReferenceTriggers(openReference);
-
-    // ── Mobile hint bar ──
-    setMobileHint('hint-bar', 'Tap an enzyme to react \u00b7 long-press for info \u00b7 pinch to zoom', '.panel-hint');
+    setMobileHint('hint', 'Tap an enzyme or a complex to run it; X makes taps run backward. Long-press for what it is; pinch to zoom.', '.panel-hint');
 }

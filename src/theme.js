@@ -1,28 +1,33 @@
-// Three-state theme toggle: 0=Simulation (follows sunlight), 1=Light, 2=Dark.
-// Sets data-theme on <html> and syncs simState.visualLightMode for canvas.
-// The switch itself goes through the shared _toolbar.toggleTheme, which flips
-// data-theme and keeps <meta name="theme-color"> on the active canvas color.
+// Three-state theme: Light, Dark, and Sunlight (follows the light toggle,
+// so the page goes dark when the cell's lights go out). It starts from the
+// system preference, which shared/colophon.js applies; the choice isn't
+// stored. The button shows a sun, a moon, or the half-disc for Sunlight.
 import { simState } from './state.js';
 
-let themeMode = 0;
-const _themeNames = ['auto', 'light', 'dark'];
-const _themeTitles = ['Theme: simulation', 'Theme: light', 'Theme: dark'];
+const _MODES = ['light', 'dark', 'sun'];
+const _TITLES = { light: 'Theme: light', dark: 'Theme: dark', sun: 'Theme: follows sunlight' };
+let mode = null;
 
-export function updateTheme(themeBtn) {
-    const next =
-        themeMode === 1 ? 'light' :
-        themeMode === 2 ? 'dark' :
-        simState.lightOn ? 'light' : 'dark';
-    // Two themes, so a different target is exactly one toggle away.
-    if (document.documentElement.dataset.theme !== next) _toolbar.toggleTheme();
-    simState.visualLightMode = next === 'light';
-    if (themeBtn) {
-        themeBtn.setAttribute('data-theme', _themeNames[themeMode]);
-        themeBtn.title = _themeTitles[themeMode];
+export function updateTheme(btn) {
+    if (!mode) mode = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+    const want = mode === 'sun' ? (simState.lightOn ? 'light' : 'dark') : mode;
+    if (document.documentElement.dataset.theme !== want) _colophon.toggleTheme();
+    simState.visualLightMode = want === 'light';
+    if (btn) {
+        btn.dataset.mode = mode;
+        btn.title = _TITLES[mode] + ' (T)';
+        btn.setAttribute('aria-label', _TITLES[mode]);
     }
 }
 
-export function cycleTheme(themeBtn) {
-    themeMode = (themeMode + 1) % 3;
-    updateTheme(themeBtn);
+export function cycleTheme(btn) {
+    if (!mode) updateTheme();
+    mode = _MODES[(_MODES.indexOf(mode) + 1) % _MODES.length];
+    updateTheme(btn);
+}
+
+/** The system theme changed (colophon's listener already applied it). */
+export function systemTheme(theme, btn) {
+    if (mode !== 'sun') mode = theme;
+    updateTheme(btn);
 }

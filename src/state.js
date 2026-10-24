@@ -12,6 +12,7 @@ export const simState = {
     autoPlay: false,
     uncouplingEnabled: false,
     activeOrganism: 'cyanobacterium',
+    specimen: 'thylakoid',
     lockedPathways: {},
     store: null,
     // Smooth rotation for cycle targets (Krebs CW, others CCW)
@@ -50,13 +51,15 @@ simState.store = store;
 export const counters = { krebsTurns: 0, calvinTurns: 0, glycRuns: 0, pppRuns: 0, betaoxRuns: 0 };
 
 // ─── Sparkline Histories ───
-// 300 samples at 5 Hz = 60-second sliding window per metric
+// 300 samples at 5 Hz = 60-second sliding window per metric (ring buffers)
+const _history = (cap) => ({ data: new Float32Array(cap), head: 0, count: 0, cap });
+export function pushSample(h, v) { h.data[h.head] = v; h.head = (h.head + 1) % h.cap; if (h.count < h.cap) h.count++; }
 export const histories = {
-    atp: createSparkHistory(300),
-    nadh: createSparkHistory(300),
-    nadph: createSparkHistory(300),
-    fadh2: createSparkHistory(300),
-    gradient: createSparkHistory(300),
+    atp: _history(300),
+    nadh: _history(300),
+    nadph: _history(300),
+    fadh2: _history(300),
+    gradient: _history(300),
 };
 
 /** Reset all pools to initial values (called on organism preset change or manual reset). */
