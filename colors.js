@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   colors.js — Cyano project-specific color tokens.
+   colors.js — Lumen project-specific color tokens.
    Extends _PALETTE (from shared/tokens.js) with pathway/cofactor
    colors, builds _BASE families for canvas use, and injects
    CSS custom properties (--pw-*, --co-*).

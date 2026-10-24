@@ -354,7 +354,7 @@ const Renderer = {
                 const w = this._screenToWorld(touch.clientX, touch.clientY);
                 const hb = this._hitTestEnzyme(w.x, w.y);
                 if (hb && this.onEnzymeClick) {
-                    var direction = (typeof _cyanoReverseMode === 'function' && _cyanoReverseMode()) ? 'reverse' : 'forward';
+                    var direction = (typeof _lumenReverseMode === 'function' && _lumenReverseMode()) ? 'reverse' : 'forward';
                     this.onEnzymeClick(hb.pathway, hb.stepIndex, direction);
                 }
             }

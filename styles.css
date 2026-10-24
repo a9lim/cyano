@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   styles.css — Project-specific overrides for cyano.
+   styles.css — Project-specific overrides for lumen.
    Shared patterns (glass, tool-btn, layout tokens) in /shared/base.css.
    All colors via CSS vars injected by colors.js — no hardcoded values.
    ═══════════════════════════════════════════════════════════════ */
@@ -420,7 +420,7 @@ main {
   }
 
   /* Bottom sheet handled by .sim-panel in shared-base.css */
-  /* Only override z-index (shared uses 90, cyano needs 95) */
+  /* Only override z-index (shared uses 90, lumen needs 95) */
   #dashboard {
     z-index: 95;
   }
@@ -472,7 +472,7 @@ main {
 .organism-desc { font-size: var(--font-base); color: var(--text-muted); margin: 4px 0 0; }
 
 
-/* ───── Canvas Tooltip — uses shared-tooltip.js (sim-tooltip) with cyano overrides ───── */
+/* ───── Canvas Tooltip — uses shared-tooltip.js (sim-tooltip) with lumen overrides ───── */
 .sim-tooltip.canvas-tip {
   white-space: normal;
   max-width: 280px;

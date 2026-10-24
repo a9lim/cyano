@@ -1,11 +1,11 @@
-# Cyano
+# Lumen
 
-Interactive cellular-metabolism simulator at a9l.im/cyano: the user steps enzymes (or runs autoplay) across connected carbon pathways, a 14-component membrane electron transport chain, and conserved cofactor pools, drawn on Canvas 2D. Vanilla ES modules with no dependencies of its own; KaTeX from jsDelivr renders the reference overlay.
-It is a submodule of the a9l.im repository (`a9lim.github.io`, at `projects/cyano`); the root `AGENTS.md` covers the shared layer, design system, build, and deployment.
+Interactive cellular-metabolism simulator at a9l.im/lumen: the user steps enzymes (or runs autoplay) across connected carbon pathways, a 14-component membrane electron transport chain, and conserved cofactor pools, drawn on Canvas 2D. Vanilla ES modules with no dependencies of its own; KaTeX from jsDelivr renders the reference overlay.
+It is a submodule of the a9l.im repository (`a9lim.github.io`, at `projects/lumen`); the root `AGENTS.md` covers the shared layer, design system, build, and deployment.
 
 ## Running and checking
 
-Preview through the parent build (serve `dist/`, open `/cyano/`). There is no test runner or linter; check syntax with:
+Preview through the parent build (serve `dist/`, open `/lumen/`). There is no test runner or linter; check syntax with:
 
 ```bash
 for f in main.js colors.js src/*.js src/reactions/*.js; do node --check "$f"; done

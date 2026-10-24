@@ -1,13 +1,13 @@
 ---
-name: Cyano
-title: Cyano — Interactive Cellular Metabolism Simulator
+name: Lumen
+title: Lumen — Interactive Cellular Metabolism Simulator
 description: Trace connected carbon metabolism, electron transport, conserved cofactor pools, enzyme feedback, and reactive oxygen species across five stylized cell presets.
 updated: 2026-07-17
 ---
 
-# Cyano — Interactive Cellular Metabolism Simulator
+# Lumen — Interactive Cellular Metabolism Simulator
 
-Cyano is a browser-based cellular-metabolism model. Reactions share one mutable metabolite store, so carbon intermediates, redox cofactors, ATP, the proton gradient, and reactive oxygen species change together as the user advances enzymes or runs autoplay.
+Lumen is a browser-based cellular-metabolism model. Reactions share one mutable metabolite store, so carbon intermediates, redox cofactors, ATP, the proton gradient, and reactive oxygen species change together as the user advances enzymes or runs autoplay.
 
 ## Pathways
 
@@ -39,7 +39,7 @@ Four closed cofactor pairs are conserved by fixed totals: ATP/ADP, NAD+/NADH, NA
 
 ## Accessibility
 
-Cyano provides keyboard shortcuts, labeled controls, light/dark/simulation-following themes, and numerical sidebar readouts. Electron, proton, and photon particles create continuous motion during active reactions; step-by-step mode is available instead of autoplay.
+Lumen provides keyboard shortcuts, labeled controls, light/dark/simulation-following themes, and numerical sidebar readouts. Electron, proton, and photon particles create continuous motion during active reactions; step-by-step mode is available instead of autoplay.
 
 ## Fatty Acid Metabolism
 

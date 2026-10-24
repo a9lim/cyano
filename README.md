@@ -1,8 +1,8 @@
-# Cyano
+# Lumen
 
 An interactive cellular-metabolism simulator. Step through glycolysis, the Krebs and Calvin cycles, the pentose phosphate pathway, fermentation, beta-oxidation, and a membrane electron transport chain one enzyme at a time, and watch the shared cofactor pools, the proton gradient, and reactive oxygen species respond.
 
-**[Open it](https://a9l.im/cyano)** · part of [a9l.im](https://a9l.im)
+**[Open it](https://a9l.im/lumen)** · part of [a9l.im](https://a9l.im)
 
 ## What's in it
 
@@ -29,7 +29,7 @@ the parent site by absolute path. From a checkout of
 [a9lim.github.io](https://github.com/a9lim/a9lim.github.io) with submodules:
 
     npm install && npm run build
-    python3 -m http.server --directory dist 8000   # http://localhost:8000/cyano/
+    python3 -m http.server --directory dist 8000   # http://localhost:8000/lumen/
 
 ## How it's built
 

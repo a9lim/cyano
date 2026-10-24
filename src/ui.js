@@ -13,7 +13,7 @@ const _SIDEBAR_W = 374; // panel-w(350) + right gap(24)
 function _isMobile() { return window.innerWidth <= 900; }
 
 let reverseMode = false;
-window._cyanoReverseMode = () => reverseMode;
+window._lumenReverseMode = () => reverseMode;
 
 /** Build the DOM element cache. Only IDs matter — class names/hierarchy can change freely. */
 export function cacheDOMElements() {
@@ -269,7 +269,7 @@ export function bindEvents(dom) {
 
     if (typeof initAboutPanel === 'function') {
         initAboutPanel({
-            title: 'Cyano',
+            title: 'Lumen',
             lastUpdated: '2026-07-17',
             description: 'Explore how cells produce energy. Click enzyme labels to advance reactions step by step, toggle sunlight and oxygen to shift between photosynthesis, respiration, and fermentation, and watch cofactor pools and the proton gradient respond in real time.',
             controls: [
@@ -285,7 +285,7 @@ export function bindEvents(dom) {
                 { label: 'Tabs', value: '[ / ] to cycle sidebar tabs' },
             ],
             shortcuts: shortcuts,
-            repo: 'https://github.com/a9lim/cyano',
+            repo: 'https://github.com/a9lim/lumen',
         });
     }
 
