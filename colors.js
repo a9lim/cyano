@@ -5,29 +5,20 @@
    CSS custom properties (--pw-*, --co-*).
    ═══════════════════════════════════════════════════════════════ */
 
-// ─── Pathway / Particle Base Hues ───
-// Promote extended palette entries to top-level for convenience in enzymes.js
-_PALETTE.orange = _PALETTE.extended.orange;
-_PALETTE.blue   = _PALETTE.extended.blue;
-_PALETTE.green  = _PALETTE.extended.green;
-_PALETTE.purple = _PALETTE.extended.purple;
-_PALETTE.rose   = _PALETTE.extended.rose;
-_PALETTE.brown  = _PALETTE.extended.brown;
-_PALETTE.red    = _PALETTE.extended.red;
-_PALETTE.cyan   = _PALETTE.extended.cyan;
-_PALETTE.yellow = _PALETTE.extended.yellow;
-_PALETTE.slate  = _PALETTE.extended.slate;
-
-// ─── Cofactor Bar Colors ───
-_PALETTE.atp   = _PALETTE.extended.yellow;
-_PALETTE.nadh  = _PALETTE.extended.blue;
-_PALETTE.nadph = _PALETTE.extended.green;
-_PALETTE.fadh2 = _PALETTE.extended.rose;
+// ─── Pathway / Cofactor Colors ───
+// Semantic keys on each theme, read through _themePalette() or the CSS vars.
+// The proton is Lumen's red, so it takes the accent.
+for (const T of [_PALETTE.light, _PALETTE.dark]) {
+  T.atp   = T.inks.ochre;
+  T.nadh  = T.inks.prussian;
+  T.nadph = T.inks.viridian;
+  T.fadh2 = T.inks.madder;
+}
 
 _freezeTokens();
 
 // ─── Color Math Helpers ───
-// (Uses shared _parseHex, _rgb2hsl, _hsl2hex, _darken from shared/tokens.js)
+// (Uses shared _parseHex, _rgb2hsl, _hsl2hex from shared/tokens.js)
 
 /** Derive a dark-mode fill: same hue as the stroke, fixed saturation, custom lightness. */
 function _darkFill(base, lightness) {
@@ -35,61 +26,63 @@ function _darkFill(base, lightness) {
   return _hsl2hex(h, 0.55, lightness / 100);
 }
 
-/** Build a { stroke, strokeLight, fill? } family from a hex color. */
-function _makeBase(stroke, fillL) {
-  const o = { stroke, strokeLight: _darken(stroke) };
+/** Build a { stroke, strokeLight, fill? } family from an ink's two values:
+ *  stroke is the dark-theme value, strokeLight the light-theme one. */
+function _makeBase(dark, light, fillL) {
+  const o = { stroke: dark, strokeLight: light };
   if (fillL != null) o.fill = _darkFill(o, fillL);
   return o;
 }
+const _ink = (name, fillL) => _makeBase(_PALETTE.dark.inks[name], _PALETTE.light.inks[name], fillL);
 
 // ─── Base Color Families ───
 // Used by enzymes.js _ROLE map to assign pathway semantics to colors.
 // fillL values tuned per-hue so dark-mode fills have sufficient contrast.
 const _BASE = {
-  orange: _makeBase(_PALETTE.orange, 7),
-  blue:   _makeBase(_PALETTE.blue, 13),
-  green:  _makeBase(_PALETTE.green, 7),
-  purple: _makeBase(_PALETTE.purple, 10),
-  rose:   _makeBase(_PALETTE.rose, 8),
-  brown:  _makeBase(_PALETTE.brown, 7),
-  red:    _makeBase(_PALETTE.red),
-  cyan:   _makeBase(_PALETTE.cyan),
-  yellow: _makeBase(_PALETTE.yellow),
-  slate:  _makeBase(_PALETTE.slate),
+  sienna:    _ink('sienna', 7),
+  prussian:  _ink('prussian', 13),
+  viridian:  _ink('viridian', 7),
+  violet:    _ink('violet', 10),
+  madder:    _ink('madder', 8),
+  umber:     _ink('umber', 7),
+  verdigris: _ink('verdigris'),
+  ochre:     _ink('ochre'),
+  accent:    _makeBase(_PALETTE.dark.accent, _PALETTE.light.accent),
+  graphite:  _makeBase(_PALETTE.dark.textMuted, _PALETTE.light.textMuted),
 };
 
 // ─── CSS Custom Property Injection ───
 (function injectProjectVars() {
   const P = _PALETTE, L = P.light, D = P.dark;
 
-  // [CSS var name, _PALETTE key, optional alpha]
+  // [CSS var name, ink or theme key]
   const shared = [
-    ['pw-glyc',        'orange'],
-    ['pw-krebs',       'blue'],
-    ['pw-calvin',      'green'],
-    ['pw-ppp',         'rose'],
-    ['pw-cyclic',      'purple'],
-    ['pw-ferment',     'brown'],
+    ['pw-glyc',        'sienna'],
+    ['pw-krebs',       'prussian'],
+    ['pw-calvin',      'viridian'],
+    ['pw-ppp',         'madder'],
+    ['pw-cyclic',      'violet'],
+    ['pw-ferment',     'umber'],
     ['co-atp',         'atp'],
     ['co-nadh',        'nadh'],
     ['co-nadph',       'nadph'],
     ['co-fadh2',       'fadh2'],
-    ['pw-electron',    'cyan'],
-    ['pw-proton',      'red'],
-    ['pw-photon',      'yellow'],
-    ['pw-betaox',      'yellow'],
-    ['pw-ros',         'red'],
+    ['pw-electron',    'verdigris'],
+    ['pw-proton',      'accent'],
+    ['pw-photon',      'ochre'],
+    ['pw-betaox',      'ochre'],
+    ['pw-ros',         'accent'],
   ];
 
-  const genShared = () => shared.map(([name, key, a]) =>
-    `  --${name}: ${a != null ? _r(P[key], a) : P[key]};`
+  const genShared = (T) => shared.map(([name, key]) =>
+    `  --${name}: ${T.inks[key] || T[key]};`
   ).join('\n');
 
   _injectProjectVars(
-    genShared() + `\n  --bg-scrim: ${_r(D.text, 0.2)};
+    genShared(L) + `\n  --bg-scrim: ${_r(D.text, 0.2)};
   --bg-track:         ${_r(L.text, 0.078)};
   --metab-card-bg:    ${_r(L.text, 0.02)};`,
-    `  --bg-scrim:         ${_r(L.text, 0.149)};
+    genShared(D) + `\n  --bg-scrim:         ${_r(L.text, 0.149)};
   --bg-track:         ${_r(D.text, 0.039)};
   --metab-card-bg:    transparent;`
   );

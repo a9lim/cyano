@@ -3,18 +3,10 @@
 import { store, counters, histories } from './state.js';
 
 
-const _PAL = window._PALETTE;
-
-let _dimColors;
-function _initDimColors() {
-    _dimColors = {
-        atp: _PAL.atp + '66',
-        nadh: _PAL.nadh + '66',
-        nadph: _PAL.nadph + '66',
-        fadh2: _PAL.fadh2 + '66',
-        gradient: _PAL.extended.red + '66',
-    };
-}
+// Sparkline colors per theme; the gradient is the proton's, so the accent.
+const _sparkColors = (T) => ({
+    atp: T.atp, nadh: T.nadh, nadph: T.nadph, fadh2: T.fadh2, gradient: T.accent,
+});
 
 let _dom;
 // Lazy-initialized canvas contexts for sparkline canvases
@@ -27,7 +19,7 @@ function _getSparkCtx(id) {
     return _sparkCtx[id];
 }
 
-export function initDashboard(dom) { _dom = dom; _initDimColors(); }
+export function initDashboard(dom) { _dom = dom; }
 
 // ─── RAF-debounced dashboard update ───
 // Coalesces multiple updateDashboard() calls within the same frame into one.
@@ -133,20 +125,21 @@ export function updateDashboard() {
     if (_dom.activeROS) _dom.activeROS.textContent = activeROS;
     if (_dom.healthBar) {
         _dom.healthBar.style.width = store.cellHealth + '%';
-        _dom.healthBar.style.background = store.cellHealth > 50 ? 'var(--ext-green)' : store.cellHealth > 20 ? 'var(--ext-orange)' : 'var(--ext-red)';
+        _dom.healthBar.style.background = store.cellHealth > 50 ? 'var(--ink-viridian)' : store.cellHealth > 20 ? 'var(--ink-sienna)' : 'var(--accent)';
     }
     if (_dom.healthRatio) _dom.healthRatio.textContent = Math.round(store.cellHealth) + '%';
 
     // Sparklines (160x36 canvases in sidebar)
     const sparkW = 160, sparkH = 36;
+    const sc = _sparkColors(_themePalette());
     const atpCtx = _getSparkCtx('spark-atp');
-    if (atpCtx) drawSparkline(atpCtx, histories.atp, sparkW, sparkH, _PAL.atp, _dimColors.atp);
+    if (atpCtx) drawSparkline(atpCtx, histories.atp, sparkW, sparkH, sc.atp, sc.atp + '66');
     const nadhCtx = _getSparkCtx('spark-nadh');
-    if (nadhCtx) drawSparkline(nadhCtx, histories.nadh, sparkW, sparkH, _PAL.nadh, _dimColors.nadh);
+    if (nadhCtx) drawSparkline(nadhCtx, histories.nadh, sparkW, sparkH, sc.nadh, sc.nadh + '66');
     const nadphCtx = _getSparkCtx('spark-nadph');
-    if (nadphCtx) drawSparkline(nadphCtx, histories.nadph, sparkW, sparkH, _PAL.nadph, _dimColors.nadph);
+    if (nadphCtx) drawSparkline(nadphCtx, histories.nadph, sparkW, sparkH, sc.nadph, sc.nadph + '66');
     const fadh2Ctx = _getSparkCtx('spark-fadh2');
-    if (fadh2Ctx) drawSparkline(fadh2Ctx, histories.fadh2, sparkW, sparkH, _PAL.fadh2, _dimColors.fadh2);
+    if (fadh2Ctx) drawSparkline(fadh2Ctx, histories.fadh2, sparkW, sparkH, sc.fadh2, sc.fadh2 + '66');
     const gradCtx = _getSparkCtx('spark-gradient');
-    if (gradCtx) drawSparkline(gradCtx, histories.gradient, sparkW, sparkH, _PAL.extended.red, _dimColors.gradient);
+    if (gradCtx) drawSparkline(gradCtx, histories.gradient, sparkW, sparkH, sc.gradient, sc.gradient + '66');
 }
